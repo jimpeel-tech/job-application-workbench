@@ -10,1119 +10,8 @@
   },
   "capability_model": {
     "version": 2,
-    "entities": [
-      {
-        "id": "ent_bad5a765b09640409e0972b1427e4dfd",
-        "type": "technology",
-        "canonical_name": "ADW",
-        "display_name": "ADW",
-        "aliases": [],
-        "rating": 0,
-        "match_enabled": true,
-        "iterator_enabled": true
-      },
-      {
-        "id": "ent_b848b1e5094842b8aaa755bc5d6a0925",
-        "type": "competency",
-        "canonical_name": "Agile Delivery",
-        "display_name": "Agile Delivery",
-        "aliases": [],
-        "rating": 0,
-        "match_enabled": true,
-        "iterator_enabled": true
-      },
-      {
-        "id": "ent_050a925de4d04c02b4a8b6ef6752a0a1",
-        "type": "technology",
-        "canonical_name": "Amazon API Gateway",
-        "display_name": "Amazon API Gateway",
-        "aliases": [],
-        "rating": 0,
-        "match_enabled": true,
-        "iterator_enabled": true
-      },
-      {
-        "id": "ent_2c5e5e373acd420788b9130b06d5580a",
-        "type": "technology",
-        "canonical_name": "Amazon Athena",
-        "display_name": "Amazon Athena",
-        "aliases": [],
-        "rating": 0,
-        "match_enabled": true,
-        "iterator_enabled": true
-      },
-      {
-        "id": "ent_99f14f8846a94a0f8f2b6c56b2e9748a",
-        "type": "technology",
-        "canonical_name": "Amazon Bedrock",
-        "display_name": "Amazon Bedrock",
-        "aliases": [],
-        "rating": 0,
-        "match_enabled": true,
-        "iterator_enabled": true
-      },
-      {
-        "id": "ent_8bc8ef1db7a645cc9606153346f3015c",
-        "type": "technology",
-        "canonical_name": "Amazon CloudWatch",
-        "display_name": "Amazon CloudWatch",
-        "aliases": [],
-        "rating": 0,
-        "match_enabled": true,
-        "iterator_enabled": true
-      },
-      {
-        "id": "ent_e73846e2f99a495f89275b2ecfcafcbf",
-        "type": "technology",
-        "canonical_name": "Amazon DynamoDB",
-        "display_name": "Amazon DynamoDB",
-        "aliases": [],
-        "rating": 0,
-        "match_enabled": true,
-        "iterator_enabled": true
-      },
-      {
-        "id": "ent_848f3c063bc94924b4bef0cddd6f4a94",
-        "type": "technology",
-        "canonical_name": "Amazon EBS",
-        "display_name": "Amazon EBS",
-        "aliases": [],
-        "rating": 0,
-        "match_enabled": true,
-        "iterator_enabled": true
-      },
-      {
-        "id": "ent_ffc739ea60874d62ab4afc131cec8720",
-        "type": "technology",
-        "canonical_name": "Amazon EC2",
-        "display_name": "Amazon EC2",
-        "aliases": [],
-        "rating": 0,
-        "match_enabled": true,
-        "iterator_enabled": true
-      },
-      {
-        "id": "ent_d38a8ad520324aeb8ee54dea80615e2d",
-        "type": "technology",
-        "canonical_name": "Amazon ECR",
-        "display_name": "Amazon ECR",
-        "aliases": [],
-        "rating": 0,
-        "match_enabled": true,
-        "iterator_enabled": true
-      },
-      {
-        "id": "ent_13409792d75e49e4930548e170cbca9f",
-        "type": "technology",
-        "canonical_name": "Amazon ECS",
-        "display_name": "Amazon ECS",
-        "aliases": [],
-        "rating": 0,
-        "match_enabled": true,
-        "iterator_enabled": true
-      },
-      {
-        "id": "ent_bbf99f1572054e618392340b5e79a6a2",
-        "type": "technology",
-        "canonical_name": "Amazon EKS",
-        "display_name": "Amazon EKS",
-        "aliases": [],
-        "rating": 0,
-        "match_enabled": true,
-        "iterator_enabled": true
-      },
-      {
-        "id": "ent_3ef25ab04bed43edaaaac0327e42ea4b",
-        "type": "technology",
-        "canonical_name": "Amazon EMR",
-        "display_name": "Amazon EMR",
-        "aliases": [],
-        "rating": 0,
-        "match_enabled": true,
-        "iterator_enabled": true
-      },
-      {
-        "id": "ent_ee48717dfffe454fa02f0cc7c11f39fb",
-        "type": "technology",
-        "canonical_name": "Amazon EventBridge",
-        "display_name": "Amazon EventBridge",
-        "aliases": [],
-        "rating": 0,
-        "match_enabled": true,
-        "iterator_enabled": true
-      },
-      {
-        "id": "ent_1127c4b1e3f04bffa16feb6941baabab",
-        "type": "technology",
-        "canonical_name": "Amazon RDS",
-        "display_name": "Amazon RDS",
-        "aliases": [],
-        "rating": 0,
-        "match_enabled": true,
-        "iterator_enabled": true
-      },
-      {
-        "id": "ent_7e7ef54c9855466db35860c4d6dd3961",
-        "type": "technology",
-        "canonical_name": "Amazon Redshift",
-        "display_name": "Amazon Redshift",
-        "aliases": [],
-        "rating": 0,
-        "match_enabled": true,
-        "iterator_enabled": true
-      },
-      {
-        "id": "ent_bddab10aa5bd4f6d8e88d27af0fe28b6",
-        "type": "technology",
-        "canonical_name": "Amazon Route 53",
-        "display_name": "Amazon Route 53",
-        "aliases": [],
-        "rating": 0,
-        "match_enabled": true,
-        "iterator_enabled": true
-      },
-      {
-        "id": "ent_d844d60ca18049f48e572900407d193d",
-        "type": "technology",
-        "canonical_name": "Amazon S3",
-        "display_name": "Amazon S3",
-        "aliases": [],
-        "rating": 0,
-        "match_enabled": true,
-        "iterator_enabled": true
-      },
-      {
-        "id": "ent_d81d67b80a0444a79f004ae331bbd0c4",
-        "type": "technology",
-        "canonical_name": "Amazon SNS",
-        "display_name": "Amazon SNS",
-        "aliases": [],
-        "rating": 0,
-        "match_enabled": true,
-        "iterator_enabled": true
-      },
-      {
-        "id": "ent_9e3db04a3dea4b1ab00884eb450a8444",
-        "type": "technology",
-        "canonical_name": "Amazon SQS",
-        "display_name": "Amazon SQS",
-        "aliases": [],
-        "rating": 0,
-        "match_enabled": true,
-        "iterator_enabled": true
-      },
-      {
-        "id": "ent_c18640e087a644b292966c02d6f60ff6",
-        "type": "technology",
-        "canonical_name": "Amazon VPC",
-        "display_name": "Amazon VPC",
-        "aliases": [],
-        "rating": 0,
-        "match_enabled": true,
-        "iterator_enabled": true
-      },
-      {
-        "id": "ent_fb09d62110be4d378e83b1c9542f0c3d",
-        "type": "technology",
-        "canonical_name": "Amazon Web Services",
-        "display_name": "Amazon Web Services",
-        "aliases": [],
-        "rating": 0,
-        "match_enabled": true,
-        "iterator_enabled": true
-      },
-      {
-        "id": "ent_1aeecf23b8e4497c9c392c73139801b9",
-        "type": "competency",
-        "canonical_name": "Application Architecture",
-        "display_name": "Application Architecture",
-        "aliases": [],
-        "rating": 0,
-        "match_enabled": true,
-        "iterator_enabled": true
-      },
-      {
-        "id": "ent_f61f129a01b54bd1b956a3400d3b5cf6",
-        "type": "competency",
-        "canonical_name": "Application Dependency Mapping",
-        "display_name": "Application Dependency Mapping",
-        "aliases": [],
-        "rating": 0,
-        "match_enabled": true,
-        "iterator_enabled": true
-      },
-      {
-        "id": "ent_491c19f2c6eb42e3bd9c0fc142443ad1",
-        "type": "competency",
-        "canonical_name": "Application Discovery",
-        "display_name": "Application Discovery",
-        "aliases": [],
-        "rating": 0,
-        "match_enabled": true,
-        "iterator_enabled": true
-      },
-      {
-        "id": "ent_570e278b6818436da2067249fe6fb392",
-        "type": "technology",
-        "canonical_name": "Application Load Balancer",
-        "display_name": "Application Load Balancer",
-        "aliases": [],
-        "rating": 0,
-        "match_enabled": true,
-        "iterator_enabled": true
-      },
-      {
-        "id": "ent_5beafed798d347b398aa8024176d3d33",
-        "type": "competency",
-        "canonical_name": "Application Migration",
-        "display_name": "Application Migration",
-        "aliases": [],
-        "rating": 0,
-        "match_enabled": true,
-        "iterator_enabled": true
-      },
-      {
-        "id": "ent_7a54d5faa11e48f0a9dec19a25b5112c",
-        "type": "competency",
-        "canonical_name": "Architecture Reviews",
-        "display_name": "Architecture Reviews",
-        "aliases": [],
-        "rating": 0,
-        "match_enabled": true,
-        "iterator_enabled": true
-      },
-      {
-        "id": "ent_04716b4786164e84a473ac8c75c4ba42",
-        "type": "competency",
-        "canonical_name": "Architecture Standards",
-        "display_name": "Architecture Standards",
-        "aliases": [],
-        "rating": 0,
-        "match_enabled": true,
-        "iterator_enabled": true
-      },
-      {
-        "id": "ent_ed4aa47734544274b5ade790a48232b9",
-        "type": "technology",
-        "canonical_name": "ATP",
-        "display_name": "ATP",
-        "aliases": [],
-        "rating": 0,
-        "match_enabled": true,
-        "iterator_enabled": true
-      },
-      {
-        "id": "ent_180ee1081b4540edb7065dc5833def52",
-        "type": "technology",
-        "canonical_name": "Autonomous Data Warehouse",
-        "display_name": "Autonomous Data Warehouse",
-        "aliases": [],
-        "rating": 0,
-        "match_enabled": true,
-        "iterator_enabled": true
-      },
-      {
-        "id": "ent_601799f50b074e8a9585bb393d7dc0d0",
-        "type": "technology",
-        "canonical_name": "Autonomous Transaction Processing",
-        "display_name": "Autonomous Transaction Processing",
-        "aliases": [],
-        "rating": 0,
-        "match_enabled": true,
-        "iterator_enabled": true
-      },
-      {
-        "id": "ent_281e139f3e51438d8780bb707a3f4a09",
-        "type": "competency",
-        "canonical_name": "Availability Engineering",
-        "display_name": "Availability Engineering",
-        "aliases": [],
-        "rating": 0,
-        "match_enabled": true,
-        "iterator_enabled": true
-      },
-      {
-        "id": "ent_cc958682511a4509885b07258ee7be17",
-        "type": "technology",
-        "canonical_name": "AWS",
-        "display_name": "AWS",
-        "aliases": [],
-        "rating": 0,
-        "match_enabled": true,
-        "iterator_enabled": true
-      },
-      {
-        "id": "ent_055fa69b7d2043c0a0e275ed7218db1a",
-        "type": "technology",
-        "canonical_name": "AWS Certificate Manager",
-        "display_name": "AWS Certificate Manager",
-        "aliases": [],
-        "rating": 0,
-        "match_enabled": true,
-        "iterator_enabled": true
-      },
-      {
-        "id": "ent_ff0cf3e42c47433f84fde34efa537a38",
-        "type": "technology",
-        "canonical_name": "AWS Cloud Adoption Framework",
-        "display_name": "AWS Cloud Adoption Framework",
-        "aliases": [],
-        "rating": 0,
-        "match_enabled": true,
-        "iterator_enabled": true
-      },
-      {
-        "id": "ent_6ec68e0c3f314a8fa3e539ac9225ec61",
-        "type": "technology",
-        "canonical_name": "AWS CloudTrail",
-        "display_name": "AWS CloudTrail",
-        "aliases": [],
-        "rating": 0,
-        "match_enabled": true,
-        "iterator_enabled": true
-      },
-      {
-        "id": "ent_ff4fd8618bba412882d33924134457f8",
-        "type": "technology",
-        "canonical_name": "AWS Control Tower",
-        "display_name": "AWS Control Tower",
-        "aliases": [],
-        "rating": 0,
-        "match_enabled": true,
-        "iterator_enabled": true
-      },
-      {
-        "id": "ent_cec4cbeedb01442cac462d6dde947e44",
-        "type": "technology",
-        "canonical_name": "AWS Direct Connect",
-        "display_name": "AWS Direct Connect",
-        "aliases": [],
-        "rating": 0,
-        "match_enabled": true,
-        "iterator_enabled": true
-      },
-      {
-        "id": "ent_008ce70039094a8c814143fea4194821",
-        "type": "technology",
-        "canonical_name": "AWS Glue",
-        "display_name": "AWS Glue",
-        "aliases": [],
-        "rating": 0,
-        "match_enabled": true,
-        "iterator_enabled": true
-      },
-      {
-        "id": "ent_2909c7d00d944c799e572e81cfb9ac18",
-        "type": "technology",
-        "canonical_name": "AWS GovCloud",
-        "display_name": "AWS GovCloud",
-        "aliases": [],
-        "rating": 0,
-        "match_enabled": true,
-        "iterator_enabled": true
-      },
-      {
-        "id": "ent_807b19b890814d038a0491d4f302336f",
-        "type": "technology",
-        "canonical_name": "AWS IAM",
-        "display_name": "AWS IAM",
-        "aliases": [],
-        "rating": 0,
-        "match_enabled": true,
-        "iterator_enabled": true
-      },
-      {
-        "id": "ent_5f6a43ccb3594ec2aeb5c31521000133",
-        "type": "technology",
-        "canonical_name": "AWS KMS",
-        "display_name": "AWS KMS",
-        "aliases": [],
-        "rating": 0,
-        "match_enabled": true,
-        "iterator_enabled": true
-      },
-      {
-        "id": "ent_7c49014380cb4510b5cdade2b06e0974",
-        "type": "technology",
-        "canonical_name": "AWS Lake Formation",
-        "display_name": "AWS Lake Formation",
-        "aliases": [],
-        "rating": 0,
-        "match_enabled": true,
-        "iterator_enabled": true
-      },
-      {
-        "id": "ent_fd07c343dae24fde9c7d53b2668494e4",
-        "type": "technology",
-        "canonical_name": "AWS Lambda",
-        "display_name": "AWS Lambda",
-        "aliases": [],
-        "rating": 0,
-        "match_enabled": true,
-        "iterator_enabled": true
-      },
-      {
-        "id": "ent_bd16a5f0535f433b87b8bc3931d4c777",
-        "type": "technology",
-        "canonical_name": "AWS Organizations",
-        "display_name": "AWS Organizations",
-        "aliases": [],
-        "rating": 0,
-        "match_enabled": true,
-        "iterator_enabled": true
-      },
-      {
-        "id": "ent_2c3b7571d66541399997e8e2c2cfa6ed",
-        "type": "technology",
-        "canonical_name": "AWS Secrets Manager",
-        "display_name": "AWS Secrets Manager",
-        "aliases": [],
-        "rating": 0,
-        "match_enabled": true,
-        "iterator_enabled": true
-      },
-      {
-        "id": "ent_7806a53c23624293b4a5a174d38ffd57",
-        "type": "technology",
-        "canonical_name": "AWS Shared Responsibility Model",
-        "display_name": "AWS Shared Responsibility Model",
-        "aliases": [],
-        "rating": 0,
-        "match_enabled": true,
-        "iterator_enabled": true
-      },
-      {
-        "id": "ent_eb8d9b6f36be4f498f73e185d00925c3",
-        "type": "technology",
-        "canonical_name": "AWS Systems Manager",
-        "display_name": "AWS Systems Manager",
-        "aliases": [],
-        "rating": 0,
-        "match_enabled": true,
-        "iterator_enabled": true
-      },
-      {
-        "id": "ent_36a98ccee13b45feb9c37617724b5971",
-        "type": "technology",
-        "canonical_name": "AWS Transit Gateway",
-        "display_name": "AWS Transit Gateway",
-        "aliases": [],
-        "rating": 0,
-        "match_enabled": true,
-        "iterator_enabled": true
-      },
-      {
-        "id": "ent_abf2ad5f326e44759624016c30ab9446",
-        "type": "technology",
-        "canonical_name": "AWS WAF",
-        "display_name": "AWS WAF",
-        "aliases": [],
-        "rating": 0,
-        "match_enabled": true,
-        "iterator_enabled": true
-      },
-      {
-        "id": "ent_e6e35250f914412d83fdbc66820e1395",
-        "type": "technology",
-        "canonical_name": "AWS Well-Architected Framework",
-        "display_name": "AWS Well-Architected Framework",
-        "aliases": [],
-        "rating": 0,
-        "match_enabled": true,
-        "iterator_enabled": true
-      },
-      {
-        "id": "ent_c3a2ff7a53fc4bf587665d8faeb00f20",
-        "type": "competency",
-        "canonical_name": "Business Continuity",
-        "display_name": "Business Continuity",
-        "aliases": [],
-        "rating": 0,
-        "match_enabled": true,
-        "iterator_enabled": true
-      },
-      {
-        "id": "ent_a058ff15809f4e07a473caeb0ecc990c",
-        "type": "competency",
-        "canonical_name": "Cloud Solutions Architecture",
-        "display_name": "Cloud Solutions Architecture",
-        "aliases": [],
-        "rating": 0,
-        "match_enabled": true,
-        "iterator_enabled": true
-      },
-      {
-        "id": "ent_5f4c4760d2e444a1aec309b9564e8d0e",
-        "type": "technology",
-        "canonical_name": "Elastic Load Balancing",
-        "display_name": "Elastic Load Balancing",
-        "aliases": [],
-        "rating": 0,
-        "match_enabled": true,
-        "iterator_enabled": true
-      },
-      {
-        "id": "ent_fc4017a0495148329bcd478100d8b1bd",
-        "type": "competency",
-        "canonical_name": "Error Budgets",
-        "display_name": "Error Budgets",
-        "aliases": [],
-        "rating": 0,
-        "match_enabled": true,
-        "iterator_enabled": true
-      },
-      {
-        "id": "ent_c0dbda029efb4c57ab94d53f5a3524e8",
-        "type": "competency",
-        "canonical_name": "Incident Management",
-        "display_name": "Incident Management",
-        "aliases": [],
-        "rating": 0,
-        "match_enabled": true,
-        "iterator_enabled": true
-      },
-      {
-        "id": "ent_8b2400a1838845ee928f5ffc4b47c53d",
-        "type": "competency",
-        "canonical_name": "Lifecycle Automation",
-        "display_name": "Lifecycle Automation",
-        "aliases": [],
-        "rating": 0,
-        "match_enabled": true,
-        "iterator_enabled": true
-      },
-      {
-        "id": "ent_e5fe18829fdf4d0a8d91297138aebc95",
-        "type": "technology",
-        "canonical_name": "Network Load Balancer",
-        "display_name": "Network Load Balancer",
-        "aliases": [],
-        "rating": 0,
-        "match_enabled": true,
-        "iterator_enabled": true
-      },
-      {
-        "id": "ent_563ed842ce1c4415b08807a8d516c88b",
-        "type": "technology",
-        "canonical_name": "OCI",
-        "display_name": "OCI",
-        "aliases": [],
-        "rating": 0,
-        "match_enabled": true,
-        "iterator_enabled": true
-      },
-      {
-        "id": "ent_e4a8a6a7e2ad4b8d80d30440f0481143",
-        "type": "technology",
-        "canonical_name": "OCI Autonomous Database",
-        "display_name": "OCI Autonomous Database",
-        "aliases": [],
-        "rating": 0,
-        "match_enabled": true,
-        "iterator_enabled": true
-      },
-      {
-        "id": "ent_30048ac67238405a8616d033f57ad45f",
-        "type": "technology",
-        "canonical_name": "OCI Block Volume",
-        "display_name": "OCI Block Volume",
-        "aliases": [],
-        "rating": 0,
-        "match_enabled": true,
-        "iterator_enabled": true
-      },
-      {
-        "id": "ent_fba6c84fb0ad4c03971f4b2db9fef07e",
-        "type": "technology",
-        "canonical_name": "OCI CDN",
-        "display_name": "OCI CDN",
-        "aliases": [],
-        "rating": 0,
-        "match_enabled": true,
-        "iterator_enabled": true
-      },
-      {
-        "id": "ent_54a641f4d5c841dbaea65b2faecf66b2",
-        "type": "technology",
-        "canonical_name": "OCI Compartments",
-        "display_name": "OCI Compartments",
-        "aliases": [],
-        "rating": 0,
-        "match_enabled": true,
-        "iterator_enabled": true
-      },
-      {
-        "id": "ent_7b725cd974da477098950afb32d0f4f0",
-        "type": "technology",
-        "canonical_name": "OCI Compute",
-        "display_name": "OCI Compute",
-        "aliases": [],
-        "rating": 0,
-        "match_enabled": true,
-        "iterator_enabled": true
-      },
-      {
-        "id": "ent_7aa8c81ce75e4dec8d951e1333e22041",
-        "type": "technology",
-        "canonical_name": "OCI Content Delivery Network",
-        "display_name": "OCI Content Delivery Network",
-        "aliases": [],
-        "rating": 0,
-        "match_enabled": true,
-        "iterator_enabled": true
-      },
-      {
-        "id": "ent_eb910df73302451eb544944ffdaeb920",
-        "type": "technology",
-        "canonical_name": "OCI DNS",
-        "display_name": "OCI DNS",
-        "aliases": [],
-        "rating": 0,
-        "match_enabled": true,
-        "iterator_enabled": true
-      },
-      {
-        "id": "ent_e305b8d3e0e544b0b16b050e8dcdeeac",
-        "type": "technology",
-        "canonical_name": "OCI DRG",
-        "display_name": "OCI DRG",
-        "aliases": [],
-        "rating": 0,
-        "match_enabled": true,
-        "iterator_enabled": true
-      },
-      {
-        "id": "ent_7bf9eac89ff94e3f8af549dd61582c76",
-        "type": "technology",
-        "canonical_name": "OCI Dynamic Routing Gateway",
-        "display_name": "OCI Dynamic Routing Gateway",
-        "aliases": [],
-        "rating": 0,
-        "match_enabled": true,
-        "iterator_enabled": true
-      },
-      {
-        "id": "ent_4d072fcd02c74179977b92914b6a4bcd",
-        "type": "technology",
-        "canonical_name": "OCI FastConnect",
-        "display_name": "OCI FastConnect",
-        "aliases": [],
-        "rating": 0,
-        "match_enabled": true,
-        "iterator_enabled": true
-      },
-      {
-        "id": "ent_db7615e66c4d4ca99d1f26d0a1e1dd72",
-        "type": "technology",
-        "canonical_name": "OCI File Storage",
-        "display_name": "OCI File Storage",
-        "aliases": [],
-        "rating": 0,
-        "match_enabled": true,
-        "iterator_enabled": true
-      },
-      {
-        "id": "ent_f2d207b5d88f4bb08cd424408724f274",
-        "type": "technology",
-        "canonical_name": "OCI IAM",
-        "display_name": "OCI IAM",
-        "aliases": [],
-        "rating": 0,
-        "match_enabled": true,
-        "iterator_enabled": true
-      },
-      {
-        "id": "ent_cfab7d3978ee45bcba074d6327c0933f",
-        "type": "technology",
-        "canonical_name": "OCI Identity and Access Management",
-        "display_name": "OCI Identity and Access Management",
-        "aliases": [],
-        "rating": 0,
-        "match_enabled": true,
-        "iterator_enabled": true
-      },
-      {
-        "id": "ent_5b7ec996cb134320b9c1d91cfcc1ccb5",
-        "type": "technology",
-        "canonical_name": "OCI Internet Gateway",
-        "display_name": "OCI Internet Gateway",
-        "aliases": [],
-        "rating": 0,
-        "match_enabled": true,
-        "iterator_enabled": true
-      },
-      {
-        "id": "ent_ebbae9548abc4d4ab3ef78be22fc1252",
-        "type": "technology",
-        "canonical_name": "OCI Load Balancer",
-        "display_name": "OCI Load Balancer",
-        "aliases": [],
-        "rating": 0,
-        "match_enabled": true,
-        "iterator_enabled": true
-      },
-      {
-        "id": "ent_e5ee4b01e1bb4bc38ebd2349c74ec98e",
-        "type": "technology",
-        "canonical_name": "OCI Logging",
-        "display_name": "OCI Logging",
-        "aliases": [],
-        "rating": 0,
-        "match_enabled": true,
-        "iterator_enabled": true
-      },
-      {
-        "id": "ent_d4b645b80c524b61877ebb0479805b1e",
-        "type": "technology",
-        "canonical_name": "OCI Monitoring",
-        "display_name": "OCI Monitoring",
-        "aliases": [],
-        "rating": 0,
-        "match_enabled": true,
-        "iterator_enabled": true
-      },
-      {
-        "id": "ent_84b40ae26abc489d96104eb02026ee58",
-        "type": "technology",
-        "canonical_name": "OCI NAT Gateway",
-        "display_name": "OCI NAT Gateway",
-        "aliases": [],
-        "rating": 0,
-        "match_enabled": true,
-        "iterator_enabled": true
-      },
-      {
-        "id": "ent_149e9a7fccde4069a48feb392181ff2f",
-        "type": "technology",
-        "canonical_name": "OCI Network Security Groups",
-        "display_name": "OCI Network Security Groups",
-        "aliases": [],
-        "rating": 0,
-        "match_enabled": true,
-        "iterator_enabled": true
-      },
-      {
-        "id": "ent_4e8f2d40ff2745db9616a79ee1cace33",
-        "type": "technology",
-        "canonical_name": "OCI Notifications",
-        "display_name": "OCI Notifications",
-        "aliases": [],
-        "rating": 0,
-        "match_enabled": true,
-        "iterator_enabled": true
-      },
-      {
-        "id": "ent_876db23f68694e82b65f4b1eda165960",
-        "type": "technology",
-        "canonical_name": "OCI Object Storage",
-        "display_name": "OCI Object Storage",
-        "aliases": [],
-        "rating": 0,
-        "match_enabled": true,
-        "iterator_enabled": true
-      },
-      {
-        "id": "ent_0c402a4106b3431c8caa31e12a52f9fd",
-        "type": "technology",
-        "canonical_name": "OCI Resource Manager",
-        "display_name": "OCI Resource Manager",
-        "aliases": [],
-        "rating": 0,
-        "match_enabled": true,
-        "iterator_enabled": true
-      },
-      {
-        "id": "ent_dc227faeee5649b9a4a5d5d49707e5ee",
-        "type": "technology",
-        "canonical_name": "OCI Route Tables",
-        "display_name": "OCI Route Tables",
-        "aliases": [],
-        "rating": 0,
-        "match_enabled": true,
-        "iterator_enabled": true
-      },
-      {
-        "id": "ent_07724f09df924b0f9e7d3be154354edf",
-        "type": "technology",
-        "canonical_name": "OCI Security Lists",
-        "display_name": "OCI Security Lists",
-        "aliases": [],
-        "rating": 0,
-        "match_enabled": true,
-        "iterator_enabled": true
-      },
-      {
-        "id": "ent_cfc27081b65b4c339a3e18e98c60acd5",
-        "type": "technology",
-        "canonical_name": "OCI Service Gateway",
-        "display_name": "OCI Service Gateway",
-        "aliases": [],
-        "rating": 0,
-        "match_enabled": true,
-        "iterator_enabled": true
-      },
-      {
-        "id": "ent_95056db49b204aca8baa1d40b8b0ec2c",
-        "type": "technology",
-        "canonical_name": "OCI Vault",
-        "display_name": "OCI Vault",
-        "aliases": [],
-        "rating": 0,
-        "match_enabled": true,
-        "iterator_enabled": true
-      },
-      {
-        "id": "ent_1abbeac92fad48e5a54e7ee4dcae7eec",
-        "type": "technology",
-        "canonical_name": "OCI VCN",
-        "display_name": "OCI VCN",
-        "aliases": [],
-        "rating": 0,
-        "match_enabled": true,
-        "iterator_enabled": true
-      },
-      {
-        "id": "ent_904c0f13032a41598f3a218299563c76",
-        "type": "technology",
-        "canonical_name": "OCI Virtual Cloud Network",
-        "display_name": "OCI Virtual Cloud Network",
-        "aliases": [],
-        "rating": 0,
-        "match_enabled": true,
-        "iterator_enabled": true
-      },
-      {
-        "id": "ent_e2596b6d584c4bcaae27852b150a0d7f",
-        "type": "technology",
-        "canonical_name": "OCI WAF",
-        "display_name": "OCI WAF",
-        "aliases": [],
-        "rating": 0,
-        "match_enabled": true,
-        "iterator_enabled": true
-      },
-      {
-        "id": "ent_40e4525a9ff7410883810bc65fb81055",
-        "type": "technology",
-        "canonical_name": "OCI Web Application Firewall",
-        "display_name": "OCI Web Application Firewall",
-        "aliases": [],
-        "rating": 0,
-        "match_enabled": true,
-        "iterator_enabled": true
-      },
-      {
-        "id": "ent_924aa919d20d4e548a07feb78e37f983",
-        "type": "competency",
-        "canonical_name": "On-Call Operations",
-        "display_name": "On-Call Operations",
-        "aliases": [],
-        "rating": 0,
-        "match_enabled": true,
-        "iterator_enabled": true
-      },
-      {
-        "id": "ent_4ae3b4498c6d499f94727aeec8728b69",
-        "type": "technology",
-        "canonical_name": "Oracle APEX",
-        "display_name": "Oracle APEX",
-        "aliases": [],
-        "rating": 0,
-        "match_enabled": true,
-        "iterator_enabled": true
-      },
-      {
-        "id": "ent_401fca3e121440d4aa63992f9a2d51e2",
-        "type": "technology",
-        "canonical_name": "Oracle Cloud Infrastructure",
-        "display_name": "Oracle Cloud Infrastructure",
-        "aliases": [],
-        "rating": 0,
-        "match_enabled": true,
-        "iterator_enabled": true
-      },
-      {
-        "id": "ent_c5594131c8b84f9c93f3c537baf805bd",
-        "type": "technology",
-        "canonical_name": "Oracle Database",
-        "display_name": "Oracle Database",
-        "aliases": [],
-        "rating": 0,
-        "match_enabled": true,
-        "iterator_enabled": true
-      },
-      {
-        "id": "ent_78861dfcf9ba4c56a3857735522eddfd",
-        "type": "technology",
-        "canonical_name": "Oracle Exadata",
-        "display_name": "Oracle Exadata",
-        "aliases": [],
-        "rating": 0,
-        "match_enabled": true,
-        "iterator_enabled": true
-      },
-      {
-        "id": "ent_00fb8d9a3e8d48f5b74da2cf85f25136",
-        "type": "technology",
-        "canonical_name": "Oracle Fusion Middleware",
-        "display_name": "Oracle Fusion Middleware",
-        "aliases": [],
-        "rating": 0,
-        "match_enabled": true,
-        "iterator_enabled": true
-      },
-      {
-        "id": "ent_2e35e29ddaef4de2a71459e2a60cf984",
-        "type": "technology",
-        "canonical_name": "Oracle GoldenGate",
-        "display_name": "Oracle GoldenGate",
-        "aliases": [],
-        "rating": 0,
-        "match_enabled": true,
-        "iterator_enabled": true
-      },
-      {
-        "id": "ent_174a4534a15f41a490680bda0583e8ea",
-        "type": "technology",
-        "canonical_name": "Oracle SDK",
-        "display_name": "Oracle SDK",
-        "aliases": [],
-        "rating": 0,
-        "match_enabled": true,
-        "iterator_enabled": true
-      },
-      {
-        "id": "ent_5ba58c3faf45471083d755f3c9a4ec76",
-        "type": "competency",
-        "canonical_name": "Patch Management",
-        "display_name": "Patch Management",
-        "aliases": [],
-        "rating": 0,
-        "match_enabled": true,
-        "iterator_enabled": true
-      },
-      {
-        "id": "ent_5af87468f8a04498aca78d47e5bdbb32",
-        "type": "competency",
-        "canonical_name": "Performance Engineering",
-        "display_name": "Performance Engineering",
-        "aliases": [],
-        "rating": 0,
-        "match_enabled": true,
-        "iterator_enabled": true
-      },
-      {
-        "id": "ent_3c09cd5221e9470d8cce01a94e796bd0",
-        "type": "competency",
-        "canonical_name": "Platform Engineering",
-        "display_name": "Platform Engineering",
-        "aliases": [],
-        "rating": 0,
-        "match_enabled": true,
-        "iterator_enabled": true
-      },
-      {
-        "id": "ent_008fc1f28095480d90b3297c012d031f",
-        "type": "competency",
-        "canonical_name": "Problem Management",
-        "display_name": "Problem Management",
-        "aliases": [],
-        "rating": 0,
-        "match_enabled": true,
-        "iterator_enabled": true
-      },
-      {
-        "id": "ent_5523ae934f8b4a2d83554d94f618bca6",
-        "type": "competency",
-        "canonical_name": "Production Engineering",
-        "display_name": "Production Engineering",
-        "aliases": [],
-        "rating": 0,
-        "match_enabled": true,
-        "iterator_enabled": true
-      },
-      {
-        "id": "ent_391b37135fb148d9b28b69aa762a1ddd",
-        "type": "competency",
-        "canonical_name": "RCA",
-        "display_name": "RCA",
-        "aliases": [],
-        "rating": 0,
-        "match_enabled": true,
-        "iterator_enabled": true
-      },
-      {
-        "id": "ent_aa7b56ee17e14756b49b719a329e3181",
-        "type": "competency",
-        "canonical_name": "Reliability Engineering",
-        "display_name": "Reliability Engineering",
-        "aliases": [],
-        "rating": 0,
-        "match_enabled": true,
-        "iterator_enabled": true
-      },
-      {
-        "id": "ent_e53669f34f494de3936ac317389413f5",
-        "type": "competency",
-        "canonical_name": "Resilience Engineering",
-        "display_name": "Resilience Engineering",
-        "aliases": [],
-        "rating": 0,
-        "match_enabled": true,
-        "iterator_enabled": true
-      },
-      {
-        "id": "ent_b28e1122e860405b9312a5f3127e651d",
-        "type": "set",
-        "canonical_name": "SRE",
-        "display_name": "SRE",
-        "aliases": [],
-        "document_enabled": true,
-        "paste_enabled": true
-      }
-    ],
-    "relationships": [
-      {
-        "source_id": "ent_e6e35250f914412d83fdbc66820e1395",
-        "type": "relevant_to",
-        "target_id": "ent_b28e1122e860405b9312a5f3127e651d"
-      },
-      {
-        "source_id": "ent_6ec68e0c3f314a8fa3e539ac9225ec61",
-        "type": "relevant_to",
-        "target_id": "ent_b28e1122e860405b9312a5f3127e651d"
-      },
-      {
-        "source_id": "ent_281e139f3e51438d8780bb707a3f4a09",
-        "type": "relevant_to",
-        "target_id": "ent_b28e1122e860405b9312a5f3127e651d"
-      },
-      {
-        "source_id": "ent_050a925de4d04c02b4a8b6ef6752a0a1",
-        "type": "relevant_to",
-        "target_id": "ent_b28e1122e860405b9312a5f3127e651d"
-      },
-      {
-        "source_id": "ent_fb09d62110be4d378e83b1c9542f0c3d",
-        "type": "relevant_to",
-        "target_id": "ent_b28e1122e860405b9312a5f3127e651d"
-      },
-      {
-        "source_id": "ent_7a54d5faa11e48f0a9dec19a25b5112c",
-        "type": "relevant_to",
-        "target_id": "ent_b28e1122e860405b9312a5f3127e651d"
-      },
-      {
-        "source_id": "ent_99f14f8846a94a0f8f2b6c56b2e9748a",
-        "type": "relevant_to",
-        "target_id": "ent_b28e1122e860405b9312a5f3127e651d"
-      },
-      {
-        "source_id": "ent_d81d67b80a0444a79f004ae331bbd0c4",
-        "type": "relevant_to",
-        "target_id": "ent_b28e1122e860405b9312a5f3127e651d"
-      }
-    ],
+    "entities": [],
+    "relationships": [],
     "active_set_id": "__all__",
     "view_preferences": {
       "hierarchy": {
@@ -1171,28 +60,43 @@
   "keybinds": {
     "configured": true,
     "base": {
-      "1": "cycle_layers",
+      "1": "open_dashboard",
+      "2": "analyze_job",
+      "3": "find_company",
+      "4": "toggle_answers",
       "5": "toggle_keyboard",
-      "E": "move_up_or_relay",
-      "T": "",
-      "A": "sequence:a",
-      "D": "move_down_or_relay",
-      "F": "iterate_skills",
-      "G": "smart_capture",
-      "V": "sequence:q",
-      "R": "iterate_work_exp",
-      "W": "previous_iterator",
+      "Q": "country",
+      "W": "sequence:q",
+      "F": "previous_iterator",
+      "P": "iterate_work_exp",
+      "B": "sequence:links",
+      "A": "layer3_hold",
+      "R": "sequence:a",
       "S": "next_iterator",
-      "C": "cycle_date_format",
-      "X": "sequence:links",
-      "Q": "toggle_answers",
-      "B": "open_dashboard",
-      "4": "analyze_job"
+      "T": "iterate_skills",
+      "G": "smart_capture",
+      "Z": "linkedin",
+      "X": "portfolio",
+      "C": "full_name",
+      "D": "phone",
+      "V": "email"
     },
     "layer2": {
-      "E": "previous_iterator",
-      "D": "next_iterator",
-      "V": "cycle_name_format"
+      "1": "cycle_date_format",
+      "2": "cycle_name_format",
+      "Q": "address",
+      "W": "city",
+      "F": "move_up_or_relay",
+      "P": "previous_work_exp",
+      "A": "state",
+      "R": "zip",
+      "S": "move_down_or_relay",
+      "T": "next_work_exp",
+      "G": "github",
+      "Z": "facebook",
+      "X": "x",
+      "C": "first_name",
+      "D": "last_name"
     },
     "layer3": {},
     "hotkey_settings": {
@@ -1212,50 +116,28 @@
       }
     },
     "action_displays": {
-      "iterate_skills": {
-        "label": "Skills",
+      "open_dashboard": {
+        "label": "Tracker",
         "icons": [
-          "iterate"
+          "brief"
         ]
       },
-      "email": {
-        "label": "Email",
-        "icons": []
-      },
-      "cycle_date_format": {
-        "label": "Date",
+      "analyze_job": {
+        "label": "Analysis",
         "icons": [
-          "cycle"
+          "brief"
         ]
       },
-      "toggle_hotkeys": {
-        "label": "Hotkeys",
+      "find_company": {
+        "label": "Search",
         "icons": [
-          "toggle"
-        ]
-      },
-      "move_up_or_relay": {
-        "label": "Up",
-        "icons": [
-          "arrow_up"
-        ]
-      },
-      "move_down_or_relay": {
-        "label": "Down",
-        "icons": [
-          "arrow_down"
-        ]
-      },
-      "iterate_work_exp": {
-        "label": "Work Exp",
-        "icons": [
-          "iterate"
+          "brief"
         ]
       },
       "toggle_answers": {
         "label": "Answers",
         "icons": [
-          "toggle"
+          "paste"
         ]
       },
       "toggle_keyboard": {
@@ -1277,29 +159,10 @@
           "arrow_up"
         ]
       },
-      "next_iterator": {
-        "label": "Next",
-        "icons": [
-          "iterate",
-          "arrow_down"
-        ]
-      },
-      "sequence:a": {
-        "label": "Address",
+      "iterate_work_exp": {
+        "label": "Work Exp",
         "icons": [
           "iterate"
-        ]
-      },
-      "open_dashboard": {
-        "label": "Tracker",
-        "icons": [
-          "brief"
-        ]
-      },
-      "smart_capture": {
-        "label": "Smart Capture",
-        "icons": [
-          "selection"
         ]
       },
       "sequence:links": {
@@ -1308,22 +171,67 @@
           "iterate"
         ]
       },
+      "sequence:a": {
+        "label": "Address",
+        "icons": [
+          "iterate"
+        ]
+      },
+      "next_iterator": {
+        "label": "Next",
+        "icons": [
+          "iterate",
+          "arrow_down"
+        ]
+      },
+      "iterate_skills": {
+        "label": "Skills",
+        "icons": [
+          "iterate"
+        ]
+      },
+      "smart_capture": {
+        "label": "Smart Capture",
+        "icons": [
+          "selection"
+        ]
+      },
+      "cycle_date_format": {
+        "label": "Date",
+        "icons": [
+          "cycle"
+        ]
+      },
       "cycle_name_format": {
         "label": "Name Format",
         "icons": [
           "cycle"
         ]
       },
-      "cycle_layers": {
-        "label": "Layers",
+      "move_up_or_relay": {
+        "label": "Up",
         "icons": [
-          "cycle"
+          "arrow_up"
         ]
       },
-      "analyze_job": {
-        "label": "Analysis",
+      "previous_work_exp": {
+        "label": "Prev Work Exp",
         "icons": [
-          "analysis"
+          "iterate",
+          "arrow_up"
+        ]
+      },
+      "move_down_or_relay": {
+        "label": "Down",
+        "icons": [
+          "arrow_down"
+        ]
+      },
+      "next_work_exp": {
+        "label": "Next Work Exp",
+        "icons": [
+          "iterate",
+          "arrow_down"
         ]
       }
     },

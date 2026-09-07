@@ -3,12 +3,13 @@ from pathlib import Path
 
 import pytest
 
-from jaw.config import load_config
+from jaw.config import DEFAULT_MATRIX_BASE, DEFAULT_MATRIX_LAYER2, load_config
 from jaw.userdata import (
     DEFAULT_USER_TEMPLATE_PATH,
     JOB_MATCHING_SELECTION,
     SYSTEM_SET_ALL,
     UserDataStore,
+    initial_keybinds,
     normalize_layer_bindings,
 )
 
@@ -118,52 +119,42 @@ def test_first_run_uses_sanitized_default_template(tmp_path: Path):
     assert data["active_user_name"] == "Default"
     assert template["version"] == 4
     assert data["capability_model"]["version"] == 2
-    assert data["capability_model"]["entities"]
-    assert len({entity["id"] for entity in data["entities"]}) == len(
-        data["entities"]
-    )
-    assert all(
-        entity["id"] and entity["canonical_name"]
-        for entity in data["entities"]
-    )
+    assert data["capability_model"]["entities"] == []
+    assert data["capability_model"]["relationships"] == []
+    assert data["capability_model"]["active_set_id"] == SYSTEM_SET_ALL
     assert not any(data["user"].values())
+    assert data["custom_fields"] == []
+    assert data["custom_actions"] == []
     assert data["work_history"] == []
+    assert data["iterator_preferences"] == {}
     assert data["answers"] == []
-    assert all(
-        int(entity.get("rating", 0)) == 0
-        for entity in data["entities"]
-        if entity["type"] != "set"
-    )
     assert data["keyboard_layout"] == "qwerty"
-    assert data["keybinds"]["base"]["G"] == "smart_capture"
 
-    # Canonical seed IDs remain stable after first persistence.
-    assert UserDataStore(store.path).read()["entities"] == data["entities"]
+    expected_base = {'1': 'open_dashboard', '2': 'analyze_job', '3': 'find_company', '4': 'toggle_answers', '5': 'toggle_keyboard', 'Q': 'country', 'W': 'sequence:q', 'F': 'previous_iterator', 'P': 'iterate_work_exp', 'B': 'sequence:links', 'A': 'layer3_hold', 'R': 'sequence:a', 'S': 'next_iterator', 'T': 'iterate_skills', 'G': 'smart_capture', 'Z': 'linkedin', 'X': 'portfolio', 'C': 'full_name', 'D': 'phone', 'V': 'email'}
+    expected_layer2 = {'1': 'cycle_date_format', '2': 'cycle_name_format', 'Q': 'address', 'W': 'city', 'F': 'move_up_or_relay', 'P': 'previous_work_exp', 'A': 'state', 'R': 'zip', 'S': 'move_down_or_relay', 'T': 'next_work_exp', 'G': 'github', 'Z': 'facebook', 'X': 'x', 'C': 'first_name', 'D': 'last_name'}
+    assert data["keybinds"]["base"] == expected_base
+    assert data["keybinds"]["layer2"] == expected_layer2
+    assert data["keybinds"]["layer3"] == {}
+    assert DEFAULT_MATRIX_BASE == expected_base
+    assert DEFAULT_MATRIX_LAYER2 == expected_layer2
+    assert initial_keybinds()["base"] == expected_base
+    assert initial_keybinds()["layer2"] == expected_layer2
+
+    displays = data["keybinds"]["action_displays"]
+    assert displays["find_company"] == {"label": "Search", "icons": ["brief"]}
+    assert displays["analyze_job"]["icons"] == ["brief"]
+    assert displays["toggle_answers"]["icons"] == ["paste"]
+    assert displays["previous_work_exp"]["icons"] == ["iterate", "arrow_up"]
+    assert displays["next_work_exp"]["icons"] == ["iterate", "arrow_down"]
+
+    # First-run state remains stable after persistence.
+    persisted = UserDataStore(store.path).read()
+    assert persisted["capability_model"]["entities"] == []
+    assert persisted["keybinds"]["base"] == expected_base
 
 
-def test_default_capability_sets_and_bindings_are_integral(tmp_path: Path):
+def test_default_bindings_do_not_reference_retired_actions(tmp_path: Path):
     data = UserDataStore(tmp_path / "data" / "jaw.db").read()
-    entity_ids = {entity["id"] for entity in data["entities"]}
-    capability_ids = {
-        entity["id"] for entity in data["entities"] if entity["type"] != "set"
-    }
-    set_ids = {
-        entity["id"] for entity in data["entities"] if entity["type"] == "set"
-    }
-
-    assert capability_ids
-    assert all(
-        relationship["source_id"] in entity_ids
-        and relationship["target_id"] in entity_ids
-        for relationship in data["relationships"]
-    )
-    assert all(
-        relationship["source_id"] in capability_ids
-        and relationship["target_id"] in set_ids
-        for relationship in data["relationships"]
-        if relationship["type"] == "relevant_to"
-    )
-
     obsolete = {
         "select_titles", "select_job_info", "iterate_job_info", "exit_edit",
         "toggle_move", "set_iterator", "reset_workflow",
