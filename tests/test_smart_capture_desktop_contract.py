@@ -18,8 +18,8 @@ def test_analysis_action_is_first_class_without_mutating_custom_keybinds(tmp_pat
     assert normalized["base"] == {"1": "cycle_layers", "B": "open_dashboard"}
 
     config = load_config(tmp_path / "config.toml")
-    assert config.matrix["4"].partition("|")[0] == "analyze_job"
-    assert config.action_displays["analyze_job"]["icons"] == ["analysis"]
+    assert config.matrix["2"].partition("|")[0] == "analyze_job"
+    assert config.action_displays["analyze_job"]["icons"] == ["brief"]
 
 
 def test_smart_capture_settings_round_trip_through_runtime_config(tmp_path: Path):

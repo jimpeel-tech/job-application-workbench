@@ -147,7 +147,7 @@ def _changed_sync_categories(old: dict[str, Any], new: dict[str, Any]) -> set[st
 
 
 def initial_keybinds() -> dict[str, Any]:
-    """Read-only first-run workflow defaults."""
+    """Read-only first-run QWERTY workflow defaults."""
     defaults = empty_keybinds()
     defaults.update(
         {
@@ -160,36 +160,36 @@ def initial_keybinds() -> dict[str, Any]:
                 '5': 'toggle_keyboard',
                 'Q': 'country',
                 'W': 'sequence:q',
-                'F': 'previous_iterator',
-                'P': 'iterate_work_exp',
-                'B': 'sequence:links',
+                'E': 'previous_iterator',
+                'R': 'iterate_work_exp',
+                'T': 'sequence:links',
                 'A': 'layer3_hold',
-                'R': 'sequence:a',
-                'S': 'next_iterator',
-                'T': 'iterate_skills',
+                'S': 'sequence:a',
+                'D': 'next_iterator',
+                'F': 'iterate_skills',
                 'G': 'smart_capture',
                 'Z': 'linkedin',
                 'X': 'portfolio',
                 'C': 'full_name',
-                'D': 'phone',
-                'V': 'email',
+                'V': 'phone',
+                'B': 'email',
             },
             "layer2": {
                 '1': 'cycle_date_format',
                 '2': 'cycle_name_format',
                 'Q': 'address',
                 'W': 'city',
-                'F': 'move_up_or_relay',
-                'P': 'previous_work_exp',
+                'E': 'move_up_or_relay',
+                'R': 'previous_work_exp',
                 'A': 'state',
-                'R': 'zip',
-                'S': 'move_down_or_relay',
-                'T': 'next_work_exp',
+                'S': 'zip',
+                'D': 'move_down_or_relay',
+                'F': 'next_work_exp',
                 'G': 'github',
                 'Z': 'facebook',
                 'X': 'x',
                 'C': 'first_name',
-                'D': 'last_name',
+                'V': 'last_name',
             },
             "layer3": {},
         }

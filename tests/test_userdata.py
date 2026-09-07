@@ -130,8 +130,8 @@ def test_first_run_uses_sanitized_default_template(tmp_path: Path):
     assert data["answers"] == []
     assert data["keyboard_layout"] == "qwerty"
 
-    expected_base = {'1': 'open_dashboard', '2': 'analyze_job', '3': 'find_company', '4': 'toggle_answers', '5': 'toggle_keyboard', 'Q': 'country', 'W': 'sequence:q', 'F': 'previous_iterator', 'P': 'iterate_work_exp', 'B': 'sequence:links', 'A': 'layer3_hold', 'R': 'sequence:a', 'S': 'next_iterator', 'T': 'iterate_skills', 'G': 'smart_capture', 'Z': 'linkedin', 'X': 'portfolio', 'C': 'full_name', 'D': 'phone', 'V': 'email'}
-    expected_layer2 = {'1': 'cycle_date_format', '2': 'cycle_name_format', 'Q': 'address', 'W': 'city', 'F': 'move_up_or_relay', 'P': 'previous_work_exp', 'A': 'state', 'R': 'zip', 'S': 'move_down_or_relay', 'T': 'next_work_exp', 'G': 'github', 'Z': 'facebook', 'X': 'x', 'C': 'first_name', 'D': 'last_name'}
+    expected_base = {'1': 'open_dashboard', '2': 'analyze_job', '3': 'find_company', '4': 'toggle_answers', '5': 'toggle_keyboard', 'Q': 'country', 'W': 'sequence:q', 'E': 'previous_iterator', 'R': 'iterate_work_exp', 'T': 'sequence:links', 'A': 'layer3_hold', 'S': 'sequence:a', 'D': 'next_iterator', 'F': 'iterate_skills', 'G': 'smart_capture', 'Z': 'linkedin', 'X': 'portfolio', 'C': 'full_name', 'V': 'phone', 'B': 'email'}
+    expected_layer2 = {'1': 'cycle_date_format', '2': 'cycle_name_format', 'Q': 'address', 'W': 'city', 'E': 'move_up_or_relay', 'R': 'previous_work_exp', 'A': 'state', 'S': 'zip', 'D': 'move_down_or_relay', 'F': 'next_work_exp', 'G': 'github', 'Z': 'facebook', 'X': 'x', 'C': 'first_name', 'V': 'last_name'}
     assert data["keybinds"]["base"] == expected_base
     assert data["keybinds"]["layer2"] == expected_layer2
     assert data["keybinds"]["layer3"] == {}
