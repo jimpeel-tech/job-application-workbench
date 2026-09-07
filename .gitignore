@@ -1,0 +1,42 @@
+# Python environments and caches
+.venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# Build and test outputs
+build/
+dist/
+.coverage
+.coverage.*
+htmlcov/
+playwright-report/
+test-results/
+
+# Local editor/workspace state
+.vscode/
+.jaw-dev/
+z_tmp/
+
+# Environment files and local secrets
+.env
+.env.*
+!.env.example
+
+# Personal JAW data; publish examples/templates instead.
+config.toml
+data/
+JAWTemplateRepo/
+*.db
+*.sqlite
+*.sqlite3
+outlook-token-cache.json
+
+# Private user exports may contain personal information.
+jaw-user-data*.json
+
+# Local regression corpus extracted from private application records.
+tests/fixtures/job_postings/private/

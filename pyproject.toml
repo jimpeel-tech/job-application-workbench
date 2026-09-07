@@ -1,0 +1,62 @@
+[project]
+name = "jaw"
+version = "0.1.0"
+description = "Job Application Workbench"
+readme = "README.md"
+license = {file = "LICENSE"}
+requires-python = ">=3.11"
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "License :: OSI Approved :: MIT License",
+  "Operating System :: Microsoft :: Windows",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.11",
+]
+dependencies = [
+  "Jinja2>=3.1.6",
+  "PySide6>=6.7",
+  "msal>=1.33",
+  "pyperclip>=1.9",
+]
+
+[project.urls]
+Repository = "https://github.com/jimpeel-tech/job-application-workbench"
+Issues = "https://github.com/jimpeel-tech/job-application-workbench/issues"
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.0",
+  "ruff>=0.12",
+  "playwright>=1.54",
+]
+
+[tool.ruff]
+target-version = "py311"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["F", "I"]
+
+[project.scripts]
+jaw = "jaw.desktop.smart_capture_window:main"
+jaw-document-audit = "jaw.document_db_audit:main"
+
+[build-system]
+requires = ["setuptools>=69", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+jaw = [
+  "*.html",
+  "*.css",
+  "*.js",
+  "resources/*",
+  "resources/documents/*",
+  "resources/fonts/*",
+]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]

@@ -1,0 +1,350 @@
+/* Workbench editor interaction, history, and saved-vs-working change UI. */
+
+/* Keep the horizontal resource-tab scrollbar at the bottom edge instead of
+   overlaying the tab labels in Chromium. */
+.wb-pane-tabs {
+  scrollbar-width: thin;
+}
+
+.wb-resource-tab {
+  height: 23px;
+  align-self: flex-start;
+}
+
+.wb-pane-tabs::-webkit-scrollbar {
+  height: 4px;
+}
+
+.wb-pane-tabs::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.wb-pane-tabs::-webkit-scrollbar-thumb {
+  background: #454b54;
+  border-radius: 4px;
+}
+
+/* Logical line-number gutter. The editor and syntax mirror receive identical
+   left padding so caret, highlighting, wrapping, and line numbers stay aligned. */
+.wb-editor-body.wb-has-gutter {
+  --wb-gutter-width: 44px;
+}
+
+.wb-editor-body.wb-has-gutter .wb-editor,
+.wb-editor-body.wb-has-gutter .wb-editor-highlight {
+  padding-left: calc(var(--wb-gutter-width) + 9px);
+}
+
+.wb-editor-gutter {
+  position: absolute;
+  z-index: 4;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: var(--wb-gutter-width);
+  overflow: hidden;
+  pointer-events: none;
+  background: #181a1f;
+  border-right: 1px solid #252931;
+  box-sizing: border-box;
+  font: 12px/1.5 Consolas, "Cascadia Code", "Courier New", monospace;
+  color: #686f79;
+}
+
+.wb-editor-body:focus-within .wb-editor-gutter {
+  background: #191b20;
+}
+
+.wb-editor-gutter-content {
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  padding-top: 8px;
+  will-change: transform;
+}
+
+.wb-gutter-line {
+  position: relative;
+  display: grid;
+  grid-template-columns: 8px minmax(0, 1fr);
+  align-items: start;
+  min-height: 19.5px;
+  box-sizing: border-box;
+}
+
+.wb-gutter-number {
+  display: block;
+  padding-right: 7px;
+  line-height: 19.5px;
+  text-align: right;
+  user-select: none;
+}
+
+.wb-gutter-change {
+  display: block;
+  width: 3px;
+  height: 100%;
+  min-height: 19.5px;
+  justify-self: start;
+}
+
+.wb-gutter-line.modified .wb-gutter-change {
+  background: #d7ba7d;
+}
+
+.wb-gutter-line.added .wb-gutter-change {
+  background: #6a9955;
+}
+
+.wb-gutter-line.deleted-before::before,
+.wb-gutter-line.deleted-after::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  width: 7px;
+  height: 0;
+  border-top: 2px solid #e06c75;
+}
+
+.wb-gutter-line.deleted-before::before {
+  top: -1px;
+}
+
+.wb-gutter-line.deleted-after::after {
+  bottom: 0;
+}
+
+/* Hidden wrapping measurement used to give logical line numbers the same
+   vertical height as wrapped editor lines. */
+.wb-editor-line-measure {
+  position: absolute;
+  z-index: -10;
+  left: -100000px;
+  top: 0;
+  visibility: hidden;
+  pointer-events: none;
+  font: 13px/1.5 Consolas, "Cascadia Code", "Courier New", monospace;
+  tab-size: 2;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  word-break: normal;
+}
+
+.wb-editor-line-measure > div {
+  min-height: 19.5px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  word-break: normal;
+}
+
+/* Per-pane Changes action. */
+.wb-pane-changes {
+  appearance: none;
+  flex: 0 0 auto;
+  height: 22px;
+  align-self: center;
+  margin: 0 4px;
+  padding: 0 7px;
+  border: 0;
+  border-radius: 2px;
+  background: transparent;
+  color: #777f89;
+  font: 10px/22px "Segoe UI", Arial, sans-serif;
+  cursor: default;
+}
+
+.wb-pane-changes.active {
+  color: #d7ba7d;
+  cursor: pointer;
+}
+
+.wb-pane-changes.active:hover {
+  color: #f0d694;
+  background: #2a2d33;
+}
+
+.wb-pane-changes:disabled {
+  opacity: .55;
+}
+
+.wb-pane-changes[hidden] {
+  display: none;
+}
+
+/* Saved ↔ Working unified diff. */
+.wb-changes-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 190;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, .58);
+}
+
+.wb-changes-card {
+  width: min(860px, calc(100% - 56px));
+  max-height: min(720px, calc(100% - 56px));
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid #4a4f58;
+  background: #1d2026;
+  box-shadow: 0 16px 44px rgba(0, 0, 0, .7);
+}
+
+.wb-changes-head {
+  min-height: 40px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 8px 0 12px;
+  border-bottom: 1px solid #343943;
+}
+
+.wb-changes-head > div {
+  min-width: 0;
+  display: flex;
+  align-items: baseline;
+  gap: 9px;
+  flex: 1;
+}
+
+.wb-changes-head strong {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #e2e5e9;
+  font-size: 12px;
+}
+
+.wb-changes-head span {
+  color: #7d8590;
+  font-size: 10px;
+}
+
+.wb-changes-head button {
+  appearance: none;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #8d949e;
+  font: 20px/28px "Segoe UI", Arial, sans-serif;
+  cursor: pointer;
+}
+
+.wb-changes-head button:hover {
+  background: #2b2f36;
+  color: #fff;
+}
+
+.wb-changes-diff {
+  min-height: 120px;
+  flex: 1;
+  overflow: auto;
+  padding: 7px 0;
+  background: #181a1f;
+  font: 12px/1.55 Consolas, "Cascadia Code", "Courier New", monospace;
+}
+
+.wb-diff-hunk + .wb-diff-hunk {
+  margin-top: 9px;
+}
+
+.wb-diff-header {
+  padding: 2px 10px;
+  color: #7aa2c8;
+  background: #1c2630;
+  border-top: 1px solid #263645;
+  border-bottom: 1px solid #263645;
+}
+
+.wb-diff-line {
+  min-height: 19px;
+  display: grid;
+  grid-template-columns: 38px 38px 16px minmax(0, 1fr);
+  align-items: start;
+}
+
+.wb-diff-line > span {
+  color: #626a75;
+  text-align: right;
+  padding-right: 7px;
+  user-select: none;
+}
+
+.wb-diff-line .wb-diff-prefix {
+  text-align: center;
+  padding-right: 0;
+}
+
+.wb-diff-line code {
+  color: #cfd3d8;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.wb-diff-line.add {
+  background: rgba(64, 122, 74, .20);
+}
+
+.wb-diff-line.add .wb-diff-prefix,
+.wb-diff-line.add code {
+  color: #9bc7a3;
+}
+
+.wb-diff-line.delete {
+  background: rgba(145, 62, 68, .20);
+}
+
+.wb-diff-line.delete .wb-diff-prefix,
+.wb-diff-line.delete code {
+  color: #dea0a4;
+}
+
+.wb-changes-empty {
+  padding: 18px 14px;
+  color: #7d8590;
+}
+
+.wb-changes-actions {
+  min-height: 42px;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 7px;
+  padding: 0 10px;
+  border-top: 1px solid #343943;
+}
+
+.wb-changes-actions button {
+  appearance: none;
+  min-width: 78px;
+  height: 26px;
+  padding: 0 10px;
+  border: 1px solid #3c4149;
+  border-radius: 2px;
+  background: #272b31;
+  color: #d3d7dc;
+  font: 11px "Segoe UI", Arial, sans-serif;
+  cursor: pointer;
+}
+
+.wb-changes-actions button:hover:not(:disabled) {
+  background: #323740;
+  color: #fff;
+}
+
+.wb-changes-actions button[data-wb-changes-revert] {
+  border-color: #6e5b30;
+  color: #e0c67d;
+}
+
+.wb-changes-actions button:disabled {
+  opacity: .45;
+  cursor: default;
+}

@@ -1,0 +1,86 @@
+:root{
+  --site-header-height:52px;
+}
+
+/* The app shell header is the direct child of body. Keep nested workbench
+ * headers free to size themselves independently. */
+body > header{
+  height:var(--site-header-height);
+  min-height:var(--site-header-height);
+  padding:8px 18px;
+}
+
+#drawer{
+  inset:var(--site-header-height) auto 0 0;
+}
+
+/* Capabilities and Documents still size from the shared shell header. */
+.cap-shell,
+.document-shell{
+  height:calc(100vh - var(--site-header-height));
+}
+
+/* Tracker is the initial page and must fit on first paint. Pin the page directly
+ * between the shell header and viewport bottom. Tracker's Tips shell is inserted
+ * as a child of #jobsPage, so make the page a column layout and let the job grid
+ * consume only the space left after Tips. */
+#jobsPage{
+  position:fixed;
+  inset:var(--site-header-height) 0 0;
+  height:auto;
+  min-height:0;
+  overflow:hidden;
+}
+
+#jobsPage.page.active{
+  display:flex;
+  flex-direction:column;
+}
+
+#jobsPage > .tips-shell{
+  flex:0 0 auto;
+}
+
+/* The Tips toggle is fixed, so a collapsed Tracker Tips shell should not reserve
+ * an empty ~50px row underneath the application header. */
+#jobsPage > .tips-shell.collapsed{
+  min-height:0;
+  height:0;
+  margin:0;
+  padding:0;
+  border:0;
+}
+
+#jobsPage > .jobs-layout{
+  flex:1 1 auto;
+  height:auto;
+  min-height:0;
+}
+
+/* The narrow Tracker layout intentionally returns to normal document flow. */
+@media(max-width:760px){
+  #jobsPage{
+    position:static;
+    inset:auto;
+    height:auto;
+    min-height:0;
+    overflow:visible;
+  }
+
+  #jobsPage.page.active{
+    display:block;
+  }
+
+  #jobsPage > .tips-shell.collapsed{
+    height:auto;
+  }
+
+  #jobsPage > .jobs-layout{
+    height:auto;
+  }
+}
+
+/* Keep header-adjacent floating controls aligned with the compact shell. */
+.tips-shell #tipsToggle{
+  top:calc(var(--site-header-height) + 6px);
+}

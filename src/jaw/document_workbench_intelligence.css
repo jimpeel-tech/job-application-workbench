@@ -1,0 +1,33 @@
+.wb-editor-body{background:#181a1f}
+.wb-editor-body:focus-within{background:#191b20}
+.wb-editor-highlight{box-sizing:border-box;position:absolute;inset:0;z-index:1;margin:0;padding:8px 11px 16px;border:0;background:transparent;color:#d4d4d4;overflow:hidden;pointer-events:none;font:13px/1.5 Consolas,"Cascadia Code","Courier New",monospace;tab-size:2;letter-spacing:normal;word-spacing:normal;text-align:left;white-space:pre}
+/* A <pre> does not allocate height for its final empty line when the source ends
+   in a newline, while the textarea does. Keep one invisible trailing glyph in
+   the syntax mirror so both layers have the same scroll range at EOF. */
+.wb-editor-highlight::after{content:" ";}
+.wb-editor-highlight.wrapped{white-space:pre-wrap;overflow-wrap:anywhere;word-break:normal}
+.wb-editor-highlight.nowrap{white-space:pre}
+.wb-editor-body.wb-intelligence-ready .wb-editor{position:relative;z-index:2;background:transparent!important;color:transparent!important;-webkit-text-fill-color:transparent!important;caret-color:#d4d4d4}
+.wb-editor-body.wb-intelligence-ready .wb-editor::selection{background:rgba(38,79,120,.68)}
+.wb-editor-body.wb-intelligence-ready .wb-editor::placeholder{color:#59616b!important;-webkit-text-fill-color:#59616b!important}
+.wb-syn-delimiter{color:#808890}
+.wb-syn-comment{color:#6a9955}
+.wb-syn-keyword{color:#c586c0}
+.wb-syn-jaw{color:#9cdcfe}
+.wb-syn-private{color:#d7ba7d}
+.wb-syn-global{color:#8fcf9f}
+.wb-syn-orphan{color:#d18b62}
+.wb-syn-unresolved{color:#f06b73}
+.wb-syn-generated{color:#c586c0}
+.wb-syn-local{color:#4ec9b0}
+.wb-syn-generation-tag{color:#808890;background:#23262c;border-radius:2px}
+.wb-syn-generation-type{color:#569cd6}
+.wb-syn-active-ref{background:rgba(255,255,255,.10);outline:1px solid rgba(255,255,255,.18);border-radius:2px}
+.wb-intel-reference{background:#37373d!important;box-shadow:inset 0 -1px #d7ba7d!important}
+.wb-pane-title+.wb-syntax-chip{align-self:center;appearance:none;height:18px;min-width:18px;margin:0 3px 0 0;padding:0 4px;border:0;border-radius:2px;background:transparent;color:#6f8f77;font:10px/18px "Segoe UI",Arial,sans-serif;cursor:pointer;flex:0 0 auto}
+.wb-pane-title+.wb-syntax-chip:hover{background:#2a2d33;color:#9fd3aa}
+.wb-pane-title+.wb-syntax-chip.error{color:#e06c75;background:#341f23}
+.wb-status-syntax.error{color:#f08a91}
+.wb-status-syntax.active{color:#89c99b}
+.wb-resource-tab.new{box-shadow:inset 0 2px #c586c0,inset 0 -1px rgba(197,134,192,.35)!important}
+.wb-tree-row.new{box-shadow:inset 2px 0 #c586c0}

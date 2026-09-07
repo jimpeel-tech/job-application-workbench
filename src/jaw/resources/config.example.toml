@@ -1,0 +1,8 @@
+# JAW runtime preferences example.
+# The writable config.toml is normalized by JAW on startup.
+
+[behavior]
+outlook_sync_enabled = false
+
+# Outlook sync is opt-in. When enabled, configure JAW_OUTLOOK_CLIENT_ID.
+# For personal Microsoft accounts, set JAW_OUTLOOK_TENANT=consumers.

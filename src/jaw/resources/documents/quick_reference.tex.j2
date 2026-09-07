@@ -1,0 +1,89 @@
+% JAW Quick Reference
+% Built-in verification document using the versioned example context.
+\documentclass[10pt,letterpaper]{article}
+\usepackage[letterpaper,margin=0.65in]{geometry}
+\usepackage{xcolor}
+\usepackage{array}
+\usepackage{enumitem}
+\pagestyle{empty}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{5pt}
+\definecolor{JAWBlue}{HTML}{5F86A6}
+\definecolor{JAWDark}{HTML}{263746}
+
+{% raw %}
+\newcommand{\Section}[1]{\vspace{4pt}{\large\bfseries\color{JAWDark}#1}\par\vspace{2pt}\hrule\vspace{5pt}}
+\newcommand{\Code}[1]{\texttt{#1}}
+{% endraw %}
+
+\begin{document}
+
+{\LARGE\bfseries\color{JAWDark} JAW Documents Quick Reference}\par
+{\small Runtime schema v2 \hfill Generated for {{ user.full_name | latex }}}
+
+\vspace{5pt}
+JAW Documents exposes a deliberately small runtime: \Code{user}, \Code{job\_ref}, \Code{work\_exp}, \Code{cap}, and \Code{system}. Workbench Templates automatically escape normal values at the final LaTeX boundary; \Code{latex\_raw(...)} is reserved for trusted LaTeX.
+
+\Section{Core objects}
+\begin{tabular}{>{\ttfamily}p{1.45in} p{5.95in}}
+user.full\_name & {{ user.full_name | latex }} \\
+job\_ref.title & {{ job_ref.title | latex }} \\
+job\_ref.company & {{ job_ref.company | latex }} \\
+system.current\_date & {{ system.current_date | latex }} \\
+system.current\_year & {{ system.current_year | latex }} \\
+\end{tabular}
+
+\Section{Job reference}
+\textbf{Summary}\par
+{{ job_ref.summary | latex }}
+
+\textbf{Strong matches}
+\begin{itemize}[leftmargin=18pt,itemsep=1pt,topsep=2pt]
+{% for item in job_ref.strong_matches %}
+  \item {{ item | latex }}
+{% endfor %}
+\end{itemize}
+
+\Section{Work experience}
+\begin{itemize}[leftmargin=18pt,itemsep=2pt,topsep=2pt]
+{% for item in work_exp %}
+  \item \textbf{ {{ item.title | latex }} } at {{ item.company | latex }}: {{ item.highlights | latex }}
+{% endfor %}
+\end{itemize}
+
+\Section{Capabilities}
+\textbf{All document-visible capabilities}
+\begin{itemize}[leftmargin=18pt,itemsep=1pt,topsep=2pt]
+{% for capability in cap.all %}
+  \item {{ capability.name | latex }}{% if capability.rating is defined %} --- rating {{ capability.rating }}{% endif %}
+{% endfor %}
+\end{itemize}
+
+\textbf{User-managed set: platform\_sre}
+\begin{itemize}[leftmargin=18pt,itemsep=1pt,topsep=2pt]
+{% for capability in cap.sets.platform_sre %}
+  \item {{ capability.name | latex }}
+{% endfor %}
+\end{itemize}
+
+\Section{Jinja essentials}
+\begin{tabular}{p{1.30in} p{6.10in}}
+Variable & {% raw %}\Code{\{\{ job\_ref.company \}\}}{% endraw %} inserts a value. \\
+Default & {% raw %}\Code{\{\{ value | default('Fallback') \}\}}{% endraw %} supplies a fallback. \\
+Conditional & {% raw %}\Code{\{\% if job\_ref.score \%\} ... \{\% endif \%\}}{% endraw %}. \\
+Loop & {% raw %}\Code{\{\% for item in work\_exp \%\} ... \{\% endfor \%\}}{% endraw %}. \\
+Trusted LaTeX & {% raw %}\Code{\{\{ latex\_raw(value) \}\}}{% endraw %} bypasses automatic escaping. \\
+\end{tabular}
+
+\Section{Runtime helpers}
+\begin{tabular}{>{\ttfamily}p{1.55in} p{5.85in}}
+csv(...) & Join a sequence as comma-separated text. \\
+latex\_raw(...) & Insert explicitly trusted LaTeX. \\
+dump(...) & Pretty-print a runtime value as JSON for debugging. \\
+describe(...) & Show the runtime schema or the shape of one runtime value. \\
+\end{tabular}
+
+\vfill
+{\small\color{gray}If you can read this PDF, the JAW Jinja/LaTeX/Tectonic document pipeline is working.}
+
+\end{document}

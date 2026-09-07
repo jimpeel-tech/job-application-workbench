@@ -1,0 +1,26 @@
+{
+  "manifest_version": 3,
+  "name": "JAW Dashboard Tab Reuse",
+  "version": "1.0.0",
+  "description": "Focuses the existing JAW dashboard tab instead of leaving duplicate tabs open.",
+  "permissions": [
+    "tabs"
+  ],
+  "host_permissions": [
+    "http://127.0.0.1:8765/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "http://127.0.0.1:8765/*"
+      ],
+      "js": [
+        "reuse-tab.js"
+      ],
+      "run_at": "document_start"
+    }
+  ]
+}

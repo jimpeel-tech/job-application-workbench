@@ -1,0 +1,37 @@
+.wb-topbar>.wb-document-tabs{display:flex!important;flex:1 1 auto;min-width:0;height:27px;overflow-x:auto;overflow-y:hidden;background:#1d1f24;scrollbar-width:thin}
+.wb-topbar>.wb-top-right{display:flex!important;align-items:center;justify-content:flex-end;gap:5px;flex:0 0 auto;height:27px;margin-left:auto;padding:0 5px;background:#1d1f24}
+.wb-topbar>.wb-top-right .wb-button{flex:0 0 auto}
+.wb-topbar>.wb-document-tabs .wb-doc-tab{height:23px;align-self:flex-start;flex:0 0 145px;min-width:105px;max-width:185px;background:#23262c;border-left:1px solid var(--wb-divider);border-right:1px solid var(--wb-divider);padding:0 8px}
+.wb-topbar>.wb-document-tabs .wb-doc-tab.active{background:#181a1f;color:#f3f3f3;box-shadow:inset 0 2px #007acc}
+.wb-topbar>.wb-document-tabs::-webkit-scrollbar{height:4px}
+.wb-topbar>.wb-document-tabs::-webkit-scrollbar-track{background:transparent}
+.wb-topbar>.wb-document-tabs::-webkit-scrollbar-thumb{background:#454b54;border-radius:4px}
+.wb-pane-head>[data-wb-tabs="template"]{display:none!important}
+
+.wb-global-templates-panel{min-height:25px;display:flex;flex-direction:column;overflow:hidden;border-bottom:1px solid var(--wb-divider);background:#1e2025;flex:0 0 110px}
+.wb-global-templates-panel.collapsed{flex:0 0 25px!important}
+.wb-global-templates-panel.collapsed .wb-global-templates-list{display:none}
+.wb-global-templates-head{appearance:none;width:100%;height:25px;min-height:25px;display:flex;align-items:center;gap:4px;padding:0 7px;border:0;background:#1e2025;color:#a7abb2;font:600 10px "Segoe UI",Arial,sans-serif;letter-spacing:.08em;text-align:left;cursor:pointer}
+.wb-global-templates-head:hover{background:#25282e;color:#d3d7dc}
+.wb-global-templates-list{min-height:0;overflow:auto;flex:1;padding:2px 0 5px}
+.wb-global-template-item{height:23px;display:flex;align-items:center;gap:6px;padding:0 8px 0 20px;color:#8fcf9f;cursor:default;user-select:none}
+.wb-global-template-item:hover{background:#292c32}
+.wb-global-template-item.selected{background:#37373d;color:#b6e4c1}
+.wb-global-template-item span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1}
+.wb-global-template-item small{color:#727b85;font-size:9px}
+.wb-global-templates-resizer{height:1px;flex:0 0 1px;background:var(--wb-divider);cursor:ns-resize;position:relative;z-index:4}
+.wb-global-templates-resizer:after{content:"";position:absolute;left:0;right:0;top:-4px;bottom:-4px}
+.wb-global-templates-resizer[hidden]{display:none}
+.wb-inspector-value{height:25px;display:flex;align-items:center;padding:0 6px;border:1px solid #31353b;background:#1a1c21;color:#b8bec6}
+.wb-template-usage{margin:-3px 0 9px;padding:4px 6px;border-left:2px solid #3c7848;color:#8d969f;font-size:10px;line-height:1.55}
+.wb-global-template-meta{margin-top:4px}
+
+.wb-template-choice-overlay{position:absolute;inset:0;z-index:180;display:flex;align-items:center;justify-content:center;background:#0008}
+.wb-template-choice-card{width:min(470px,calc(100% - 44px));background:#202329;border:1px solid #4a4f58;box-shadow:0 16px 44px #000b;padding:16px 18px;color:#d8dce2}
+.wb-template-choice-card h3{margin:0 0 10px;font-size:14px;font-weight:600;color:#f0f1f3}
+.wb-template-choice-card p{margin:7px 0;color:#aeb5be;line-height:1.45}
+.wb-template-choice-actions{display:flex;justify-content:flex-end;gap:7px;margin-top:16px}
+.wb-template-choice-actions button{border:1px solid #444a53;background:#2b2f36;color:#d9dde2;padding:5px 10px;font:12px "Segoe UI",Arial,sans-serif;cursor:pointer}
+.wb-template-choice-actions button:hover{background:#353a42}
+.wb-template-choice-actions button.danger{border-color:#824141;background:#512929;color:#ffdada}
+.wb-template-choice-actions button.danger:hover{background:#643131}

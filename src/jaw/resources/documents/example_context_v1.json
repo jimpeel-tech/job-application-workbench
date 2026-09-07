@@ -1,0 +1,98 @@
+{
+  "context_schema_version": 2,
+  "example_version": 1,
+  "user": {
+    "first_name": "Example",
+    "last_name": "User",
+    "full_name": "Example User",
+    "phone_number": "(000) 000-0000",
+    "email": "example.user@example.invalid",
+    "linkedin": "https://example.invalid/linkedin",
+    "portfolio": "https://example.invalid/portfolio"
+  },
+  "job_ref": {
+    "company": "Example Company",
+    "title": "Example Title",
+    "raw_description": "Example job description. This content is intentionally fictional and should never be mistaken for a tracked job.",
+    "questions": [
+      {
+        "question": "Example application question?",
+        "suggested_answer": "Example suggested answer.",
+        "submitted_answer": ""
+      }
+    ],
+    "strong_matches": [
+      "Example Strong Match 1",
+      "Example Strong Match 2",
+      "Example Strong Match 3"
+    ],
+    "missing_qualifications": [
+      "Example Missing Qualification 1"
+    ],
+    "concerns": [
+      "Example Concern 1"
+    ],
+    "score": 80,
+    "summary": "Example job summary used only to demonstrate JAW document generation."
+  },
+  "work_exp": [
+    {
+      "company": "Example Employer 1",
+      "title": "Example Role 1",
+      "start": "2000",
+      "end": "2004",
+      "highlights": "Example work-history evidence 1."
+    },
+    {
+      "company": "Example Employer 2",
+      "title": "Example Role 2",
+      "start": "1996",
+      "end": "2000",
+      "highlights": "Example work-history evidence 2."
+    }
+  ],
+  "cap": {
+    "all": [
+      {
+        "name": "Example Skill 1",
+        "type": "technology",
+        "rating": 5,
+        "aliases": []
+      },
+      {
+        "name": "Example Skill 2",
+        "type": "technology",
+        "rating": 4,
+        "aliases": []
+      },
+      {
+        "name": "Example Competency 1",
+        "type": "competency",
+        "rating": 4,
+        "aliases": []
+      }
+    ],
+    "sets": {
+      "platform_sre": [
+        {
+          "name": "Example Skill 1",
+          "type": "technology",
+          "rating": 5,
+          "aliases": []
+        },
+        {
+          "name": "Example Skill 2",
+          "type": "technology",
+          "rating": 4,
+          "aliases": []
+        }
+      ]
+    }
+  },
+  "system": {
+    "current_date": "Example Date",
+    "current_year": "2000",
+    "greeting": "Dear Example Hiring Team,",
+    "signoff": "Example Signoff"
+  }
+}

@@ -1,0 +1,265 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Job Application Workbench</title><link rel="stylesheet" href="/dashboard.css"></head><body>
+<header><button class="hamburger" id="menuButton" aria-label="Menu">☰</button><span class="brand">Job Application Workbench</span><span class="muted">JAW local site</span><div class="user-switcher"><label for="userSelector" class="muted">User</label><select id="userSelector"></select><button class="btn" id="newUserButton">+</button><div class="menu-wrap"><button class="btn" id="dataMenuButton">Import / Export</button><button class="btn" id="tipsToggle" aria-pressed="true">Tips: On</button><div class="mini-menu" id="dataMenu"><button class="btn" id="exportData">Export current user</button><button class="btn" id="importData">Import from file</button><button class="btn" id="downloadTemplate">Download template</button></div></div></div></header>
+<aside id="drawer">
+<button class="nav" data-page="jobsPage" data-route="tracker">Job tracker</button>
+<button class="nav" data-page="documentsPage" data-route="documents">Documents</button>
+<button class="nav" data-page="capabilitiesPage" data-route="capabilities">Capabilities</button>
+<button class="nav" data-page="userPage" data-route="user">User data</button>
+<button class="nav" data-page="keybindPage" data-route="keybinds">Keybinds</button>
+</aside>
+<div id="jobsPage" class="page active">
+  <div class="jobs-layout tracker-layout">
+    <aside id="listPane" class="tracker-list-pane">
+      <div class="controls tracker-controls">
+        <input id="search" placeholder="Search jobs…">
+        <select id="sort">
+          <option value="created_at">Newest</option>
+          <option value="updated_at">Recently updated</option>
+          <option value="company">Company</option>
+          <option value="title">Title</option>
+          <option value="match_score">Match</option>
+          <option value="pay_max">Pay</option>
+          <option value="status">Status</option>
+        </select>
+        <select id="status">
+          <option value="">All statuses</option>
+          <option>Captured</option>
+          <option>Reviewing</option>
+          <option>Interested</option>
+          <option>Applying</option>
+          <option>Applied</option>
+          <option>Recruiter Screen</option>
+          <option>Interviewing</option>
+          <option>Offer</option>
+          <option>Rejected</option>
+          <option>Withdrawn</option>
+          <option>Archived</option>
+        </select>
+      </div>
+      <div id="jobs" class="tracker-job-list"></div>
+    </aside>
+    <main id="detail" class="tracker-detail"><div class="empty">Select a job to review it.</div></main>
+  </div>
+</div>
+<div id="documentsPage" class="page"></div>
+<div id="capabilitiesPage" class="page">
+  <div class="cap-shell" id="capShell" data-left-pane="fixed" data-right-pane="fixed">
+    <aside class="cap-view-panel cap-side-pane cap-left-pane" id="capLeftPane">
+      <div class="cap-panel-head">
+        <div>
+          <div class="cap-eyebrow">Career model</div>
+          <h2>Capabilities</h2>
+        </div>
+        <div class="cap-panel-actions">
+          <div class="cap-pane-mode-wrap">
+            <button class="cap-pane-mode-button" id="capLeftModeButton" type="button" aria-haspopup="menu" aria-expanded="false">Fixed ▾</button>
+            <div class="cap-pane-menu" id="capLeftModeMenu" hidden>
+              <button type="button" data-pane-side="left" data-pane-mode="fixed">Fixed</button>
+              <button type="button" data-pane-side="left" data-pane-mode="auto">Auto</button>
+              <button type="button" data-pane-side="left" data-pane-mode="off">Off</button>
+            </div>
+          </div>
+          <div class="cap-add-wrap">
+          <button class="btn primary" id="capAddEntity" type="button">+ Add <span class="cap-menu-caret">▾</span></button>
+          <div class="cap-add-menu" id="capAddMenu" hidden>
+            <button type="button" id="capAddSingle">Add Capability…</button>
+            <button type="button" id="capSmartAdd">Smart Add…</button>
+            <div class="cap-add-separator"></div>
+            <button type="button" class="danger" id="capClearCapabilities">Clear Capabilities…</button>
+          </div>
+        </div>
+      </div>
+      </div>
+      <div class="cap-pane-body">
+      <div class="cap-stats" id="capStats"></div>
+      <input id="capSearch" class="cap-search" placeholder="Filter names, aliases, types…">
+      <div class="cap-view-tabs" role="tablist" aria-label="Capability views">
+        <button class="cap-view-tab active" data-cap-view="hierarchy">Hierarchy</button>
+        <button class="cap-view-tab" data-cap-view="set">Sets</button>
+        <button class="cap-view-tab" data-cap-view="rating">Rating</button>
+        <button class="cap-view-tab" data-cap-view="gap">Learning Gap</button>
+      </div>
+      <div class="cap-panel-section cap-display-section" id="capDisplayControls">
+        <span class="cap-panel-label">Display</span>
+        <div class="cap-segmented" role="group" aria-label="Capability display density">
+          <button class="cap-segment active" id="capCompactMode" type="button">Compact</button>
+          <button class="cap-segment" id="capDetailedMode" type="button">Detailed</button>
+        </div>
+      </div>
+      <div class="cap-controls" id="capHierarchyControls">
+        <label class="cap-slider-row">
+          <span><b>Section Granularity</b><small id="capSectionGranularityLabel">Balanced</small></span>
+          <input id="capSectionGranularity" type="range" min="1" max="5" step="1" value="3">
+          <span class="cap-slider-scale"><small>Broad</small><small>Detailed</small></span>
+        </label>
+        <label class="cap-slider-row">
+          <span><b>Entity Granularity</b><small id="capEntityGranularityLabel">Balanced</small></span>
+          <input id="capEntityGranularity" type="range" min="1" max="5" step="1" value="3">
+          <span class="cap-slider-scale"><small>Flat</small><small>Deep</small></span>
+        </label>
+      </div>
+      <div class="cap-panel-section" id="capSelectionModes">
+        <button class="cap-mode-button" id="capMatchMode" type="button" aria-pressed="false">
+          <span>Match Selection</span>
+          <small>Click pills to include / exclude</small>
+        </button>
+        <label class="cap-check"><input id="capUnratedOnly" type="checkbox"> Unrated only</label>
+      </div>
+      <div class="cap-panel-note" id="capPanelNote">Hierarchy organization is a view projection. Entity identity and semantic relationships stay unchanged.</div>
+      </div>
+    </aside>
+    <main class="cap-main">
+      <div class="cap-main-head">
+        <div>
+          <div class="cap-eyebrow" id="capViewEyebrow">Projection</div>
+          <h1 id="capViewTitle">Hierarchy View</h1>
+          <p class="muted" id="capViewHint">Organize the same capability model at different levels of visual granularity.</p>
+        </div>
+        <div class="cap-main-actions">
+          <button class="btn cap-pane-restore" id="capRestoreLeftPane" type="button" hidden>Show left pane</button>
+          <button class="btn cap-pane-restore" id="capRestoreRightPane" type="button" hidden>Show right pane</button>
+        </div>
+      </div>
+      <div id="capContent" class="cap-content"><div class="empty">Loading capability model…</div></div>
+    </main>
+    <aside class="cap-reference-panel cap-side-pane cap-right-pane" id="capRightPane">
+      <div class="cap-reference-head">
+        <div>
+          <div class="cap-eyebrow">Reference</div>
+          <h2>Guide</h2>
+        </div>
+        <div class="cap-pane-mode-wrap">
+          <button class="cap-pane-mode-button" id="capRightModeButton" type="button" aria-haspopup="menu" aria-expanded="false">Fixed ▾</button>
+          <div class="cap-pane-menu" id="capRightModeMenu" hidden>
+            <button type="button" data-pane-side="right" data-pane-mode="fixed">Fixed</button>
+            <button type="button" data-pane-side="right" data-pane-mode="auto">Auto</button>
+            <button type="button" data-pane-side="right" data-pane-mode="off">Off</button>
+          </div>
+        </div>
+      </div>
+      <div class="cap-pane-body">
+        <label class="cap-guide-toggle"><input id="capUseGuideToggle" type="checkbox" checked> Show contextual use guide</label>
+        <section class="cap-reference-section" id="capUseGuideSection">
+          <div class="cap-reference-title" id="capUseGuideTitle">Capabilities</div>
+          <div class="cap-reference-copy" id="capUseGuideContent"></div>
+        </section>
+        <section class="cap-reference-section">
+          <div class="cap-reference-title">Rating guide</div>
+          <p class="cap-reference-intro">Use the same 0–5 meaning everywhere in JAW. Job analysis receives this exact rubric.</p>
+          <div class="cap-rating-guide" id="capRatingGuide"></div>
+        </section>
+      </div>
+    </aside>
+  </div>
+</div>
+<div id="keybindPage" class="page"><div class="keybind-page"><div class="keybind-toolbar"><button class="btn" id="globalsToggle">Edit Globals</button><button class="btn" id="actionsToggle">Edit Actions</button><button class="btn danger" id="deleteAssignment">Delete Assignment</button><button class="btn" id="editBinds">Edit Binds</button><button class="btn danger" id="deleteBind">Delete Binds</button><div class="spacer"></div><button class="btn" id="addLayout">+ Add Layout</button><select id="keyboardLayout"><option value="colemak-dh">Colemak-DH</option><option value="qwerty">QWERTY</option></select><button class="btn primary" id="saveKeybinds">Save</button></div><div class="keybind-layout palette-hidden"><aside class="action-palette collapsed" id="actionPalette"><div class="action-help" id="actionHelp">Drag an action to a key, or select it and click a key.</div><input id="actionSearch" placeholder="Filter actions"><div id="actionList"></div></aside><main class="matrix-editor"><div class="layer-tabs"><button class="tab active" data-key-layer="base">Base</button><button class="tab" data-key-layer="layer2">Layer 2</button><button class="tab" data-key-layer="layer3">Layer 3</button><span class="muted" id="keybindModeHelp"></span><span class="layer-warning" id="layerWarning"></span></div><div class="keybind-matrix" id="keybindMatrix"></div><div class="hotkey-settings"><h3>Global hotkeys</h3><div class="hotkey-card"><div class="hotkey-row"><label>Minimize / Restore JAW</label><button class="hotkey-capture" data-hotkey-path="window"></button><button class="btn" data-clear-hotkey="window">Clear</button></div><label><input type="checkbox" id="disableWhenMinimized"> Disable all hotkeys while minimized except Minimize / Restore</label><div class="hotkey-row"><label>Global Hotkey Toggle</label><button class="hotkey-capture" data-hotkey-path="toggle"></button><button class="btn" data-clear-hotkey="toggle">Clear</button></div><p class="muted">This is a global shortcut. Assign one to avoid disabling hotkeys without a way to restore them.</p></div><div class="hotkey-card layer-card"><h3>Layers</h3><div class="layer-config" data-layer-config="layer2"></div><div class="layer-config" data-layer-config="layer3"></div></div></div><div class="action-display-editor" id="actionDisplayEditor" hidden><div class="field"><label>Selected action</label><strong id="selectedActionName">Select an action or bound key</strong></div><div class="field"><label>Display name</label><input id="actionDisplayName" placeholder="Action label"></div></div></main></div></div><div class="cursor-message" id="bindCursorMessage">Change bindings for green cells, or create new layout to bind any cell.</div></div>
+<dialog id="layoutDialog"><h3>Add keyboard layout</h3><div class="field"><label>New layout name</label><input id="newLayoutName" placeholder="My layout"></div><div class="field" style="margin-top:12px"><label>Copy existing layout</label><select id="copyLayout"></select></div><div class="dialog-actions"><button class="btn" id="cancelLayout">Cancel</button><button class="btn primary" id="createLayout">Create layout</button></div></dialog>
+<div id="userPage" class="page"><div class="top-tabs"><button class="tab active" id="userTab">User</button><button class="tab" id="workTab">Work Experience</button><button class="tab" id="customDataTab">Custom Data</button><button class="tab" id="customActionsTab">Custom Actions</button><button class="tab" id="qaTab">Q&amp;A</button></div>
+<div id="userFormView"><div class="user-form"><h2>User</h2><p class="muted">These values are used by profile paste bindings.</p><div class="form-grid" id="userFields"></div><div class="form-actions"><button class="btn primary" id="saveUser">Save user data</button></div></div></div>
+<div id="customDataView" style="display:none"><div class="toolbar"><button class="btn primary" id="addCustomField">+ Add Custom Data</button><span class="muted">Changes save automatically</span></div><div id="customFields"></div></div>
+<div id="customActionsView" style="display:none"><div class="toolbar"><button class="btn primary" id="addCustomAction">+ Add Custom Action</button><span class="muted">Changes save automatically</span></div><div id="customActions"></div></div>
+<div id="workView" style="display:none"><div class="toolbar"><button class="btn primary" id="addWork">+ Add work experience</button><span class="muted">Changes save automatically</span></div><div id="workEntries"></div></div>
+<div id="qaView" style="display:none"><div class="toolbar"><button class="btn primary" id="addAnswer">+ Add Q&amp;A</button><button class="btn" id="saveAnswers">Save Q&amp;A</button></div><div id="answerEntries"></div></div>
+</div>
+<dialog id="capSmartAddDialog" class="cap-dialog cap-smart-dialog">
+  <div class="cap-dialog-head">
+    <div>
+      <div class="cap-eyebrow">AI-assisted taxonomy</div>
+      <h2>Smart Add</h2>
+      <p class="muted">Manual ChatGPT is the default workflow. No API key is required.</p>
+    </div>
+    <button class="dialog-x" id="capSmartClose" type="button" aria-label="Close">×</button>
+  </div>
+
+  <section class="cap-smart-step">
+    <div class="cap-smart-step-head"><span>1</span><div><h3>Add names</h3><p>Paste only the capabilities you want to add. Existing JAW data is supplied separately in the generated prompt.</p></div></div>
+    <textarea id="capSmartInput" class="cap-smart-input" placeholder="Kubernetes|AWS|Terraform|Prometheus|Cloud Architecture"></textarea>
+    <div class="cap-smart-inline">
+      <label class="field"><span>Delimiter</span><select id="capSmartDelimiter"><option value="auto">Auto detect</option><option value="newline">New line</option><option value="|">Pipe (|)</option><option value=",">Comma (,)</option><option value=";">Semicolon (;)</option></select></label>
+      <div class="cap-smart-detected"><b id="capSmartDetected">0</b><span>unique names detected</span></div>
+      <button class="btn primary" type="button" id="capSmartPrepare">Prepare for ChatGPT</button>
+    </div>
+  </section>
+
+  <section class="cap-smart-step" id="capSmartPromptStep" hidden>
+    <div class="cap-smart-step-head"><span>2</span><div><h3>Use ChatGPT</h3><p>Review the complete prompt, copy it, and paste it into a fresh ChatGPT conversation. Signed-out/incognito testing is supported.</p></div></div>
+    <textarea id="capSmartPrompt" class="cap-smart-prompt" readonly></textarea>
+    <div class="dialog-actions cap-smart-actions">
+      <button class="btn" type="button" id="capSmartCopyPrompt">Copy Prompt</button>
+      <button class="btn" type="button" id="capSmartOpenChatGPT">Open ChatGPT</button>
+    </div>
+  </section>
+
+  <section class="cap-smart-step" id="capSmartResultStep" hidden>
+    <div class="cap-smart-step-head"><span>3</span><div><h3>Paste ChatGPT JSON</h3><p>JAW will validate and preview the proposed additions, enrichment, relationships, and complete visual hierarchy before applying anything.</p></div></div>
+    <textarea id="capSmartResult" class="cap-smart-result" placeholder='{"format":"jaw-smart-add","version":1,...}'></textarea>
+    <div class="dialog-actions cap-smart-actions">
+      <button class="btn" type="button" id="capSmartPreview">Preview Changes</button>
+    </div>
+    <div id="capSmartPreviewPanel" class="cap-smart-preview" hidden></div>
+  </section>
+
+  <div class="dialog-actions cap-smart-footer">
+    <button class="btn" type="button" id="capSmartCancel">Cancel</button>
+    <button class="btn primary" type="button" id="capSmartApply" disabled>Apply Smart Add</button>
+  </div>
+</dialog>
+
+<dialog id="capEntityDialog" class="cap-dialog">
+  <form id="capEntityForm">
+    <div class="cap-dialog-head">
+      <div><div class="cap-eyebrow">Capability</div><h2 id="capEntityDialogTitle">Add capability</h2></div>
+      <button class="dialog-x" id="capEntityClose" type="button" aria-label="Close">×</button>
+    </div>
+    <input type="hidden" id="capEntityId">
+    <div class="cap-dialog-grid">
+      <label class="field"><span>Type</span><select id="capEntityType"><option value="competency">Competency</option><option value="technology">Technology</option><option value="product">Product / Tool</option></select></label>
+      <label class="field"><span>Display name</span><input id="capEntityDisplayName" required placeholder="Kubernetes"></label>
+      <label class="field cap-dialog-wide"><span>Canonical name</span><input id="capEntityCanonicalName" placeholder="Kubernetes"></label>
+      <label class="field cap-dialog-wide"><span>Aliases</span><input id="capEntityAliases" placeholder="K8s, kube"></label>
+      <div class="field cap-rating-field" id="capEntityRatingField">
+        <div class="cap-field-label"><span>Rating</span><button class="cap-help-button" id="capRatingHelp" type="button" aria-expanded="false" aria-controls="capRatingPopover">?</button></div>
+        <select id="capEntityRating"><option value="0">0 · Unrated</option><option value="1">1 · Conceptual</option><option value="2">2 · Hands-on</option><option value="3">3 · Proficient</option><option value="4">4 · Advanced</option><option value="5">5 · Expert</option></select>
+        <div class="cap-rating-popover" id="capRatingPopover" hidden></div>
+      </div>
+      <div class="cap-dialog-toggles" id="capEntityToggleFields">
+        <label class="cap-check"><input id="capEntityMatch" type="checkbox" checked> Use for job matching</label>
+        <label class="cap-check"><input id="capEntityIterator" type="checkbox" checked> Include in paste iterator</label>
+      </div>
+    </div>
+    <p class="muted cap-dialog-help" id="capEntityHelp">Renaming changes the display name. Stable IDs preserve entity identity across views and relationships.</p>
+    <div class="dialog-actions cap-dialog-actions">
+      <button class="btn danger" type="button" id="capDeleteEntity" hidden>Delete</button>
+      <div class="spacer"></div>
+      <button class="btn" type="button" id="capEntityCancel">Cancel</button>
+      <button class="btn primary" type="button" id="capSaveEntity">Save</button>
+    </div>
+  </form>
+</dialog>
+<dialog id="capSetDialog" class="cap-dialog">
+  <form id="capSetForm">
+    <div class="cap-dialog-head">
+      <div><div class="cap-eyebrow">Capability Set</div><h2 id="capSetDialogTitle">Add capability set</h2></div>
+      <button class="dialog-x" id="capSetClose" type="button" aria-label="Close">×</button>
+    </div>
+    <input type="hidden" id="capSetId">
+    <div class="cap-dialog-grid">
+      <label class="field cap-dialog-wide"><span>Name</span><input id="capSetName" required placeholder="Platform & SRE"></label>
+      <div class="cap-dialog-toggles cap-dialog-wide">
+        <label class="cap-check"><input id="capSetDocument" type="checkbox" checked> Document</label>
+        <label class="cap-check"><input id="capSetPaste" type="checkbox" checked> Paste</label>
+      </div>
+    </div>
+    <p class="muted cap-dialog-help">Capability sets are named lenses over the same capability model. Membership is edited in Capability Set View.</p>
+    <div class="dialog-actions cap-dialog-actions">
+      <button class="btn danger" type="button" id="capDeleteSet" hidden>Delete</button>
+      <div class="spacer"></div>
+      <button class="btn" type="button" id="capSetCancel">Cancel</button>
+      <button class="btn primary" type="button" id="capSaveSet">Save</button>
+    </div>
+  </form>
+</dialog>
+<input type="file" id="importFile" accept="application/json,.json" hidden><dialog id="importDialog"><h2>Import user data</h2><p>Select whether imported data is merged with this user or replaces it.</p><div class="delimiter-row"><label><input type="radio" name="importMode" value="merge" checked> Merge</label><label><input type="radio" name="importMode" value="replace"> Replace</label></div><div class="dialog-actions"><button class="btn" id="cancelImport">Cancel</button><button class="btn primary" id="chooseImport">Select JSON file</button></div></dialog>
+<div class="toast" id="toast"></div>
+<script src="/dashboard.js"></script></body></html>
