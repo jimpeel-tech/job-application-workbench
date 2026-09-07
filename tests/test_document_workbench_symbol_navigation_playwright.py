@@ -86,6 +86,23 @@ def test_duplicate_visible_symbols_navigate_to_their_exact_reference_jids(tmp_pa
                 page.goto(f"{server.url}/#documents", wait_until="domcontentloaded")
                 playwright.expect(page.locator(".wb-shell")).to_be_visible(timeout=15_000)
                 page.locator("#wbNewDocument").click()
+                page.wait_for_function(
+                    """
+                    () => {
+                      const state = window.JawWorkbenchStore.getState();
+                      const snapshot = window.JawWorkbenchStore.getSnapshot();
+                      const document = state.documents?.[0];
+                      const editor = document?.id
+                        ? document.querySelector?.('[data-wb-editor="template"]')
+                        : null;
+                      return state.documents?.length === 1
+                        && document?.id
+                        && snapshot.activeDocumentId === document.id
+                        && window.document.querySelector('[data-wb-editor="template"]')
+                          ?.value.includes('{{ section }}');
+                    }
+                    """
+                )
 
                 editor = page.locator('[data-wb-editor="template"]')
                 playwright.expect(editor).to_be_enabled()
