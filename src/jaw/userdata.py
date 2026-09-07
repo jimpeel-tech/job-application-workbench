@@ -7,6 +7,11 @@ from pathlib import Path
 from typing import Any, Iterable
 
 from .icons import infer_icon_names
+from .keyboard_layouts import (
+    DEFAULT_KEYBOARD_LAYOUT,
+    canonical_keyboard_layout,
+    normalize_custom_layouts,
+)
 from .paths import database_path
 from .persistence import UserRepository
 
@@ -218,6 +223,9 @@ def normalize_layer_bindings(keybinds: dict[str, Any]) -> dict[str, Any]:
     for action in RETIRED_LAYER_ACTIONS:
         displays.pop(action, None)
     normalized["action_displays"] = displays
+    normalized["custom_layouts"] = normalize_custom_layouts(
+        normalized.get("custom_layouts", {})
+    )
     return normalized
 
 
@@ -589,7 +597,7 @@ class UserDataStore:
                 "model": "gpt-5.6-terra",
             },
             "name_format": "first_last",
-            "keyboard_layout": "qwerty",
+            "keyboard_layout": DEFAULT_KEYBOARD_LAYOUT,
             "keybinds": initial_keybinds(),
         }
 
@@ -662,8 +670,14 @@ class UserDataStore:
                 if data.get("name_format") == "full"
                 else "first_last"
             ),
-            "keyboard_layout": data.get(
-                "keyboard_layout", "qwerty"
+            "keyboard_layout": (
+                canonical_keyboard_layout(
+                    data.get("keyboard_layout", DEFAULT_KEYBOARD_LAYOUT),
+                    normalize_layer_bindings(
+                        data.get("keybinds", empty_keybinds())
+                    ).get("custom_layouts", {}),
+                )
+                or DEFAULT_KEYBOARD_LAYOUT
             ),
             "keybinds": normalize_layer_bindings(
                 data.get("keybinds", empty_keybinds())
@@ -1610,21 +1624,11 @@ class UserDataStore:
         layout: str,
     ) -> None:
         data = self.read()
-        custom = (
-            data.get("keybinds", {})
-            .get("custom_layouts", {})
-        )
-
-        if (
-            layout
-            not in {"qwerty", "colemak-dh"}
-            | set(custom)
-        ):
-            raise ValueError(
-                "Unsupported keyboard layout"
-            )
-
-        data["keyboard_layout"] = layout
+        custom = data.get("keybinds", {}).get("custom_layouts", {})
+        selected = canonical_keyboard_layout(layout, custom)
+        if selected is None:
+            raise ValueError("Unsupported keyboard layout")
+        data["keyboard_layout"] = selected
         self.write(data)
 
     def save_keybinds(
@@ -1726,29 +1730,9 @@ class UserDataStore:
             if isinstance(value, dict)
         }
 
-        cleaned["custom_layouts"] = {
-            str(name): [
-                [
-                    str(key).upper()
-                    if len(
-                        str(key).strip()
-                    )
-                    == 1
-                    and str(
-                        key
-                    ).strip().isalnum()
-                    else ""
-                    for key in row
-                ]
-                for row in rows
-            ]
-            for name, rows in dict(
-                payload.get(
-                    "custom_layouts", {}
-                )
-            ).items()
-            if isinstance(rows, list)
-        }
+        cleaned["custom_layouts"] = normalize_custom_layouts(
+            payload.get("custom_layouts", {})
+        )
 
         data["keybinds"] = (
             normalize_layer_bindings(cleaned)

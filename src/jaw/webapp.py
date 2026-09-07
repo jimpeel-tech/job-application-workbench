@@ -19,6 +19,11 @@ from .database import JobDatabase
 from .icons import ICON_LABELS, ICON_SVGS
 from .integrations.outlook import OutlookSyncService
 from .integrations.outlook.web import OutlookWebController
+from .keyboard_layouts import (
+    BUILTIN_KEYBOARD_LAYOUT_LABELS,
+    BUILTIN_KEYBOARD_LAYOUTS,
+    DEFAULT_KEYBOARD_LAYOUT,
+)
 from .userdata import UserDataStore, empty_keybinds
 from .web.assets import (
     DASHBOARD_PAGE,
@@ -188,6 +193,17 @@ class DashboardServer:
                                 name: {"label": ICON_LABELS[name], "svg": svg}
                                 for name, svg in ICON_SVGS.items()
                             },
+                            "builtin_layouts": {
+                                name: [list(row) for row in rows]
+                                for name, rows in BUILTIN_KEYBOARD_LAYOUTS.items()
+                            },
+                            "builtin_layout_labels": dict(
+                                BUILTIN_KEYBOARD_LAYOUT_LABELS
+                            ),
+                            "default_layout": DEFAULT_KEYBOARD_LAYOUT,
+                            "keyboard_layout": active_data.get(
+                                "keyboard_layout", DEFAULT_KEYBOARD_LAYOUT
+                            ),
                             "custom_layouts": stored.get("custom_layouts", {}),
                         }
                     )

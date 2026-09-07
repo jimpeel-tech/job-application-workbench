@@ -96,6 +96,7 @@ from .desktop.workers import (
 from .fixture_store import FixtureStore
 from .hotkeys import MatrixHotkeys
 from .icons import ICON_SVGS
+from .keyboard_layouts import DEFAULT_KEYBOARD_LAYOUT, resolve_keyboard_layout
 from .model import DateFormat
 from .paths import source_root
 from .ports import BrowserPort, ClipboardPort, KeyboardPort, WindowChromePort
@@ -115,13 +116,6 @@ from .userdata import (
     default_user_data_path,
 )
 from .webapp import DashboardServer
-
-COLEMAK_MATRIX = [
-    ["1", "2", "3", "4", "5"],
-    ["Q", "W", "F", "P", "B"],
-    ["A", "R", "S", "T", "G"],
-    ["Z", "X", "C", "D", "V"],
-]
 
 
 class MainWindow(QMainWindow):
@@ -149,6 +143,12 @@ class MainWindow(QMainWindow):
         bootstrap_data = bootstrap_store.read()
         self._desktop_active_user_id = int(bootstrap_data.get("active_user_id", 0))
         self.user_store = UserDataStore(self._user_data_path, user_id=self._desktop_active_user_id)
+        self._keyboard_layout_name = str(
+            bootstrap_data.get("keyboard_layout") or DEFAULT_KEYBOARD_LAYOUT
+        )
+        self._keyboard_custom_layouts = dict(
+            bootstrap_data.get("keybinds", {}).get("custom_layouts", {})
+        )
         self.config = config or load_config(self._config_path, user_id=self._desktop_active_user_id)
         self._desktop_set_id = self.config.active_set_id
         self._last_sync_revisions = self.user_store.read_sync_revisions()
@@ -163,6 +163,7 @@ class MainWindow(QMainWindow):
         self.field_order = list(self.default_field_order)
         self.disabled_child_fields: set[str] = set()
         self._job_paste_pending = False
+        self._job_paste_trigger_key = ""
         self._pending_date_values: list[str] = []
         self._pending_date_context: tuple[int, str, DateFormat] | None = None
         self._job_advance_after_paste = True
@@ -567,7 +568,17 @@ class MainWindow(QMainWindow):
         else:
             self.answer_text.clear()
         self._refresh_user_cycle_button()
-        self._refresh_matrix_labels()
+        layout_data = self.user_store.read()
+        self._keyboard_layout_name = str(
+            layout_data.get("keyboard_layout") or DEFAULT_KEYBOARD_LAYOUT
+        )
+        self._keyboard_custom_layouts = dict(
+            layout_data.get("keybinds", {}).get("custom_layouts", {})
+        )
+        if hasattr(self, "matrix_grid"):
+            self._rebuild_matrix_layout()
+        else:
+            self._refresh_matrix_labels()
         self._last_sync_revisions = self.user_store.read_sync_revisions()
         if self.pages.currentIndex() == self.custom_iterator_page_index:
             if self.active_custom_iterator.startswith("sequence:"):
@@ -1967,19 +1978,42 @@ class MainWindow(QMainWindow):
         # that information out of the status bar prevents it from overwriting
         # save confirmations, format changes, and actionable errors.
 
+    def _keyboard_layout_rows(self) -> list[list[str]]:
+        return resolve_keyboard_layout(
+            self._keyboard_layout_name,
+            self._keyboard_custom_layouts,
+        )
+
     def _matrix_panel(self) -> QWidget:
         panel = Panel("")
         panel.setObjectName("matrixPanel")
         panel.layout.setContentsMargins(0, 4, 0, 4)
         panel.layout.setSpacing(0)
         self.base_guide_labels = {}
-        grid = QGridLayout()
-        grid.setContentsMargins(0, 0, 0, 0)
-        grid.setHorizontalSpacing(3)
-        grid.setVerticalSpacing(2)
-        grid.setAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignBottom)
-        for row, keys in enumerate(COLEMAK_MATRIX):
+        self.matrix_grid = QGridLayout()
+        self.matrix_grid.setContentsMargins(0, 0, 0, 0)
+        self.matrix_grid.setHorizontalSpacing(3)
+        self.matrix_grid.setVerticalSpacing(2)
+        self.matrix_grid.setAlignment(
+            Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignBottom
+        )
+        panel.layout.addLayout(self.matrix_grid)
+        self._rebuild_matrix_layout()
+        return panel
+
+    def _rebuild_matrix_layout(self) -> None:
+        while self.matrix_grid.count():
+            item = self.matrix_grid.takeAt(0)
+            widget = item.widget()
+            if widget is not None:
+                widget.deleteLater()
+        self._matrix_buttons.clear()
+        self.base_guide_labels = {}
+
+        for row, keys in enumerate(self._keyboard_layout_rows()):
             for col, key in enumerate(keys):
+                if not key:
+                    continue
                 config_key = self._matrix_config_key(key)
                 binding = self.config.matrix.get(config_key, "")
                 action, label_override = split_binding(binding)
@@ -2001,16 +2035,9 @@ class MainWindow(QMainWindow):
                 key_label.raise_()
                 if action:
                     btn.clicked.connect(partial(self.handle_global_key, config_key))
-                if key == "Space":
-                    grid.addWidget(btn, row, 0, 1, 3)
-                elif key == "Return":
-                    grid.addWidget(btn, row, 3, 1, 3)
-                else:
-                    grid.addWidget(btn, row, col)
+                self.matrix_grid.addWidget(btn, row, col)
                 self._matrix_buttons[key] = btn
-        panel.layout.addLayout(grid)
         self._refresh_matrix_labels()
-        return panel
 
     @staticmethod
     def _matrix_config_key(key: str) -> str:
@@ -2605,7 +2632,7 @@ class MainWindow(QMainWindow):
                 self._capture_has_content_cache if assignment == "analyze_job" else True
             )
             if isinstance(button, MatrixButton):
-                work_experience = config_key == "P" and assignment == "iterate_work_exp"
+                work_experience = assignment == "iterate_work_exp"
                 if work_experience:
                     state_icon = "paste" if self.pages.currentIndex() == 0 else "small_toggle"
                     button.corner_icon.setPixmap(self._single_icon_pixmap(state_icon, 17))
@@ -2759,7 +2786,7 @@ class MainWindow(QMainWindow):
         QTimer.singleShot(20, self._paste_clipboard_if_unfocused)
         self._schedule_iterator_return("name")
 
-    def paste_current_work_exp(self) -> None:
+    def paste_current_work_exp(self, trigger_key: str = "") -> None:
         if self._job_paste_pending or not self.job_order or self.job_fields_list.currentRow() < 0:
             return
         job_row = max(0, self.titles_list.currentRow())
@@ -2797,11 +2824,15 @@ class MainWindow(QMainWindow):
         else:
             self._clear_pending_date()
         self.clipboard.write(value)
+        self._job_paste_trigger_key = str(trigger_key).upper()
         self._job_paste_pending = True
         self._paste_work_exp_after_key_release()
 
     def _paste_work_exp_after_key_release(self) -> None:
-        if self.keyboard.is_key_down("P"):
+        if (
+            self._job_paste_trigger_key
+            and self.keyboard.is_key_down(self._job_paste_trigger_key)
+        ):
             QTimer.singleShot(10, self._paste_work_exp_after_key_release)
             return
         QTimer.singleShot(25, self._finish_work_exp_paste)
@@ -2809,6 +2840,7 @@ class MainWindow(QMainWindow):
     def _finish_work_exp_paste(self) -> None:
         if self.isActiveWindow():
             self._job_paste_pending = False
+            self._job_paste_trigger_key = ""
             self.statusBar().showMessage("Paste canceled because JAW has focus")
             return
         self.keyboard.paste_clipboard()
@@ -2823,6 +2855,7 @@ class MainWindow(QMainWindow):
                 if next_job is not None:
                     self.titles_list.setCurrentRow(next_job)
         self._job_paste_pending = False
+        self._job_paste_trigger_key = ""
 
     def show_skills(self) -> None:
         self._restore_keyboard_after_answers()
@@ -3229,7 +3262,7 @@ class MainWindow(QMainWindow):
                 self.pages.setCurrentIndex(0)
                 self._refresh_matrix_labels()
             else:
-                self.paste_current_work_exp()
+                self.paste_current_work_exp(key)
         elif action == "iterate_skills":
             self.iterate_skill()
         elif action == "cycle_date_format":
