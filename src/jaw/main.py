@@ -265,6 +265,7 @@ class MainWindow(QMainWindow):
         self._capture_restore_divider: bool | None = None
         self._capture_has_content_cache = False
         self.hotkeys_enabled = self.config.hotkeys_active_on_startup
+        self._answer_search_active = False
         self.active_job_id: int | None = None
         self.brief_worker: BriefWorker | None = None
         self.connection_test_worker: ConnectionTestWorker | None = None
@@ -1812,8 +1813,9 @@ class MainWindow(QMainWindow):
         return str(item.data(Qt.ItemDataRole.UserRole) or item.text())
 
     def _answer_search_focus_changed(self, focused: bool) -> None:
+        self._answer_search_active = focused
         if hasattr(self, "hotkeys"):
-            self.hotkeys.set_enabled(False if focused else self.hotkeys_enabled)
+            self.hotkeys.set_suspended(focused)
 
     @staticmethod
     def _answer_search_score(query: str, title: str) -> float:
@@ -3212,6 +3214,8 @@ class MainWindow(QMainWindow):
 
     def handle_global_key(self, key: str) -> None:
         self._poll_sync_revisions(force=True)
+        if self._answer_search_active and key != "SPECIAL:window":
+            return
         if key == "SPECIAL:toggle":
             self.hotkeys_enabled = not self.hotkeys_enabled
             self.hotkeys.set_enabled(self.hotkeys_enabled)
@@ -3431,6 +3435,7 @@ class MainWindow(QMainWindow):
         if (
             event.type() == QEvent.Type.KeyPress
             and self.isActiveWindow()
+            and not self._answer_search_active
             and hasattr(self, "_matrix_buttons")
         ):
             key = event.text().upper()
