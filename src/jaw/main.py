@@ -32,6 +32,7 @@ from PySide6.QtWidgets import (
     QGridLayout,
     QHBoxLayout,
     QLabel,
+    QLineEdit,
     QListView,
     QListWidget,
     QListWidgetItem,
@@ -168,6 +169,30 @@ class TwoColumnListWidget(QListWidget):
         )
         if self.minimumHeight() != target_height or self.maximumHeight() != target_height:
             self.setFixedHeight(target_height)
+
+
+class AnswerSearchEdit(QLineEdit):
+    """Search field that temporarily yields JAW global hotkeys while typing."""
+
+    def __init__(self, focus_changed, parent=None) -> None:
+        super().__init__(parent)
+        self._focus_changed = focus_changed
+
+    def focusInEvent(self, event) -> None:
+        super().focusInEvent(event)
+        self._focus_changed(True)
+
+    def focusOutEvent(self, event) -> None:
+        super().focusOutEvent(event)
+        self._focus_changed(False)
+
+    def keyPressEvent(self, event) -> None:
+        if event.key() == Qt.Key.Key_Escape:
+            self.clear()
+            self.clearFocus()
+            event.accept()
+            return
+        super().keyPressEvent(event)
 
 
 class MainWindow(QMainWindow):
@@ -608,17 +633,8 @@ class MainWindow(QMainWindow):
         current_job = self.titles_list.currentRow()
         self.job_order = list(refreshed.work_history)
         self._rebuild_titles(max(0, current_job))
-        current_answer = self.answer_titles_list.currentRow()
-        self.answer_titles_list.clear()
-        self.answer_titles_list.addItems([entry.title for entry in refreshed.answers])
-        if hasattr(self, "answers_count_label"):
-            self.answers_count_label.setText(str(len(refreshed.answers)))
-        if self.answer_titles_list.count():
-            self.answer_titles_list.setCurrentRow(
-                max(0, min(current_answer, self.answer_titles_list.count() - 1))
-            )
-        else:
-            self.answer_text.clear()
+        current_answer = self._current_answer_index()
+        self._rebuild_answer_list(current_answer)
         self._refresh_user_cycle_button()
         layout_data = self.user_store.read()
         self._keyboard_layout_name = str(
@@ -1795,6 +1811,64 @@ class MainWindow(QMainWindow):
             return ""
         return str(item.data(Qt.ItemDataRole.UserRole) or item.text())
 
+    def _answer_search_focus_changed(self, focused: bool) -> None:
+        if hasattr(self, "hotkeys"):
+            self.hotkeys.set_enabled(False if focused else self.hotkeys_enabled)
+
+    @staticmethod
+    def _answer_search_score(query: str, title: str) -> float:
+        query = query.strip().casefold()
+        title = title.casefold()
+        if not query:
+            return 1.0
+        if query in title:
+            return 2.0 + len(query) / max(1, len(title))
+        phrase_score = difflib.SequenceMatcher(None, query, title).ratio()
+        query_words = query.split()
+        title_words = title.split()
+        if not query_words or not title_words:
+            return phrase_score
+        word_scores = [max(difflib.SequenceMatcher(None, word, candidate).ratio() for candidate in title_words) for word in query_words]
+        return max(phrase_score, sum(word_scores) / len(word_scores))
+
+    def _current_answer_index(self) -> int | None:
+        item = self.answer_titles_list.currentItem()
+        if item is None:
+            return None
+        try:
+            return int(item.data(Qt.ItemDataRole.UserRole))
+        except (TypeError, ValueError):
+            return None
+
+    def _rebuild_answer_list(self, selected_index: int | None = None) -> None:
+        query = self.answer_search.text().strip() if hasattr(self, "answer_search") else ""
+        matches = []
+        for index, entry in enumerate(self.config.answers):
+            score = self._answer_search_score(query, entry.title)
+            if not query or score >= 0.58:
+                matches.append((score, index))
+        if query:
+            matches.sort(key=lambda item: (-item[0], item[1]))
+        self.answer_titles_list.blockSignals(True)
+        self.answer_titles_list.clear()
+        selected_row = -1
+        for row, (_score, index) in enumerate(matches):
+            item = QListWidgetItem(self.config.answers[index].title)
+            item.setData(Qt.ItemDataRole.UserRole, index)
+            self.answer_titles_list.addItem(item)
+            if index == selected_index:
+                selected_row = row
+        if self.answer_titles_list.count():
+            self.answer_titles_list.setCurrentRow(selected_row if selected_row >= 0 else 0)
+        self.answer_titles_list.blockSignals(False)
+        if self.answer_titles_list.count():
+            self._answer_changed(self.answer_titles_list.currentRow())
+        else:
+            self.answer_text.clear()
+
+    def _filter_answers(self, _text: str = "") -> None:
+        self._rebuild_answer_list(self._current_answer_index())
+
     def _answers_panel(self) -> QWidget:
         panel = QFrame()
         panel.setObjectName("answersPanel")
@@ -1802,31 +1876,27 @@ class MainWindow(QMainWindow):
         layout.setContentsMargins(6, 4, 6, 4)
         layout.setSpacing(3)
 
-        header = QFrame()
-        header.setObjectName("answersHeader")
-        header_layout = QHBoxLayout(header)
-        header_layout.setContentsMargins(0, 0, 0, 0)
-        header_layout.setSpacing(5)
-        heading = QLabel("Saved Q&A")
-        heading.setObjectName("answersHeading")
-        self.answers_count_label = QLabel(str(len(self.config.answers)))
-        self.answers_count_label.setObjectName("answersCount")
-        header_layout.addWidget(heading)
-        header_layout.addWidget(self.answers_count_label)
-        header_layout.addStretch()
-        header.setToolTip("Select a question to preview · click the question or answer to copy")
-        layout.addWidget(header)
+        self.answer_search = AnswerSearchEdit(self._answer_search_focus_changed)
+        self.answer_search.setObjectName("answerSearch")
+        self.answer_search.setPlaceholderText("Search questions…")
+        self.answer_search.setClearButtonEnabled(True)
+        self.answer_search.setToolTip("Fuzzy search saved questions · Escape clears and exits search")
+        self.answer_search.textChanged.connect(self._filter_answers)
+        layout.addWidget(self.answer_search)
 
         self.answer_titles_list = QListWidget()
         self.answer_titles_list.setObjectName("answerTitlesList")
         self.answer_titles_list.setWordWrap(True)
         self.answer_titles_list.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-        self.answer_titles_list.setMaximumHeight(104)
-        for entry in self.config.answers:
-            self.answer_titles_list.addItem(entry.title)
+        self.answer_titles_list.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
         self.answer_titles_list.currentRowChanged.connect(self._answer_changed)
         self.answer_titles_list.itemClicked.connect(lambda _item: self.copy_current_answer())
-        layout.addWidget(self.answer_titles_list)
+        layout.addWidget(self.answer_titles_list, 2)
+
+        divider = QFrame()
+        divider.setObjectName("answersDivider")
+        divider.setFixedHeight(1)
+        layout.addWidget(divider)
 
         self.answer_text = ClickableTextEdit()
         self.answer_text.setObjectName("answerText")
@@ -1835,25 +1905,35 @@ class MainWindow(QMainWindow):
         self.answer_text.clicked.connect(self.copy_current_answer)
         layout.addWidget(self.answer_text, 1)
 
-        if self.answer_titles_list.count():
-            self.answer_titles_list.setCurrentRow(0)
+        self._rebuild_answer_list()
         return panel
 
+    def _answer_index_for_row(self, row: int) -> int | None:
+        item = self.answer_titles_list.item(row)
+        if item is None:
+            return None
+        try:
+            return int(item.data(Qt.ItemDataRole.UserRole))
+        except (TypeError, ValueError):
+            return None
+
     def _answer_changed(self, row: int) -> None:
-        if 0 <= row < len(self.config.answers):
-            self.answer_text.setPlainText(self.config.answers[row].answer)
+        index = self._answer_index_for_row(row)
+        if index is not None and 0 <= index < len(self.config.answers):
+            self.answer_text.setPlainText(self.config.answers[index].answer)
+        else:
+            self.answer_text.clear()
 
     def copy_current_answer(self) -> None:
-        row = self.answer_titles_list.currentRow()
-        if 0 <= row < len(self.config.answers):
-            self.clipboard.write(self.config.answers[row].answer)
+        index = self._current_answer_index()
+        if index is not None and 0 <= index < len(self.config.answers):
+            self.clipboard.write(self.config.answers[index].answer)
+            self.statusBar().showMessage("Copied to clipboard", 1600)
 
     def move_answer(self, direction: int) -> None:
         count = self.answer_titles_list.count()
         if count:
-            self.answer_titles_list.setCurrentRow(
-                (self.answer_titles_list.currentRow() + direction) % count
-            )
+            self.answer_titles_list.setCurrentRow((self.answer_titles_list.currentRow() + direction) % count)
 
     def _rebuild_titles(self, selected_row: int) -> None:
         self.titles_list.blockSignals(True)
