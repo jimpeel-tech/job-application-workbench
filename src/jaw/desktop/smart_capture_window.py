@@ -4,7 +4,7 @@ import sys
 import time
 
 from PySide6.QtCore import QEvent, QSize, Qt, QTimer
-from PySide6.QtGui import QColor
+from PySide6.QtGui import QAction, QColor, QIcon
 from PySide6.QtWidgets import (
     QApplication,
     QFrame,
@@ -13,14 +13,22 @@ from PySide6.QtWidgets import (
     QListView,
     QListWidget,
     QListWidgetItem,
+    QMenu,
     QPushButton,
     QStackedWidget,
+    QSystemTrayIcon,
     QTabBar,
     QVBoxLayout,
     QWidget,
 )
 
 from ..application import CaptureValidationError
+from ..branding import (
+    APP_ICON_PATH,
+    TITLEBAR_ICON_PATH,
+    TRAY_ICON_PATH,
+    set_windows_app_user_model_id,
+)
 from ..main import MainWindow as BaseMainWindow
 from ..parser_resolution import resolve_parser_evidence
 from ..smart_capture import (
@@ -661,11 +669,48 @@ class MainWindow(BaseMainWindow):
 
 
 def main() -> int:
+    set_windows_app_user_model_id()
     app = QApplication(sys.argv)
     app.setApplicationName("JAW")
     app.setApplicationDisplayName("Job Application Workbench")
+    app.setWindowIcon(QIcon(str(APP_ICON_PATH)))
     app.setStyleSheet(STYLESHEET)
+
     window = MainWindow()
+    window.setWindowIcon(QIcon(str(TITLEBAR_ICON_PATH)))
+
+    tray: QSystemTrayIcon | None = None
+    if QSystemTrayIcon.isSystemTrayAvailable():
+        tray = QSystemTrayIcon(QIcon(str(TRAY_ICON_PATH)), window)
+        tray.setToolTip("Job Application Workbench")
+        tray_menu = QMenu(window)
+        show_action = QAction("Show JAW", tray_menu)
+        quit_action = QAction("Quit", tray_menu)
+        tray_menu.addAction(show_action)
+        tray_menu.addSeparator()
+        tray_menu.addAction(quit_action)
+        tray.setContextMenu(tray_menu)
+
+        def restore_window() -> None:
+            if window.isMinimized():
+                window.showNormal()
+            else:
+                window.show()
+            window.raise_()
+            window.activateWindow()
+
+        def tray_activated(reason: QSystemTrayIcon.ActivationReason) -> None:
+            if reason in {
+                QSystemTrayIcon.ActivationReason.Trigger,
+                QSystemTrayIcon.ActivationReason.DoubleClick,
+            }:
+                restore_window()
+
+        show_action.triggered.connect(lambda _checked=False: restore_window())
+        quit_action.triggered.connect(lambda _checked=False: app.quit())
+        tray.activated.connect(tray_activated)
+        tray.show()
+
     window.show()
     return app.exec()
 

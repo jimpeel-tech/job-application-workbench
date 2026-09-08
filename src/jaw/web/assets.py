@@ -156,6 +156,10 @@ JOB_ANALYSIS_HELP_PAGE = WebAsset(
 )
 
 _STATIC_ASSETS = {
+    "/favicon.png": WebAsset(
+        "image/png",
+        _PACKAGE_DIR / "resources" / "icons" / "jaw_favicon.png",
+    ),
     "/dashboard.css": WebAsset(
         "text/css; charset=utf-8",
         _PACKAGE_DIR / "dashboard.css",

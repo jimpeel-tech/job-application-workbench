@@ -1,15 +1,22 @@
 # Installation
 
-JAW is currently a Windows-first desktop application distributed from source. Python 3.11 or newer is required.
+JAW is a Windows-first desktop application. You can use a packaged `JAW.exe` or install it from source.
 
 ## Requirements
 
 - Windows 10 or Windows 11
-- Python 3.11+
-- Git
 - Optional: [Ollama](ollama.md) for local generative AI
 - Optional: [Tectonic](tectonic.md) for PDF document rendering
 - Optional: Microsoft Outlook configuration for [Outlook sync](outlook-sync.md)
+- Python 3.11+ and Git only when installing from source or building JAW yourself
+
+## Install the Windows executable
+
+For release builds, download `JAW.exe` from the matching GitHub Release and run it directly. Python and Git are not required on the target machine.
+
+Current alpha executables are not code-signed, so Windows SmartScreen may show an **Unknown publisher** warning after download.
+
+You can also create a build from the repository through GitHub Actions or locally. See [Building JAW for Windows](building.md).
 
 ## Install from the repository
 
@@ -81,12 +88,17 @@ python -m ruff check src tests
 
 An editable checkout deliberately uses the repository root as JAW's application home, so development data is written to the checkout's ignored `config.toml` and `data/` paths. A normal installed copy uses `%LOCALAPPDATA%\JAW` instead.
 
+## Build an executable
+
+See [Building JAW for Windows](building.md) for the local PyInstaller command and the automated GitHub Actions build/release workflow.
+
 ## Optional Chrome extension
 
 JAW includes an optional unpacked Chrome extension that reuses the existing local JAW dashboard tab instead of opening duplicates. See [`chrome-extension/README.md`](../chrome-extension/README.md) for installation instructions.
 
 ## Next steps
 
+- [Build JAW for Windows](building.md)
 - [Configure Ollama](ollama.md)
 - [Configure Tectonic](tectonic.md)
 - [Configure Outlook sync](outlook-sync.md)

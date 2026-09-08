@@ -1,0 +1,77 @@
+# Building JAW for Windows
+
+JAW can be packaged as a standalone Windows executable with PyInstaller. The default build is a single `JAW.exe`; Python is not required on the target machine.
+
+Ollama and Tectonic are optional external programs and are not embedded in the executable.
+
+## Recommended: GitHub Actions
+
+The repository includes **Build Windows executable** under GitHub Actions.
+
+For an ad-hoc build:
+
+1. Open the repository's **Actions** tab.
+2. Select **Build Windows executable**.
+3. Choose **Run workflow** on `main`.
+4. Download the `JAW-windows-x64` artifact when the job completes.
+
+The artifact contains:
+
+```text
+JAW.exe
+JAW.exe.sha256
+```
+
+A pushed tag matching `v*` uses the same build and automatically creates or updates the corresponding GitHub Release with the executable and checksum.
+
+## Build locally
+
+From PowerShell in the repository root:
+
+```powershell
+py -3.11 -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install --upgrade pip
+python -m pip install -e ".[build]"
+
+python tools\build_windows.py
+```
+
+Output:
+
+```text
+dist\JAW.exe
+```
+
+To build a directory distribution instead:
+
+```powershell
+python tools\build_windows.py --onedir
+```
+
+Output:
+
+```text
+dist\JAW\
+```
+
+## Runtime data
+
+A packaged executable uses the normal installed-data location rather than the repository:
+
+```text
+%LOCALAPPDATA%\JAW\
+├── config.toml
+└── data\
+    └── jaw.db
+```
+
+`JAW_HOME` can still override this location.
+
+## Branding assets
+
+The executable icon is generated at build time from `src/jaw/resources/icons/jaw_app.png`. The desktop app separately uses the packaged title-bar and notification-area icons, while the local web dashboard serves `jaw_favicon.png` as its browser favicon.
+
+## Windows signing
+
+Current alpha builds are not code-signed. Windows SmartScreen may therefore show an **Unknown publisher** warning on a freshly downloaded executable. Code signing can be added to the build workflow later without changing the PyInstaller packaging model.

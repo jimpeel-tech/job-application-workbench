@@ -2,7 +2,7 @@
 
 **JAW** is a Windows-first, local-first desktop application for reducing repetitive work during job applications. It combines reusable application data, keyboard-driven paste workflows, job capture and analysis, application tracking, capability matching, and document generation in one local workspace.
 
-> **Project status:** JAW is preparing for its initial `v0.1.0` public release. It is currently distributed from source and primarily tested on Windows.
+> **Project status:** JAW is preparing for its initial `v0.1.0` public alpha release. It is primarily tested on Windows and supports both source installs and automated standalone Windows executable builds.
 
 ## What JAW does
 
@@ -51,7 +51,7 @@ A normal installed copy stores writable state under:
 
 JAW creates and normalizes its runtime configuration automatically. Set `JAW_HOME` if you want to use a different writable data directory.
 
-See [Installation](docs/installation.md) for full setup and development-install details.
+See [Installation](docs/installation.md) for executable/source installation and development details. See [Building JAW for Windows](docs/building.md) to build `JAW.exe` locally or through GitHub Actions.
 
 ## Optional components
 
@@ -140,11 +140,12 @@ python -m pytest -q
 python -m ruff check src tests
 ```
 
-CI runs the test suite and Ruff on Windows, builds a wheel, verifies required runtime assets, and smoke-tests JAW from the installed wheel rather than relying only on an editable checkout.
+CI runs the test suite and Ruff on Windows, builds a wheel, verifies required runtime assets, and smoke-tests JAW from the installed wheel rather than relying only on an editable checkout. A separate **Build Windows executable** workflow packages `JAW.exe`; manual runs publish an Actions artifact and `v*` tags attach the executable to the GitHub Release.
 
 ## Documentation
 
 - [Installation](docs/installation.md)
+- [Building JAW for Windows](docs/building.md)
 - [Ollama Setup](docs/ollama.md)
 - [Tectonic Setup](docs/tectonic.md)
 - [Document Workbench](docs/document-workbench.md)
