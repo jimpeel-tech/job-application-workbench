@@ -826,7 +826,7 @@ let capabilityLeftPaneMode = 'fixed';
 let capabilityRightPaneMode = 'fixed';
 let capabilityShowUseGuide = true;
 let smartAddPreviewData = null;
-let routeApplying = false;
+let routeApplying = false, routePending = false;
 
 const FALLBACK_RATING_GUIDANCE = [
   { value: 0, label: 'Unrated', description: 'Not assessed' },
@@ -2057,7 +2057,9 @@ function activateTopPage(pageId) { document.querySelectorAll('.page').forEach(pa
 function normalizedHash() { return location.hash.replace(/^#/, '').replace(/^\//, '') }
 function navigateHash(route) { const target = '#' + route; if (location.hash === target) { applyHashRoute(); return } location.hash = target }
 async function applyHashRoute() {
-  if (routeApplying) return; routeApplying = true;
+  if (routeApplying) { routePending = true; return; }
+  routeApplying = true;
+  routePending = false;
   try {
     const route = normalizedHash() || CAP_ROUTE_DEFAULT; const parts = route.split('/').filter(Boolean); const root = parts[0] || CAP_ROUTE_DEFAULT;
     if (root === 'documents') {
@@ -2074,7 +2076,13 @@ async function applyHashRoute() {
     } else {
       activateTopPage('jobsPage'); await loadJobs(); const jobId = parts[1] === 'job' ? Number(parts[2]) : 0; if (jobId && jobId !== selectedJob) await originalShowJobForRouting(jobId);
     }
-  } catch (error) { console.error(error); toast(error.message) } finally { routeApplying = false }
+  } catch (error) { console.error(error); toast(error.message) } finally {
+    routeApplying = false;
+    if (routePending) {
+      routePending = false;
+      queueMicrotask(applyHashRoute);
+    }
+  }
 }
 
 const originalShowJobForRouting = showJob;
