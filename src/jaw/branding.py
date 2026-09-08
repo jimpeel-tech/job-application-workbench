@@ -7,7 +7,6 @@ PACKAGE_DIR = Path(__file__).resolve().parent
 ICON_DIR = PACKAGE_DIR / "resources" / "icons"
 
 APP_ICON_PATH = ICON_DIR / "jaw_app.png"
-TRAY_ICON_PATH = ICON_DIR / "jaw_tray.png"
 TITLEBAR_ICON_PATH = ICON_DIR / "jaw_titlebar.png"
 FAVICON_PATH = ICON_DIR / "jaw_favicon.png"
 

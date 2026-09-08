@@ -70,7 +70,7 @@ A packaged executable uses the normal installed-data location rather than the re
 
 ## Branding assets
 
-The executable icon is generated at build time from `src/jaw/resources/icons/jaw_app.png`. The desktop app separately uses the packaged title-bar and notification-area icons, while the local web dashboard serves `jaw_favicon.png` as its browser favicon.
+The executable icon is generated at build time from `src/jaw/resources/icons/jaw_app.png`. The desktop window uses the packaged `jaw_titlebar.png`, and the local web dashboard serves `jaw_favicon.png` as its browser favicon. JAW does not create a system-tray icon.
 
 ## Windows signing
 

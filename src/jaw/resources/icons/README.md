@@ -1,19 +1,11 @@
 # JAW icon assets
 
-"
-    "| File | Use |
-"
-    "| --- | --- |
-"
-    "| `jaw_app.png` | Windows executable/taskbar application identity |
-"
-    "| `jaw_tray.png` | Windows notification-area icon; high-contrast small-size artwork |
-"
-    "| `jaw_titlebar.png` | Desktop window/title-bar icon |
-"
-    "| `jaw_favicon.png` | Local dashboard browser-tab favicon |
+| File | Use |
+| --- | --- |
+| `jaw_app.png` | Windows executable and taskbar application identity |
+| `jaw_titlebar.png` | Desktop window/title-bar icon; artwork is tightly zoomed for the native Windows slot |
+| `jaw_favicon.png` | Local dashboard browser-tab favicon; artwork is aggressively zoomed for Chrome's small favicon slot |
 
-"
-    "The committed PNGs are intentionally cropped tightly around visible artwork so the glyph fills Windows/Chrome 16–32 px icon slots. `tools/build_windows.py` derives the multi-size Windows `.ico` used by the executable from `jaw_app.png`; the generated `.ico` is a build artifact and is not committed.
-"
-    
+JAW intentionally does not create a system-tray icon. Windows and Chrome control the physical size of title-bar and favicon slots, so the small-surface artwork is cropped/zoomed to use as much of those slots as possible.
+
+`tools/build_windows.py` derives the multi-size Windows `.ico` used by the executable from `jaw_app.png`; the generated `.ico` is a build artifact and is not committed.
