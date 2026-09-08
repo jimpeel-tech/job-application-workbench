@@ -148,13 +148,13 @@ QListWidget#smartCaptureFieldList QScrollBar::add-line:vertical,
 QListWidget#smartCaptureFieldList QScrollBar::sub-line:vertical { height: 0; border: none; background: transparent; }
 QFrame#answersPanel { background: transparent; border: none; }
 QFrame#answersHeader { background: transparent; border: none; }
-QLabel#answersHeading { color: #f4f6f9; font-size: 12pt; font-weight: 700; }
-QLabel#answersCount { color: #9fcaf0; background: #214e78; border-radius: 9px; padding: 2px 7px; font-size: 9pt; font-weight: 650; }
+QLabel#answersHeading { color: #f4f6f9; font-size: 11pt; font-weight: 700; }
+QLabel#answersCount { color: #9fcaf0; background: #214e78; border-radius: 8px; padding: 1px 6px; font-size: 8pt; font-weight: 650; }
 QLabel#answersHint { color: #7f8997; font-size: 9pt; }
 QLabel#answersSectionLabel { color: #8f9aaa; font-size: 9pt; font-weight: 650; }
 QListWidget#answerTitlesList { background: transparent; border: none; border-radius: 0; padding: 0; }
-QListWidget#answerTitlesList::item { padding: 7px 9px; border-radius: 4px; }
+QListWidget#answerTitlesList::item { padding: 4px 7px; border-radius: 4px; }
 QListWidget#answerTitlesList::item:hover { background: #242a32; }
 QListWidget#answerTitlesList::item:selected { background: #214e78; color: #f4f8fc; }
-QTextEdit#answerText { background: #1b1e23; border: 1px solid #303640; border-radius: 7px; padding: 10px; selection-background-color: #2f72b7; }
+QTextEdit#answerText { background: #1b1e23; border: 1px solid #303640; border-radius: 5px; padding: 7px; selection-background-color: #2f72b7; }
 """
