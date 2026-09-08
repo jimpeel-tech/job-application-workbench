@@ -32,6 +32,7 @@ from PySide6.QtWidgets import (
     QGridLayout,
     QHBoxLayout,
     QLabel,
+    QListView,
     QListWidget,
     QListWidgetItem,
     QMainWindow,
@@ -116,6 +117,34 @@ from .userdata import (
     default_user_data_path,
 )
 from .webapp import DashboardServer
+
+
+class TwoColumnListWidget(QListWidget):
+    """QListWidget that keeps checkable/draggable items in exactly two columns."""
+
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        self.setFlow(QListView.Flow.LeftToRight)
+        self.setWrapping(True)
+        self.setResizeMode(QListView.ResizeMode.Adjust)
+        self.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+
+    def resizeEvent(self, event) -> None:
+        super().resizeEvent(event)
+        self._refresh_grid_size()
+
+    def showEvent(self, event) -> None:
+        super().showEvent(event)
+        self._refresh_grid_size()
+
+    def _refresh_grid_size(self) -> None:
+        viewport_width = max(2, self.viewport().width())
+        row_height = self.sizeHintForRow(0) if self.count() else -1
+        if row_height < 1:
+            row_height = self.fontMetrics().height() + 8
+        target = QSize(max(1, viewport_width // 2), row_height + 2)
+        if self.gridSize() != target:
+            self.setGridSize(target)
 
 
 class MainWindow(QMainWindow):
@@ -959,7 +988,7 @@ class MainWindow(QMainWindow):
         smart_capture_section.content_layout.addWidget(
             QLabel("Displayed fields · check to show · drag to reorder")
         )
-        self.smart_capture_field_list = QListWidget()
+        self.smart_capture_field_list = TwoColumnListWidget()
         self.smart_capture_field_list.setObjectName("smartCaptureFieldList")
         self.smart_capture_field_list.setDragDropMode(QAbstractItemView.DragDropMode.InternalMove)
         self.smart_capture_field_list.setDefaultDropAction(Qt.DropAction.MoveAction)

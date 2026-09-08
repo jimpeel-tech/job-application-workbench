@@ -48,12 +48,12 @@ QToolButton#settingsGear { background: #17191d; border: none; border-radius: 0; 
 QToolButton#settingsGear:hover { background: #17191d; border: none; }
 QToolButton#paneMenuButton { background: transparent; border: none; border-radius: 0; padding: 2px; }
 QToolButton#paneMenuButton:hover { background: transparent; border: none; }
-QToolButton#statusCapabilitySet { border-radius: 0; border-left: 1px solid #7f3f42; border-right: none; padding: 0 8px; }
+QToolButton#statusCapabilitySet { border-radius: 0; border: none; padding: 0 8px; }
 QToolButton#statusDate, QToolButton#statusName, QToolButton#statusWorkExperience, QToolButton#statusUser { border-radius: 0; border: 1px solid #4d5663; padding: 0 8px; }
 QToolButton#statusLayer { border-radius: 0; border: 1px solid #4d5663; padding: 0 8px; color: #65a6e8; font-weight: 650; }
 QToolButton#statusLayer[disabledState="true"] { color: #d8666a; }
 QFrame#statusCycleStack { background: transparent; border: none; }
-QStatusBar { border-top: 1px solid #7f3f42; border-right: none; }
+QStatusBar { border: none; }
 QMenu { background: #202329; border: 1px solid #3a3f48; color: #e7eaf0; }
 QMenu::item { padding: 7px 28px 7px 10px; }
 QMenu::item:selected { background: #214e78; }
