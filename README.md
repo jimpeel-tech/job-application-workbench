@@ -73,15 +73,17 @@ JAW's default Ollama model is `qwen3:14b`. Ollama is not required for the determ
 5. Run **Analysis** when you want to persist/analyze the captured job and review it in **Job Tracker**.
 6. Use the **Document Workbench** to generate job-aware application documents when needed.
 
-The initial keybind set is configurable. Current defaults include:
+The initial keybind set is configurable. Current QWERTY defaults include:
 
 ```text
+1    Job Tracker
+2    Analysis
 G    Smart Capture
-4    Analysis
-B    Job Tracker
 F    Skills iterator
 R    Work Experience iterator
 ```
+
+Keybind assignments are stored by physical matrix position. Switching between QWERTY and Colemak-DH changes the displayed and registered key for each position while keeping the assigned action in the same matrix cell.
 
 Global hotkeys are disabled on startup by default and can be enabled from JAW when you are ready to use them.
 
