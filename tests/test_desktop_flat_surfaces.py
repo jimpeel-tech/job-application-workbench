@@ -24,7 +24,7 @@ def test_internal_content_surfaces_are_borderless_by_default():
 
 
 def test_qa_answer_preview_uses_flat_surface():
-    # The Q&A redesign intentionally removed the boxed answer editor surface.
+    # The redesigned Q&A answer preview is intentionally unboxed.
     rule = _rule("QTextEdit#answerText")
     assert "background: transparent" in rule
     assert "border: none" in rule
