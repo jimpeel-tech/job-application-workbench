@@ -6,6 +6,7 @@ from jaw.main import MainWindow
 class _FakeWindow:
     def __init__(self, layer: str):
         self.layer = layer
+        # MainWindow initializes this state before global key handling starts.
         self._answer_search_active = False
         self.config = SimpleNamespace(
             layer2={"P": "first_name"},
