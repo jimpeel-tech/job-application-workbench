@@ -1,13 +1,12 @@
 <!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Job Application Workbench</title><link rel="stylesheet" href="/dashboard.css"></head><body>
-<header><button class="hamburger" id="menuButton" aria-label="Menu">☰</button><span class="brand">Job Application Workbench</span><span class="muted">JAW local site</span><div class="user-switcher"><label for="userSelector" class="muted">User</label><select id="userSelector"></select><button class="btn" id="newUserButton">+</button><div class="menu-wrap"><button class="btn" id="dataMenuButton">Import / Export</button><button class="btn" id="tipsToggle" aria-pressed="true">Tips: On</button><div class="mini-menu" id="dataMenu"><button class="btn" id="exportData">Export current user</button><button class="btn" id="importData">Import from file</button><button class="btn" id="downloadTemplate">Download template</button></div></div></div></header>
+<header><button class="hamburger" id="menuButton" aria-label="Menu">☰</button><span class="brand">Job Application Workbench</span><a class="muted" href="https://buymeacoffee.com/jimpeel" target="_blank" rel="noopener noreferrer" title="Support JAW on Buy Me a Coffee" style="text-decoration:none">☕ Buy me a coffee</a><div class="user-switcher"><label for="userSelector" class="muted">User</label><select id="userSelector"></select><button class="btn" id="newUserButton">+</button><div class="menu-wrap"><button class="btn" id="dataMenuButton">Import / Export</button><button class="btn" id="tipsToggle" aria-pressed="true">Tips: On</button><div class="mini-menu" id="dataMenu"><button class="btn" id="exportData">Export current user</button><button class="btn" id="importData">Import from file</button><button class="btn" id="downloadTemplate">Download template</button></div></div></div></header>
 <aside id="drawer">
 <button class="nav" data-page="jobsPage" data-route="tracker">Job tracker</button>
 <button class="nav" data-page="documentsPage" data-route="documents">Documents</button>
 <button class="nav" data-page="capabilitiesPage" data-route="capabilities">Capabilities</button>
 <button class="nav" data-page="userPage" data-route="user">User data</button>
 <button class="nav" data-page="keybindPage" data-route="keybinds">Keybinds</button>
-<a class="nav" href="https://buymeacoffee.com/jimpeel" target="_blank" rel="noopener noreferrer" style="position:absolute;left:14px;right:14px;bottom:14px;width:auto;border-top:1px solid var(--line);border-radius:0;color:var(--muted);text-decoration:none">☕ Buy me a coffee</a>
 </aside>
 <div id="jobsPage" class="page active">
   <div class="jobs-layout tracker-layout">
