@@ -1006,11 +1006,18 @@ class MainWindow(QMainWindow):
         capture_model_row.setContentsMargins(0, 0, 0, 0)
         capture_model_row.addWidget(QLabel("Ollama model"))
         self.smart_capture_ollama_model = ContentFitComboBox()
-        self.smart_capture_ollama_model.addItem(
-            str(capture_settings["ollama_model"]),
-            str(capture_settings["ollama_model"]),
+        self._populate_smart_capture_ollama_models(
+            str(capture_settings["ollama_model"])
         )
         capture_model_row.addWidget(self.smart_capture_ollama_model)
+        self.smart_capture_ollama_refresh = QPushButton("Refresh")
+        self.smart_capture_ollama_refresh.setToolTip(
+            "Refresh the list of models currently installed in Ollama"
+        )
+        self.smart_capture_ollama_refresh.clicked.connect(
+            self._refresh_smart_capture_ollama_models
+        )
+        capture_model_row.addWidget(self.smart_capture_ollama_refresh)
         capture_model_row.addStretch()
         smart_capture_section.content_layout.addLayout(capture_model_row)
 
@@ -1248,6 +1255,46 @@ class MainWindow(QMainWindow):
         self._update_analysis_controls()
         self._analysis_setting_changed()
 
+    def _available_ollama_models(self, current_model: str = "") -> list[str]:
+        """Return installed Ollama models while preserving the configured fallback."""
+        try:
+            installed = OllamaAnalysisProvider(
+                DEFAULT_OLLAMA_MODEL,
+            ).list_models(timeout=2)
+        except RuntimeError:
+            installed = []
+        models: list[str] = []
+        for candidate in (current_model, *installed, DEFAULT_OLLAMA_MODEL):
+            model = str(candidate or "").strip()
+            if model and model not in models:
+                models.append(model)
+        return models
+
+    def _populate_smart_capture_ollama_models(
+        self, current_model: str = ""
+    ) -> None:
+        if not hasattr(self, "smart_capture_ollama_model"):
+            return
+        selected = str(current_model or "").strip() or DEFAULT_OLLAMA_MODEL
+        models = self._available_ollama_models(selected)
+        self.smart_capture_ollama_model.blockSignals(True)
+        self.smart_capture_ollama_model.clear()
+        for model in models:
+            self.smart_capture_ollama_model.addItem(model, model)
+        self.smart_capture_ollama_model.setCurrentIndex(
+            max(0, self.smart_capture_ollama_model.findData(selected))
+        )
+        self.smart_capture_ollama_model.blockSignals(False)
+
+    def _refresh_smart_capture_ollama_models(self) -> None:
+        current = str(
+            self.smart_capture_ollama_model.currentData()
+            or self.smart_capture_ollama_model.currentText()
+            or DEFAULT_OLLAMA_MODEL
+        )
+        self._populate_smart_capture_ollama_models(current)
+        self._smart_capture_settings_changed()
+
     def _populate_analysis_models(
         self,
         provider: str,
@@ -1259,14 +1306,7 @@ class MainWindow(QMainWindow):
         self.analysis_model.blockSignals(True)
         self.analysis_model.clear()
         if str(provider).lower() == "ollama":
-            try:
-                available = OllamaAnalysisProvider(
-                    DEFAULT_OLLAMA_MODEL,
-                ).list_models(timeout=2)
-            except RuntimeError:
-                available = []
-            if not available:
-                available = [DEFAULT_OLLAMA_MODEL]
+            available = self._available_ollama_models(current_model)
             for model in available:
                 self.analysis_model.addItem(model, model)
             selected = (
@@ -3124,7 +3164,13 @@ class MainWindow(QMainWindow):
                     self.hotkeys.set_suspended(True)
             return
         if key.startswith("LAYER+"):
-            self.trigger_layer2(key.removeprefix("LAYER+"))
+            layer_key = key.removeprefix("LAYER+")
+            if self.layer == "Layer 3":
+                self._dispatch_layer_action(
+                    self.config.layer3, layer_key, "Layer 3"
+                )
+            else:
+                self.trigger_layer2(layer_key)
         else:
             bindings = (
                 self.config.layer2
