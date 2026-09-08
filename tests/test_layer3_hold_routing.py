@@ -44,8 +44,11 @@ class _FakeWindow:
     def _resolve_layer_binding(self, key, bindings):
         return bindings.get(key, "")
 
-    def _dispatch_action(self, action, key, paste, source_layer=None):
-        self.calls.append(("action", action, key, paste, source_layer))
+    def _dispatch_action(self, action, key, paste):
+        self.calls.append(("action", action, key, paste))
+
+    def _activate_layer3_hold(self, key, source_layer):
+        self.calls.append(("hold", key, source_layer))
 
     def _update_matrix_layer_name(self):
         self.calls.append(("layer", self.layer))
@@ -125,3 +128,29 @@ def test_layer3_hold_ends_when_trigger_key_is_released():
     window.keyboard.down.clear()
 
     assert MainWindow._layer3_hold_is_active(window, False) is False
+
+
+def test_base_layer3_hold_does_not_require_dispatch_keyword():
+    window = _FakeWindow("Base")
+    window.config.matrix = {"A": "layer3_hold"}
+
+    MainWindow.handle_global_key(window, "A")
+
+    assert window.calls == [("sync", True), ("hold", "A", "Base")]
+
+
+def test_layer2_layer3_hold_uses_explicit_source_layer():
+    window = _FakeWindow("Layer 2")
+    window.config.layer2 = {"A": "layer3_hold"}
+
+    MainWindow.trigger_layer2(window, "A")
+
+    assert window.calls == [("hold", "A", "Layer 2")]
+
+
+def test_dispatch_layer_action_handles_layer3_hold_before_generic_dispatch():
+    window = _FakeWindow("Layer 3")
+
+    MainWindow._dispatch_layer_action(window, {"A": "layer3_hold"}, "A", "Layer 3")
+
+    assert window.calls == [("hold", "A", "Layer 3")]

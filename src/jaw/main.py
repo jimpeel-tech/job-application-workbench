@@ -2802,7 +2802,10 @@ class MainWindow(QMainWindow):
             else self.config.matrix
         )
         assignment = self._resolve_layer_binding(key, bindings)
-        self._dispatch_action(assignment, key, paste=False, source_layer=source_layer)
+        if assignment == "layer3_hold":
+            self._activate_layer3_hold(key, source_layer)
+            return
+        self._dispatch_action(assignment, key, paste=False)
 
     def _resolve_layer_binding(self, key: str, bindings: dict[str, str]) -> str:
         """Keep layer cycle/toggle controls reachable from every active layer."""
@@ -2912,10 +2915,11 @@ class MainWindow(QMainWindow):
         if assignment == "next_iterator":
             self.move_visible_iterator(1)
             return
-        if assignment in {"cycle_layers", "layer3_hold"}:
-            self._dispatch_action(
-                assignment, key, paste=True, source_layer="Layer 2"
-            )
+        if assignment == "layer3_hold":
+            self._activate_layer3_hold(key, "Layer 2")
+            return
+        if assignment == "cycle_layers":
+            self._dispatch_action(assignment, key, paste=True)
             return
         if (
             assignment in self.config.action_labels
@@ -3288,7 +3292,10 @@ class MainWindow(QMainWindow):
                 else self.config.matrix
             )
             action = self._resolve_layer_binding(key, bindings)
-            self._dispatch_action(action, key, paste=True, source_layer=self.layer)
+            if action == "layer3_hold":
+                self._activate_layer3_hold(key, self.layer)
+                return
+            self._dispatch_action(action, key, paste=True)
 
     def _update_matrix_layer_name(self) -> None:
         self.layer_badge.setText(self.layer.upper() if self.hotkeys_enabled else "HOTKEYS OFF")
@@ -3333,15 +3340,12 @@ class MainWindow(QMainWindow):
         if action in {"previous_iterator", "next_iterator"}:
             self.move_visible_iterator(-1 if action == "previous_iterator" else 1)
             return
-        self._dispatch_action(action, key, paste=True, source_layer=layer)
+        if action == "layer3_hold":
+            self._activate_layer3_hold(key, layer)
+            return
+        self._dispatch_action(action, key, paste=True)
 
-    def _dispatch_action(
-        self,
-        action: str,
-        key: str,
-        paste: bool,
-        source_layer: str | None = None,
-    ) -> None:
+    def _dispatch_action(self, action: str, key: str, paste: bool) -> None:
         if not action:
             return
         if action in {"previous_iterator", "next_iterator"}:
@@ -3354,7 +3358,7 @@ class MainWindow(QMainWindow):
                 )
             return
         if action == "layer3_hold":
-            self._activate_layer3_hold(key, source_layer or self.layer)
+            self._activate_layer3_hold(key, self.layer)
             return
         if action == "cycle_layers":
             layer_settings = self.config.hotkey_settings.get("layers", {})
