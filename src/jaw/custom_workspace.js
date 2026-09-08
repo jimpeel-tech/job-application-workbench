@@ -355,7 +355,7 @@
     clearTimeout(saveTimer);
     const hadDraft = Boolean(draft);
     if (!materializeDraft()) return;
-    if (hadDraft) render();
+    if (hadDraft) renderList();
     const validation = validateState();
     if (validation) {
       setStatus(validation, 'error');
