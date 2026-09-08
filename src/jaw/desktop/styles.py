@@ -110,7 +110,7 @@ QListWidget#captureFieldsList::item,
 QListWidget#captureReviewList::item,
 QListWidget#captureFixtureList::item { padding: 3px 6px; }
 QListWidget#captureList::item, QListWidget#captureQuestionsList::item { padding: 3px 6px; }
-QListWidget#smartCaptureFieldList { min-height: 150px; max-height: 160px; }
+QListWidget#smartCaptureFieldList { background: transparent; border: none; }
 QListWidget#smartCaptureFieldList::item { padding: 2px 4px; }
 QListWidget#captureFieldsList QScrollBar:vertical,
 QListWidget#captureReviewList QScrollBar:vertical,

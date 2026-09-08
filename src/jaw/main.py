@@ -124,10 +124,19 @@ class TwoColumnListWidget(QListWidget):
 
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
+        self.setViewMode(QListView.ViewMode.IconMode)
         self.setFlow(QListView.Flow.LeftToRight)
         self.setWrapping(True)
         self.setResizeMode(QListView.ResizeMode.Adjust)
+        self.setMovement(QListView.Movement.Snap)
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self.model().rowsInserted.connect(
+            lambda *_args: QTimer.singleShot(0, self._refresh_grid_size)
+        )
+        self.model().rowsRemoved.connect(
+            lambda *_args: QTimer.singleShot(0, self._refresh_grid_size)
+        )
 
     def resizeEvent(self, event) -> None:
         super().resizeEvent(event)
@@ -142,9 +151,14 @@ class TwoColumnListWidget(QListWidget):
         row_height = self.sizeHintForRow(0) if self.count() else -1
         if row_height < 1:
             row_height = self.fontMetrics().height() + 8
-        target = QSize(max(1, viewport_width // 2), row_height + 2)
+        column_width = max(1, (viewport_width - 8) // 2)
+        target = QSize(column_width, row_height + 2)
         if self.gridSize() != target:
             self.setGridSize(target)
+        rows = max(1, (self.count() + 1) // 2)
+        target_height = rows * target.height() + self.frameWidth() * 2 + 2
+        if self.minimumHeight() != target_height or self.maximumHeight() != target_height:
+            self.setFixedHeight(target_height)
 
 
 class MainWindow(QMainWindow):
@@ -724,6 +738,9 @@ class MainWindow(QMainWindow):
         self.status_cycle_stack.resize(collapsed_stack_width, control_height)
         self.status_cycle_stack.add_button(self.user_cycle_button)
         self.status_cycle_stack.add_button(self.work_experience_cycle_button)
+        self.status_cycle_stack.set_button_enabled(
+            self.work_experience_cycle_button, False
+        )
         self.status_cycle_stack.add_button(self.name_format_cycle_button)
         self.status_cycle_stack.add_button(self.date_cycle_button)
         self.status_cycle_stack.add_button(self.set_cycle_button)
@@ -773,7 +790,6 @@ class MainWindow(QMainWindow):
             self.set_cycle_button.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonTextBesideIcon)
             self.date_cycle_button.show()
             self.name_format_cycle_button.show()
-            self.work_experience_cycle_button.show()
             self.user_cycle_button.show()
             if self.layer_status_cycle_button.property("flyoutEnabled"):
                 self.layer_status_cycle_button.show()
