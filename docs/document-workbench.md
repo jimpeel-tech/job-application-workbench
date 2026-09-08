@@ -1,252 +1,103 @@
 # Document Workbench
 
-Document Workbench is JAW's source-driven document authoring environment. It combines reusable Jinja/LaTeX resources, job/profile data, optional AI generation, and Tectonic PDF rendering.
+JAW Documents is a graph-backed authoring environment for reusable job-application documents. It combines Jinja, LaTeX, structured JAW runtime objects, optional AI generation, and durable resource/reference identity.
 
-The Workbench is designed around normal source files rather than a form-based document builder: edit a Template, split reusable content into Sections and Functions, preview the current working state, then generate a PDF.
-
-## Core model
-
-A Document is the output definition. It points to one Template, and that Template references Sections. Sections may reference Functions.
+## Resource model
 
 ```text
 Document
   -> Template
-       -> Section
-            -> Function
+      -> Section references owned by the Document graph
+          -> Function references owned by the Section graph
 ```
 
-The four resource types have different jobs:
+A new Document immediately owns a private Template. Sections and Functions are reusable resources linked through references.
 
-| Resource | Purpose |
-| --- | --- |
-| Document | Names an output, selects its Template, and defines the PDF filename pattern. |
-| Template | Owns the top-level Jinja/LaTeX source for a Document. |
-| Section | Reusable document content referenced from a Template. |
-| Function | Reusable Jinja/generation logic referenced from a Section. |
+Resource IDs and reference IDs are internal JIDs:
 
-Every new Document receives its own normal **Private Template immediately**. The starter LaTeX is only default source text; there is no shared immutable starter Template and no clone-on-first-edit behavior.
+- resources: `doc_*`, `tpl_*`, `sec_*`, `fn_*`
+- references: `ref_*`
 
-A new Document starts approximately like this:
-
-```latex
-\documentclass[10pt,letterpaper]{article}
-\usepackage[letterpaper,margin=0.75in]{geometry}
-\pagestyle{empty}
-\begin{document}
-{{ section }}
-\end{document}
-```
-
-JAW creates a private `section` resource for that reference as part of the new Document graph.
-
-## Quick start
-
-1. Open **Documents** in the JAW web interface.
-2. Click **+ New Document** and give it a useful name such as `Resume` or `Cover Letter`.
-3. Select the Document in **Explorer**.
-4. Edit the **Template** source and use Jinja references such as `{{ section }}` for reusable content.
-5. Open the referenced Section and add its content.
-6. Choose a **Generation Context** from the status bar if you want to test with Example Data or a particular tracked job.
-7. Click **Preview** to render without writing a PDF to disk.
-8. Click **Generate** to render and write the PDF to the configured output directory.
-
-Tectonic is required for PDF rendering. See [Tectonic setup](tectonic.md).
+Visible source symbols such as `summary` or `experience` are not identity. Duplicate symbols are valid because each occurrence can bind to a different reference JID.
 
 ## Workbench layout
 
-The Workbench uses an IDE-style layout.
+The Documents page behaves like a small IDE:
 
-### Top bar
+- **Explorer** — Documents, Templates, Sections, and Functions.
+- **Editor** — source editing for the active resource.
+- **Inspector** — metadata/settings for the active resource.
+- **Status bar** — generation context, output directory, and other document controls.
 
-- **+ New Document** creates a Document with a new private Template.
-- Document tabs let you keep multiple Documents open.
-- **Preview** renders the active Document without writing the PDF to disk.
-- **Generate** renders the active Document and writes the PDF.
+A resource can be opened by Explorer navigation, symbol navigation, or command palette.
 
-Closing a tab closes the view only; it does not delete the resource.
+## Source and canonical state
 
-### Left side
+Typing changes the resource's **working source**. JAW checkpoints working source so preview/navigation can react without requiring a canonical save after every keystroke.
 
-- **Explorer** — Documents and the resources currently attached to them.
-- **Global Templates** — reusable Templates available across Documents.
-- **Inspector** — editable properties for the current selection.
-- **Relationships** — inbound and outbound resource relationships.
-- **Metadata** — internal resource metadata useful for inspection/debugging.
+**Ctrl+S** performs the canonical save.
 
-### Center editors
+Structural reconciliation is additive while editing. If you type a new undeclared symbol into a Template, JAW can create the corresponding Section reference. Merely deleting visible source text does not silently destroy a resource/reference; destructive changes go through explicit transitions.
 
-The center has independent editor panes for:
+This gives the editor two distinct ideas:
 
-- **Template**
-- **Sections**
-- **Functions**
+- **working source** — what you are currently editing;
+- **canonical resource graph** — durable Documents/resources/references.
 
-Opening a reference from source opens its linked resource in the appropriate pane.
+## Reference identity
 
-### Right side
+A source token, reference JID, and resource JID are different things.
 
-- **JAW Objects** — runtime data available to document source.
-- **Global Sections** — reusable Sections.
-- **Global Functions** — reusable Functions.
-- **Orphans** — staged private resources that are no longer attached but have been preserved for reuse.
-
-Resources and JAW objects can be inserted into source from these palettes.
-
-### Status bar
-
-The status bar includes:
-
-- **Context** — current Generation Context.
-- **Output** — generated PDF destination; defaults to Downloads.
-- **Wrap** — editor word-wrap toggle.
-
-Workbench layout, wrapping, and output-directory preferences are browser-local settings.
-
-## Names, symbols, and references
-
-Documents and Templates are named resources. Sections and Functions intentionally do **not** have a separate user-facing Name field; they are identified in context by their reference symbol.
-
-For example:
-
-```jinja
+```text
 {{ summary }}
-{{ experience }}
+     │
+     └─ visible symbol
+           │
+           └─ ref_... -> sec_...
 ```
 
-`summary` and `experience` are visible symbols. They are source text, not permanent identity.
+Two `{{ summary }}` tokens can have the same visible symbol while pointing to different references/resources. Symbol matching is case-sensitive because Jinja identifiers are case-sensitive.
 
-This matters because JAW allows duplicate visible symbols. Two occurrences of `{{ body }}` can refer to two different private Sections. Internally JAW tracks each occurrence with a durable reference identity while keeping those IDs out of user-authored source.
+Global resources can be reused multiple times through distinct references. Private Sections/Functions are constrained to one inbound owner reference.
 
-You normally do not need to think about the internal IDs. The practical rules are:
+The editor does not expose JIDs in portable source. During rendering JAW binds source occurrences to reference JIDs internally so duplicate symbols remain deterministic.
 
-- Renaming a symbol does not replace the underlying resource.
-- Moving a reference does not replace the underlying resource.
-- Duplicate visible symbols are valid.
-- Global resources can be referenced from more than one place.
-- JAW preserves occurrence identity while editing and rewrites references internally during rendering.
+## Structural transitions
 
-For implementation details, see [Reference identity](workbench-reference-identity.md).
+When source implies a graph change, JAW uses explicit transitions rather than treating text as the graph itself.
 
-## Editing, recovery, and saving
+Typical choices include:
 
-Workbench distinguishes the **working source** from the **saved source**.
+- **Update** — reconcile source with the existing resource/reference.
+- **Create** — create a new resource/reference for a new symbol.
+- **Stage** — remove a private resource from the current graph without immediately deleting it.
+- **Delete** — permanently delete an eligible private resource.
+- **Remove Global** — remove only this reference while preserving the Global resource.
 
-As you type, the browser keeps the live editor value and JAW checkpoints dirty source after a short pause. Those recovery buffers are stored separately from the canonical saved resource, so unsaved work can survive a JAW restart.
-
-Press **Ctrl+S** to make the current editor content the saved canonical source.
-
-If the working content becomes identical to the saved source, JAW clears the unnecessary recovery buffer.
-
-Both **Preview** and **Generate** use the current working editor buffers. You do not have to save first to test a change.
-
-### Additive reconciliation
-
-Normal editing is deliberately conservative. When you add a new unresolved Workbench reference, JAW can create and attach the corresponding private resource. Removing source text, however, does not silently delete existing resource identity or content.
-
-Destructive or identity-changing operations are explicit. This prevents an intermediate edit from accidentally destroying reusable content.
-
-## Reference changes
-
-When a source edit changes the structure around an existing reference, Workbench uses explicit transitions rather than guessing what you intended.
-
-The important behaviors are:
-
-- **Update** — keep the existing resource and its content/children, but update the reference/symbol.
-- **Create** — create a new private resource for the new reference.
-- **Stage** — remove the old private reference while preserving the resource in **Orphans** for later reuse.
-- **Delete** — remove the private resource permanently; private descendants may be deleted with it.
-- **Remove Global reference** — unlink the occurrence but preserve the Global resource.
-
-Invalid Jinja or ambiguous structural edits are rejected before the graph is changed.
-
-### Renaming
-
-Use the resource/reference context menu:
-
-- **Rename Symbol…** for a Private Section or Function.
-- **Rename Reference…** for an occurrence of a Global Section or Function.
-
-A Global resource keeps its reusable canonical identity while each usage can have its own reference symbol.
-
-### Orphans
-
-**Orphans** are staged private Sections or Functions that are no longer attached to a parent. Their content is preserved.
-
-Drag or insert an orphan back into a valid parent to reuse it. Reusing an orphan activates it again as a private resource.
-
-Switching a Document to a different Template is an explicit structural operation. Private Sections no longer represented by the new Template are staged; Global Sections are simply unlinked.
+The exact choices depend on resource type, ownership, visibility, and inbound references.
 
 ## Private and Global resources
 
-**Private** means the resource belongs to one current parent context. **Global** means the resource is intentionally reusable.
+**Private** resources belong to one local graph/owner context.
 
-Sections and Functions can be changed between Private and Global from the Inspector/context menu. Templates use the resource context menu for visibility changes.
+**Global** resources are reusable across Documents.
 
-### Templates
+For Templates:
 
-Template visibility follows these rules:
+- A new Document owns a private Template.
+- Private -> Global keeps the same Template JID.
+- Global -> Private with one user keeps the same JID.
+- A shared Global Template converted to Private detaches the active Document onto a new private Template instead of mutating the shared source underneath other Documents.
 
-- Private -> Global keeps the same Template identity.
-- A Global Template used by one Document can become Private in place.
-- If a Global Template is shared by multiple Documents, **Make Private** for one Document detaches that Document to a new private Template while leaving the shared Global Template in place for the others.
+A shared Global Template shares Template source, but the Sections beneath it are still linked through each Document's own Section graph. This prevents two Documents from accidentally sharing all child references merely because they use the same Template source.
 
-A Global Template shares **Template source**, not the entire child graph. Each Document using the Template normally keeps its own Section references and private Section resources.
+## Jinja and JAW Objects
 
-```text
-                 shared Template
-                 {{ body }}
-                    |
-             +------+------+
-             |             |
-          Document A    Document B
-             |             |
-          body A          body B
-```
+Documents use Jinja for expressions/control flow and a small explicit set of JAW-owned runtime roots.
 
-Editing shared Template source reconciles each Document graph using that Template. Rendering always resolves the selected Document's own graph.
+The current roots are:
 
-See [Shared Global Template graph semantics](workbench-shared-template-graph.md) for the detailed invariants.
-
-## Jinja basics
-
-Template, Section, and Function source uses Jinja syntax.
-
-### Insert a value
-
-```jinja
-{{ user.full_name }}
-{{ job_ref.company }}
-```
-
-### Conditional
-
-```jinja
-{% if job_ref.summary %}
-{{ job_ref.summary }}
-{% endif %}
-```
-
-### Loop
-
-```jinja
-{% for item in work_exp %}
-{{ item.title }} — {{ item.company }}
-{% endfor %}
-```
-
-### Default value
-
-```jinja
-{{ job_ref.title | default('Target Role') }}
-```
-
-JAW uses strict Jinja evaluation. Missing variables and invalid syntax fail visibly rather than silently producing misleading output.
-
-## JAW runtime objects
-
-User-authored Documents have five supported runtime roots:
-
-| Root | Contents |
+| Root | Purpose |
 | --- | --- |
 | `user` | Active user profile data. |
 | `job_ref` | Document-useful fields from the active Generation Context job. |
@@ -517,9 +368,18 @@ From Job Tracker, document generation uses the selected tracked job as context a
 
 ## Template repository
 
-JAW also includes Template Repository support for importing/updating reusable Template definitions. Repository Templates become normal Workbench resources once installed; the same Private/Global and reference-graph rules apply inside JAW.
+JAW can download reusable example packages from the official `jimpeel-tech/jaw-templates` repository. Cloning a package creates normal private Workbench resources with new local JIDs; the repository never stores your JAW resource/reference IDs.
 
-Repository behavior is intentionally separate from the core authoring model. You can use Document Workbench fully without configuring a Template Repository.
+The initial repository includes:
+
+- **Basic Document** — minimal Template -> Section -> Function example.
+- **Document Tour** — guided tour of Workbench composition and Jinja.
+- **JAW Object Examples** — deterministic examples for `user`, `job_ref`, `work_exp`, `cap`, `system`, and authoring helpers. It makes no AI calls.
+- **Cover Letter** — job-aware cover letter; its body Section uses the active Ollama/OpenAI model, so AI generation must be configured before Preview/Generate.
+
+For the object examples, choose **Generation Context -> Example Data** if you want a fully populated fictional context without adding your own job/profile data first.
+
+Repository behavior is intentionally separate from the core authoring model. You can use Document Workbench fully without downloading the example repository.
 
 ## Deleting resources
 
