@@ -624,12 +624,10 @@ class MainWindow(QMainWindow):
             self._refresh_matrix_labels()
         self._last_sync_revisions = self.user_store.read_sync_revisions()
         if self.pages.currentIndex() == self.custom_iterator_page_index:
-            if self.active_custom_iterator.startswith("sequence:"):
-                sequence_key = self.active_custom_iterator.partition(":")[2].upper()
+            if self.active_custom_iterator in refreshed.sequences:
                 self._show_sequence_iterator(
                     self.active_custom_iterator,
-                    refreshed.sequences.get(sequence_key, []),
-                    sequence_key,
+                    refreshed.sequences.get(self.active_custom_iterator, []),
                 )
             elif self.active_custom_iterator in refreshed.custom_sequences:
                 self._show_sequence_iterator(
@@ -909,15 +907,15 @@ class MainWindow(QMainWindow):
             and self.config.items_by_id[item_id].value.strip()
         ]
         sequences = dict(self.config.sequences)
-        sequences["Q"] = contact_sequence
+        sequences["iterate_contact"] = contact_sequence
         self.config = replace(self.config, name_format=name_format, sequences=sequences)
-        self._sequence_positions["Q"] = 0
+        self._sequence_positions["iterate_contact"] = 0
         self.name_format_cycle_button.setText(self._name_format_label())
         if (
             self.pages.currentIndex() == self.custom_iterator_page_index
-            and self.active_custom_iterator == "sequence:q"
+            and self.active_custom_iterator == "iterate_contact"
         ):
-            self._show_sequence_iterator("sequence:q", contact_sequence, "Q")
+            self._show_sequence_iterator("iterate_contact", contact_sequence)
         self._update_cursor_badge()
         self._apply_tooltips()
         self.statusBar().showMessage(f"Contact name format: {self._name_format_label()}", 1800)
@@ -1774,8 +1772,8 @@ class MainWindow(QMainWindow):
         if current is not None:
             current_id = str(current.data(Qt.ItemDataRole.UserRole) or "")
             configured = (
-                self.config.sequences.get(self.active_custom_iterator.partition(":")[2].upper(), [])
-                if self.active_custom_iterator.startswith("sequence:")
+                self.config.sequences.get(self.active_custom_iterator, [])
+                if self.active_custom_iterator in self.config.sequences
                 else self.config.custom_sequences.get(self.active_custom_iterator, [])
             )
             enabled = enabled_iterator_sequence(
@@ -2744,16 +2742,15 @@ class MainWindow(QMainWindow):
             (self.config.matrix, self.config.layer2, self.config.layer3),
         )
 
-    def trigger_sequence(self, key: str, paste: bool = True) -> None:
-        configured_sequence = self.config.sequences.get(key, [])
+    def trigger_sequence(self, action: str, paste: bool = True) -> None:
+        configured_sequence = self.config.sequences.get(action, [])
         if not configured_sequence:
             return
-        action = f"sequence:{key.lower()}"
         if (
             self.pages.currentIndex() != self.custom_iterator_page_index
             or self.active_custom_iterator != action
         ):
-            self._show_sequence_iterator(action, configured_sequence, key)
+            self._show_sequence_iterator(action, configured_sequence)
             return
         sequence = enabled_iterator_sequence(
             self.config.iterator_preferences, action, configured_sequence
@@ -2761,21 +2758,16 @@ class MainWindow(QMainWindow):
         if not sequence:
             self.statusBar().showMessage(f"{self._action_label(action)}: no enabled iterator items")
             return
-        position = self._sequence_positions.get(key, 0) % len(sequence)
+        position = self._sequence_positions.get(action, 0) % len(sequence)
         item = self.config.items_by_id.get(sequence[position])
         if not item or not item.value:
-            self.statusBar().showMessage(f"{key}: configured value is empty")
+            self.statusBar().showMessage(f"{self._action_label(action)}: configured value is empty")
             return
-        self._sequence_positions[key] = position + 1
+        self._sequence_positions[action] = position + 1
         self.clipboard.write(item.value)
         if paste:
-            category = {
-                "Q": "contact",
-                "A": "address",
-                "LINKS": "links",
-            }.get(key)
-            self._paste_then_maybe_return(category)
-        next_item_id = sequence[self._sequence_positions[key] % len(sequence)]
+            self._paste_then_maybe_return(action.removeprefix("iterate_"))
+        next_item_id = sequence[self._sequence_positions[action] % len(sequence)]
         self._select_custom_iterator_item(next_item_id)
 
     def trigger_custom_sequence(self, action: str, paste: bool = True) -> None:
@@ -2855,7 +2847,7 @@ class MainWindow(QMainWindow):
             return
         if (
             assignment in self.config.action_labels
-            or assignment.startswith("sequence:")
+            or assignment in self.config.sequences
             or assignment in self.config.custom_sequences
         ):
             self._dispatch_action(assignment, key, paste=True)
@@ -3001,11 +2993,8 @@ class MainWindow(QMainWindow):
                     if item_id not in disabled:
                         self.custom_iterator_list.setCurrentRow(row)
                         configured = (
-                            self.config.sequences.get(
-                                self.active_custom_iterator.partition(":")[2].upper(),
-                                [],
-                            )
-                            if self.active_custom_iterator.startswith("sequence:")
+                            self.config.sequences.get(self.active_custom_iterator, [])
+                            if self.active_custom_iterator in self.config.sequences
                             else self.config.custom_sequences.get(self.active_custom_iterator, [])
                         )
                         enabled = enabled_iterator_sequence(
@@ -3372,8 +3361,8 @@ class MainWindow(QMainWindow):
             self.find_company_in_tracker(key)
         elif action == "analyze_job":
             self._analyze_capture_journal()
-        elif action.startswith("sequence:"):
-            self.trigger_sequence(action.partition(":")[2].upper(), paste=paste)
+        elif action in self.config.sequences:
+            self.trigger_sequence(action, paste=paste)
         elif action in self.config.custom_sequences:
             self.trigger_custom_sequence(action, paste=paste)
         else:

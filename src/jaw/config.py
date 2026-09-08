@@ -71,12 +71,12 @@ DEFAULT_MATRIX_BASE = {
     'P03': 'toggle_answers',
     'P04': 'toggle_keyboard',
     'P10': 'country',
-    'P11': 'sequence:q',
+    'P11': 'iterate_contact',
     'P12': 'previous_iterator',
     'P13': 'iterate_work_exp',
-    'P14': 'sequence:links',
+    'P14': 'iterate_links',
     'P20': 'layer3_hold',
-    'P21': 'sequence:a',
+    'P21': 'iterate_address',
     'P22': 'next_iterator',
     'P23': 'iterate_skills',
     'P24': 'smart_capture',
@@ -105,13 +105,13 @@ DEFAULT_MATRIX_LAYER2 = {
 }
 DEFAULT_MATRIX_LAYER3: dict[str, str] = {}
 DEFAULT_SEQUENCES = {
-    "Q": ["first_name", "last_name", "email", "phone"],
-    "A": ["address", "city", "state", "zip", "country"],
-    "LINKS": ["linkedin", "portfolio", "github", "facebook", "x"],
+    "iterate_contact": ["first_name", "last_name", "email", "phone"],
+    "iterate_address": ["address", "city", "state", "zip", "country"],
+    "iterate_links": ["linkedin", "portfolio", "github", "facebook", "x"],
 }
 BUILTIN_ACTION_LABELS = {
     "toggle_answers": "Answers", "toggle_keyboard": "Keyboard",
-    "sequence:q": "Contact", "sequence:a": "Address", "sequence:links": "Links",
+    "iterate_contact": "Contact", "iterate_address": "Address", "iterate_links": "Links",
     "move_up_or_relay": "Up", "move_down_or_relay": "Down",
     "iterate_work_exp": "Work Exp", "iterate_skills": "Skills",
     "cycle_date_format": "Date", "cycle_name_format": "Name Format",

@@ -131,7 +131,7 @@ def test_first_run_uses_sanitized_default_template(tmp_path: Path):
     assert data["keyboard_layout"] == "qwerty"
     assert data["keybinds"]["binding_model"] == "physical-v1"
 
-    expected_base = {'P00': 'open_dashboard', 'P01': 'analyze_job', 'P02': 'find_company', 'P03': 'toggle_answers', 'P04': 'toggle_keyboard', 'P10': 'country', 'P11': 'sequence:q', 'P12': 'previous_iterator', 'P13': 'iterate_work_exp', 'P14': 'sequence:links', 'P20': 'layer3_hold', 'P21': 'sequence:a', 'P22': 'next_iterator', 'P23': 'iterate_skills', 'P24': 'smart_capture', 'P30': 'linkedin', 'P31': 'portfolio', 'P32': 'full_name', 'P33': 'phone', 'P34': 'email'}
+    expected_base = {'P00': 'open_dashboard', 'P01': 'analyze_job', 'P02': 'find_company', 'P03': 'toggle_answers', 'P04': 'toggle_keyboard', 'P10': 'country', 'P11': 'iterate_contact', 'P12': 'previous_iterator', 'P13': 'iterate_work_exp', 'P14': 'iterate_links', 'P20': 'layer3_hold', 'P21': 'iterate_address', 'P22': 'next_iterator', 'P23': 'iterate_skills', 'P24': 'smart_capture', 'P30': 'linkedin', 'P31': 'portfolio', 'P32': 'full_name', 'P33': 'phone', 'P34': 'email'}
     expected_layer2 = {'P00': 'cycle_date_format', 'P01': 'cycle_name_format', 'P10': 'address', 'P11': 'city', 'P12': 'move_up_or_relay', 'P13': 'previous_work_exp', 'P20': 'state', 'P21': 'zip', 'P22': 'move_down_or_relay', 'P23': 'next_work_exp', 'P24': 'github', 'P30': 'facebook', 'P31': 'x', 'P32': 'first_name', 'P33': 'last_name'}
     assert data["keybinds"]["base"] == expected_base
     assert data["keybinds"]["layer2"] == expected_layer2
@@ -521,7 +521,7 @@ def test_iterator_order_disabled_state_and_work_enabled_state_are_persistent(
 ):
     store = seed(tmp_path / "data" / "jaw.db")
     store.save_iterator_preferences({
-        "sequence:a": {
+        "iterate_address": {
             "order": ["zip", "address", "city", "state", "country"],
             "disabled": ["country"],
         }
@@ -536,7 +536,7 @@ def test_iterator_order_disabled_state_and_work_enabled_state_are_persistent(
     }])
 
     reloaded = UserDataStore(store.path).read()
-    assert reloaded["iterator_preferences"]["sequence:a"] == {
+    assert reloaded["iterator_preferences"]["iterate_address"] == {
         "order": ["zip", "address", "city", "state", "country"],
         "disabled": ["country"],
     }

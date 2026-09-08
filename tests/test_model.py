@@ -24,7 +24,7 @@ def test_missing_config_is_created_from_read_only_defaults(tmp_path):
     assert config_path.exists()
     assert config.dashboard_port == 8765
     assert config.hotkeys_active_on_startup is False
-    assert "sequence:q" in {
+    assert "iterate_contact" in {
         split_binding(binding)[0] for binding in config.matrix.values()
     }
     text = config_path.read_text(encoding="utf-8")
@@ -86,7 +86,7 @@ show_keyboard = false
 def test_layer_controls_remain_reachable_from_every_layer():
     base = {"D": "cycle_layers"}
     layer2 = {"D": "cycle_date_format", "T": "iterate_skills"}
-    layer3 = {"D": "", "T": "sequence:links"}
+    layer3 = {"D": "", "T": "iterate_links"}
     layers = (base, layer2, layer3)
 
     assert resolve_layer_binding("D", layer2, layers) == "cycle_layers"

@@ -66,12 +66,12 @@
       "P03": "toggle_answers",
       "P04": "toggle_keyboard",
       "P10": "country",
-      "P11": "sequence:q",
+      "P11": "iterate_contact",
       "P12": "previous_iterator",
       "P13": "iterate_work_exp",
-      "P14": "sequence:links",
+      "P14": "iterate_links",
       "P20": "layer3_hold",
-      "P21": "sequence:a",
+      "P21": "iterate_address",
       "P22": "next_iterator",
       "P23": "iterate_skills",
       "P24": "smart_capture",
@@ -146,7 +146,7 @@
           "toggle"
         ]
       },
-      "sequence:q": {
+      "iterate_contact": {
         "label": "Contact",
         "icons": [
           "iterate"
@@ -165,13 +165,13 @@
           "iterate"
         ]
       },
-      "sequence:links": {
+      "iterate_links": {
         "label": "Links",
         "icons": [
           "iterate"
         ]
       },
-      "sequence:a": {
+      "iterate_address": {
         "label": "Address",
         "icons": [
           "iterate"
