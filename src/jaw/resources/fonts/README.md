@@ -1,24 +1,50 @@
-# Custom fonts
+# Fonts
 
-JAW does not bundle third-party font binaries.
+JAW bundles open-source fonts used by its built-in document templates so PDF
+rendering is reproducible across supported platforms.
 
-Tectonic rendering runs in `--untrusted` mode. If a document template requires local `.ttf`, `.otf`, or `.ttc` files, place them in a directory you control and set `JAW_TECTONIC_SEARCH_PATH` to that directory before starting JAW.
+Bundled font families:
 
-JAW stages supported font files from that directory into each temporary render sandbox so templates can reference exact filenames with `fontspec`.
+- Montserrat — SIL Open Font License 1.1
+- Open Sans — SIL Open Font License 1.1
+- TeX Gyre Heros — GUST Font License
 
-Example:
+The applicable license texts are included under `licenses/`.
+
+## Custom fonts
+
+Users may additionally provide `.ttf`, `.otf`, or `.ttc` files by setting
+`JAW_TECTONIC_SEARCH_PATH`.
+
+JAW stages supported fonts from that directory into the temporary Tectonic
+render sandbox.
 
 ```powershell
 $env:JAW_TECTONIC_SEARCH_PATH = "C:\Users\you\Fonts\jaw"
 jaw
+
+## Examples
+
 ```
-
-A template can then reference a staged font by filename:
-
-```latex
-\setmainfont{MyFont-Regular.ttf}[
-  BoldFont = MyFont-Bold.ttf
+% Main body font
+\setmainfont{OpenSans-Regular.ttf}[
+  BoldFont = OpenSans-Bold.ttf,
+  ItalicFont = OpenSans-Italic.ttf,
+  BoldItalicFont = OpenSans-BoldItalic.ttf,
+  Numbers = {Lining, Monospaced}
 ]
-```
 
-Only use fonts whose licenses permit your intended use and distribution.
+% Header font
+\newfontfamily\headerfont{Montserrat-Light.ttf}
+
+% Signature font
+\newfontfamily\signaturefont{QwitcherGrypen-Regular.ttf}
+
+
+  \signaturefont
+  \fontsize{15.5pt}{18pt}
+  \selectfont
+  \color{SignatureGray}
+  {{ user.full_name }}
+
+```
