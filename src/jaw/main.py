@@ -246,6 +246,8 @@ class MainWindow(QMainWindow):
         self._job_advance_after_paste = True
         self._keyboard_before_answers = True
         self._modifier_was_held = False
+        self._layer3_hold_key = ""
+        self._layer3_hold_requires_shift = False
         self._escape_hold_started: float | None = None
         self._escape_hold_fired = False
         self._capture_press_started: float | None = None
@@ -362,11 +364,12 @@ class MainWindow(QMainWindow):
             repr(config.hotkey_settings),
         )
 
-    def _create_hotkeys(self) -> MatrixHotkeys:
-        settings = self.config.hotkey_settings
-        layers = settings.get("layers", {})
+    def _matrix_hotkey_keys(self) -> tuple[list[str], list[str]]:
+        """Return unmodified and Shift-modified keys needed by the active layers."""
+        layers = self.config.hotkey_settings.get("layers", {})
         layer2_settings = layers.get("layer2", {})
         layer3_settings = layers.get("layer3", {})
+
         base_keys = [
             key
             for key, binding in self.config.matrix.items()
@@ -375,32 +378,37 @@ class MainWindow(QMainWindow):
             and key.isalnum()
             and split_binding(binding)[0] != "layer2"
         ]
-        base_keys.extend(
-            key
-            for key, binding in self.config.layer3.items()
-            if split_binding(binding)[0]
-            and len(key) == 1
-            and key.isalnum()
-            and layer3_settings.get("enabled", True)
-        )
-        base_keys.extend(
-            key
-            for key, binding in self.config.layer2.items()
-            if split_binding(binding)[0]
-            and len(key) == 1
-            and key.isalnum()
-            and layer2_settings.get("enabled", True)
-        )
-        layer_keys = [
-            key
-            for key, binding in self.config.layer2.items()
-            if split_binding(binding)[0] not in {"", "toggle_hotkeys", "layer2", "layer3"}
-            and len(key) == 1
-            and key.isalnum()
-            and layer2_settings.get("enabled", True)
-            and layer2_settings.get("hold", True)
-        ]
-        base_keys = list(dict.fromkeys(base_keys))
+        if layer3_settings.get("enabled", True):
+            base_keys.extend(
+                key
+                for key, binding in self.config.layer3.items()
+                if split_binding(binding)[0] and len(key) == 1 and key.isalnum()
+            )
+
+        layer_keys: list[str] = []
+        if layer2_settings.get("enabled", True) and layer2_settings.get("hold", True):
+            layer_keys.extend(
+                key
+                for key, binding in self.config.layer2.items()
+                if split_binding(binding)[0] not in {"", "toggle_hotkeys", "layer2", "layer3"}
+                and len(key) == 1
+                and key.isalnum()
+            )
+            # Shift remains physically held when Layer 3 is entered from Layer 2.
+            # Register Layer 3-only targets with Shift too, otherwise those keys
+            # never generate a hotkey event while the Layer 3 hold chord is down.
+            if layer3_settings.get("enabled", True):
+                layer_keys.extend(
+                    key
+                    for key, binding in self.config.layer3.items()
+                    if split_binding(binding)[0] and len(key) == 1 and key.isalnum()
+                )
+
+        return list(dict.fromkeys(base_keys)), list(dict.fromkeys(layer_keys))
+
+    def _create_hotkeys(self) -> MatrixHotkeys:
+        settings = self.config.hotkey_settings
+        base_keys, layer_keys = self._matrix_hotkey_keys()
         specials = {
             "toggle": settings.get("toggle", "SHIFT+SPACE"),
             "window": settings.get("window", "CTRL+SHIFT+F1"),
@@ -2207,6 +2215,33 @@ class MainWindow(QMainWindow):
         painter.end()
         return pixmap
 
+    def _activate_layer3_hold(self, key: str, source_layer: str) -> None:
+        if not (
+            self.config.hotkey_settings.get("layers", {})
+            .get("layer3", {})
+            .get("enabled", True)
+        ):
+            return
+        normalized = str(key).strip().upper()
+        if len(normalized) != 1 or not normalized.isalnum():
+            return
+        self._layer3_hold_key = normalized
+        self._layer3_hold_requires_shift = source_layer == "Layer 2"
+        self.layer = "Layer 3"
+        self._update_matrix_layer_name()
+
+    def _layer3_hold_is_active(self, shift_held: bool) -> bool:
+        key = getattr(self, "_layer3_hold_key", "")
+        if not key:
+            return False
+        if getattr(self, "_layer3_hold_requires_shift", False) and not shift_held:
+            return False
+        return self.keyboard.is_key_down(key)
+
+    def _clear_layer3_hold(self) -> None:
+        self._layer3_hold_key = ""
+        self._layer3_hold_requires_shift = False
+
     def _poll_shift_visual(self) -> None:
         self._poll_capture_press()
         if sys.platform != "win32":
@@ -2222,15 +2257,9 @@ class MainWindow(QMainWindow):
             self.config.hotkey_settings.get("layers", {}).get("layer3", {}).get("enabled", True)
         )
         shift_held = self.keyboard.is_key_down("SHIFT")
-        layer3_hold_keys = [
-            key
-            for bindings in (self.config.matrix, self.config.layer2, self.config.layer3)
-            for key, binding in bindings.items()
-            if split_binding(binding)[0] == "layer3_hold" and len(key) == 1 and key.isalnum()
-        ]
-        layer3_held = layer3_enabled and any(
-            self.keyboard.is_key_down(key) for key in layer3_hold_keys
-        )
+        layer3_held = layer3_enabled and self._layer3_hold_is_active(shift_held)
+        if self._layer3_hold_key and not layer3_held:
+            self._clear_layer3_hold()
         held_layer = (
             "Layer 3"
             if layer3_held
@@ -2764,15 +2793,16 @@ class MainWindow(QMainWindow):
                 button.corner_icon.hide()
 
     def trigger_matrix(self, key: str) -> None:
+        source_layer = self.layer
         bindings = (
             self.config.layer2
-            if self.layer == "Layer 2"
+            if source_layer == "Layer 2"
             else self.config.layer3
-            if self.layer == "Layer 3"
+            if source_layer == "Layer 3"
             else self.config.matrix
         )
         assignment = self._resolve_layer_binding(key, bindings)
-        self._dispatch_action(assignment, key, paste=False)
+        self._dispatch_action(assignment, key, paste=False, source_layer=source_layer)
 
     def _resolve_layer_binding(self, key: str, bindings: dict[str, str]) -> str:
         """Keep layer cycle/toggle controls reachable from every active layer."""
@@ -2883,7 +2913,9 @@ class MainWindow(QMainWindow):
             self.move_visible_iterator(1)
             return
         if assignment in {"cycle_layers", "layer3_hold"}:
-            self._dispatch_action(assignment, key, paste=True)
+            self._dispatch_action(
+                assignment, key, paste=True, source_layer="Layer 2"
+            )
             return
         if (
             assignment in self.config.action_labels
@@ -3256,7 +3288,7 @@ class MainWindow(QMainWindow):
                 else self.config.matrix
             )
             action = self._resolve_layer_binding(key, bindings)
-            self._dispatch_action(action, key, paste=True)
+            self._dispatch_action(action, key, paste=True, source_layer=self.layer)
 
     def _update_matrix_layer_name(self) -> None:
         self.layer_badge.setText(self.layer.upper() if self.hotkeys_enabled else "HOTKEYS OFF")
@@ -3301,9 +3333,15 @@ class MainWindow(QMainWindow):
         if action in {"previous_iterator", "next_iterator"}:
             self.move_visible_iterator(-1 if action == "previous_iterator" else 1)
             return
-        self._dispatch_action(action, key, paste=True)
+        self._dispatch_action(action, key, paste=True, source_layer=layer)
 
-    def _dispatch_action(self, action: str, key: str, paste: bool) -> None:
+    def _dispatch_action(
+        self,
+        action: str,
+        key: str,
+        paste: bool,
+        source_layer: str | None = None,
+    ) -> None:
         if not action:
             return
         if action in {"previous_iterator", "next_iterator"}:
@@ -3316,14 +3354,7 @@ class MainWindow(QMainWindow):
                 )
             return
         if action == "layer3_hold":
-            if (
-                not self.config.hotkey_settings.get("layers", {})
-                .get("layer3", {})
-                .get("enabled", True)
-            ):
-                return
-            self.layer = "Layer 3"
-            self._update_matrix_layer_name()
+            self._activate_layer3_hold(key, source_layer or self.layer)
             return
         if action == "cycle_layers":
             layer_settings = self.config.hotkey_settings.get("layers", {})
@@ -3509,12 +3540,22 @@ class MainWindow(QMainWindow):
     def keyReleaseEvent(self, event: QKeyEvent) -> None:
         modifier_key = Qt.Key.Key_Shift
         if event.key() == modifier_key:
+            if self._layer3_hold_requires_shift:
+                self._clear_layer3_hold()
             self.layer = self.latched_layer
             self._update_matrix_layer_name()
             return
         key = event.text().upper()
-        if len(key) == 1 and split_binding(self.config.matrix.get(key, ""))[0] == "layer3_hold":
-            self.layer = self.latched_layer
+        if len(key) == 1 and key == self._layer3_hold_key:
+            self._clear_layer3_hold()
+            layer2 = self.config.hotkey_settings.get("layers", {}).get("layer2", {})
+            self.layer = (
+                "Layer 2"
+                if layer2.get("enabled", True)
+                and layer2.get("hold", True)
+                and self.keyboard.is_key_down("SHIFT")
+                else self.latched_layer
+            )
             self._update_matrix_layer_name()
             return
         super().keyReleaseEvent(event)
