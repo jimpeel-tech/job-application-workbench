@@ -3459,6 +3459,20 @@ class MainWindow(QMainWindow):
             else:
                 self.statusBar().showMessage(f"Unknown action '{action}' bound to {key}")
 
+    @staticmethod
+    def _matrix_key_from_event(event) -> str:
+        """Return the matrix key behind a Qt key event, ignoring Shift punctuation."""
+        text = str(event.text() or "").strip().upper()
+        if len(text) == 1 and text.isalnum():
+            return text
+        try:
+            native_vk = int(event.nativeVirtualKey())
+        except (AttributeError, TypeError, ValueError):
+            native_vk = 0
+        if ord("0") <= native_vk <= ord("9") or ord("A") <= native_vk <= ord("Z"):
+            return chr(native_vk)
+        return ""
+
     def eventFilter(self, watched, event) -> bool:
         if self.isActiveWindow() and event.type() in {
             QEvent.Type.KeyPress,
@@ -3473,7 +3487,7 @@ class MainWindow(QMainWindow):
             and not self._answer_search_active
             and hasattr(self, "_matrix_buttons")
         ):
-            key = event.text().upper()
+            key = self._matrix_key_from_event(event)
             if key in self._matrix_buttons:
                 self.trigger_matrix(key)
                 event.accept()
@@ -3535,7 +3549,7 @@ class MainWindow(QMainWindow):
             if layer2.get("enabled", True) and layer2.get("hold", True):
                 self._set_layer("Shift")
             return
-        key = event.text().upper()
+        key = self._matrix_key_from_event(event)
         if key in self._matrix_buttons:
             self.trigger_matrix(key)
             return
@@ -3549,7 +3563,7 @@ class MainWindow(QMainWindow):
             self.layer = self.latched_layer
             self._update_matrix_layer_name()
             return
-        key = event.text().upper()
+        key = self._matrix_key_from_event(event)
         if len(key) == 1 and key == self._layer3_hold_key:
             self._clear_layer3_hold()
             layer2 = self.config.hotkey_settings.get("layers", {}).get("layer2", {})
