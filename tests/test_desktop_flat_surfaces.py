@@ -23,6 +23,8 @@ def test_internal_content_surfaces_are_borderless_by_default():
         assert "border: 1px" not in rule
 
 
-def test_flat_default_keeps_interactive_editors_visually_bounded():
+def test_qa_answer_preview_uses_flat_surface():
     rule = _rule("QTextEdit#answerText")
-    assert "border: 1px" in rule
+    assert "background: transparent" in rule
+    assert "border: none" in rule
+    assert "border: 1px" not in rule
