@@ -1,6 +1,6 @@
 # Ollama Setup
 
-Ollama is optional. JAW can capture and parse job descriptions without it, but Ollama enables local generative-AI verification and analysis without sending job content to a hosted AI provider.
+Ollama is optional. JAW can capture and parse job descriptions without it, but Ollama enables local generative-AI verification, analysis, and document generation without sending job content to a hosted AI provider.
 
 JAW's default Ollama configuration is:
 
@@ -8,6 +8,8 @@ JAW's default Ollama configuration is:
 Host:  http://127.0.0.1:11434
 Model: qwen3:14b
 ```
+
+`qwen3:14b` is JAW's recommended/default local model, but it is **not hard-coded as the only supported model**. JAW discovers the models installed in Ollama and lets you select another one. A model used by JAW must support Ollama's chat API and should behave reliably with structured JSON output; quality and structured-output reliability can vary by model.
 
 ## 1. Install Ollama
 
@@ -23,28 +25,29 @@ You can also use the Windows installer from the official Ollama download page:
 
 Ollama requires Windows 10 or newer.
 
-## 2. Install JAW's default model
+## 2. Install a model
 
-JAW defaults to `qwen3:14b`.
+For JAW's default model:
 
 ```powershell
 ollama pull qwen3:14b
 ```
 
-The current Ollama package for `qwen3:14b` is approximately 9.3 GB, so the initial download may take some time.
+To use a different model, install the exact model/tag you want through Ollama instead. For example, you may choose another Qwen size when you want a different memory/speed/quality tradeoff. Use the model names currently offered by Ollama rather than assuming a particular tag exists.
 
-Verify that the model is installed:
+List the models installed on your machine:
 
 ```powershell
 ollama ls
 ```
 
-You should see `qwen3:14b` in the model list.
+The exact name shown by `ollama ls` is the name JAW sends to Ollama.
 
 Official references:
 
 - https://docs.ollama.com/cli
-- https://ollama.com/library/qwen3:14b
+- https://ollama.com/library
+- https://ollama.com/library/qwen3
 
 ## 3. Verify the local API
 
@@ -60,7 +63,7 @@ The response should contain the locally installed models.
 
 JAW uses Ollama's `/api/tags` endpoint for model discovery and `/api/chat` for structured inference.
 
-## 4. Configure JAW
+## 4. Choose a model in JAW
 
 Start JAW:
 
@@ -68,12 +71,49 @@ Start JAW:
 jaw
 ```
 
-In JAW's Smart Capture settings, select an Ollama-enabled analysis mode and use `qwen3:14b` unless you intentionally want another installed model.
+JAW has separate model choices for different workflows.
 
-JAW's connection test verifies both conditions:
+### Smart Capture
 
-1. the Ollama API is reachable;
-2. the configured model is installed.
+Open **Settings -> Smart Capture**.
+
+1. Choose an Ollama-enabled Capture Analysis mode.
+2. Select the desired value under **Ollama model**.
+3. If you installed a model while JAW was already open, click **Refresh** to query Ollama again.
+
+The currently configured model is preserved in the list even if Ollama is temporarily offline, so an unavailable server does not silently replace your configuration.
+
+### Job Description Analysis
+
+Open **Settings -> Job Description Analysis**.
+
+1. Select **Generative AI**.
+2. Select **Ollama · local** as the provider.
+3. Choose any discovered installed model from **Model**.
+4. Use **Test connection** to verify that Ollama is reachable and that the selected model is installed.
+
+The Document Workbench inherits this active analysis provider/model for AI generation blocks in Sections and Functions.
+
+### Outlook sync
+
+Outlook classification intentionally has an independent model setting. It defaults to `qwen3:14b` and can be overridden with:
+
+```powershell
+$env:JAW_OUTLOOK_OLLAMA_MODEL = "exact-model-name-from-ollama-ls"
+```
+
+See [Outlook Sync](outlook-sync.md) for the persistent configuration example.
+
+## Choosing a model
+
+JAW does not impose a Qwen-only allowlist. In practice:
+
+- **Start with `qwen3:14b`** for the configuration JAW is developed around.
+- A smaller installed model can reduce memory use and improve latency, but may be less reliable at extraction, reasoning, or schema-constrained responses.
+- A larger model may improve output quality but requires more memory and is slower.
+- If a different model frequently returns malformed structured output, use another model rather than treating successful installation alone as compatibility proof.
+
+After installing another model, run `ollama ls`, refresh/select it in JAW, then use **Test connection** before relying on it for job analysis or document generation.
 
 ## Custom Ollama host
 
@@ -104,7 +144,7 @@ To persist the value for your Windows user:
 
 Open a new terminal after changing persistent environment variables.
 
-> When `OLLAMA_HOST` points to another computer, job content sent for Ollama analysis is transmitted to that host. Localhost keeps that traffic on the machine running JAW.
+> When `OLLAMA_HOST` points to another computer, content sent for Ollama inference is transmitted to that host. Localhost keeps that traffic on the machine running JAW.
 
 ## Troubleshooting
 
@@ -126,12 +166,16 @@ Check the installed models:
 ollama ls
 ```
 
-Then install JAW's default model if needed:
+Then either install the configured model or select one that is already installed. To restore JAW's default:
 
 ```powershell
 ollama pull qwen3:14b
 ```
 
-### Use a different model
+### A newly installed model does not appear
 
-Install the model with Ollama first, then configure the same exact model name in JAW. JAW treats a configured model as unavailable when it does not appear in Ollama's local model list.
+In **Smart Capture**, click **Refresh**. In **Job Description Analysis**, reselect **Ollama · local** to refresh the discovered model list. Restarting JAW also refreshes both lists.
+
+### A model connects but generation fails
+
+Connection and model discovery only prove that Ollama can see the model. JAW also relies on structured chat responses. If a model repeatedly produces invalid structured JSON or poor extraction results, select a model with stronger structured-output behavior; `qwen3:14b` remains JAW's default recommendation.
