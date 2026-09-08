@@ -4,25 +4,25 @@ JAW can be packaged as a standalone Windows executable with PyInstaller. The def
 
 Ollama and Tectonic are optional external programs and are not embedded in the executable.
 
-## Recommended: GitHub Actions
+## Release distribution
 
-The repository includes **Build Windows executable** under GitHub Actions.
-
-For an ad-hoc build:
-
-1. Open the repository's **Actions** tab.
-2. Select **Build Windows executable**.
-3. Choose **Run workflow** on `main`.
-4. Download the `JAW-windows-x64` artifact when the job completes.
-
-The artifact contains:
+Normal users should download `JAW.exe` from the repository's **Releases** page. They do not need a GitHub account, Python, Git, or access to GitHub Actions. Each tagged `v*` build automatically creates or updates the matching GitHub Release and attaches:
 
 ```text
 JAW.exe
 JAW.exe.sha256
 ```
 
-A pushed tag matching `v*` uses the same build and automatically creates or updates the corresponding GitHub Release with the executable and checksum.
+## Maintainer / development builds with GitHub Actions
+
+The repository also includes **Build Windows executable** under GitHub Actions. Manual workflow runs are intended for maintainers and testers who want an ad-hoc build before creating a release:
+
+1. Open the repository's **Actions** tab.
+2. Select **Build Windows executable**.
+3. Choose **Run workflow** on `main`.
+4. Download the `JAW-windows-x64` artifact when the job completes.
+
+The Actions artifact contains the same executable and checksum, but it is not the normal public installation path.
 
 ## Build locally
 
