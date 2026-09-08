@@ -124,11 +124,14 @@ class TwoColumnListWidget(QListWidget):
 
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
-        self.setViewMode(QListView.ViewMode.IconMode)
+        self.setViewMode(QListView.ViewMode.ListMode)
         self.setFlow(QListView.Flow.LeftToRight)
         self.setWrapping(True)
         self.setResizeMode(QListView.ResizeMode.Adjust)
         self.setMovement(QListView.Movement.Snap)
+        self.setSpacing(3)
+        self.setFrameShape(QFrame.Shape.NoFrame)
+        self.setWordWrap(False)
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         self.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         self.model().rowsInserted.connect(
@@ -151,12 +154,18 @@ class TwoColumnListWidget(QListWidget):
         row_height = self.sizeHintForRow(0) if self.count() else -1
         if row_height < 1:
             row_height = self.fontMetrics().height() + 8
-        column_width = max(1, (viewport_width - 8) // 2)
-        target = QSize(column_width, row_height + 2)
+        gutter = 12
+        column_width = max(1, (viewport_width - gutter) // 2)
+        target = QSize(column_width, row_height + 4)
         if self.gridSize() != target:
             self.setGridSize(target)
         rows = max(1, (self.count() + 1) // 2)
-        target_height = rows * target.height() + self.frameWidth() * 2 + 2
+        target_height = (
+            rows * target.height()
+            + max(0, rows - 1) * self.spacing()
+            + self.frameWidth() * 2
+            + 2
+        )
         if self.minimumHeight() != target_height or self.maximumHeight() != target_height:
             self.setFixedHeight(target_height)
 
@@ -1016,6 +1025,9 @@ class MainWindow(QMainWindow):
             item.setCheckState(
                 Qt.CheckState.Checked if field in visible_fields else Qt.CheckState.Unchecked
             )
+            item.setTextAlignment(
+                Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter
+            )
             self.smart_capture_field_list.addItem(item)
         smart_capture_section.content_layout.addWidget(self.smart_capture_field_list)
 
@@ -1527,10 +1539,6 @@ class MainWindow(QMainWindow):
             ),
             self.layer_status_cycle_button: "Current keyboard layer and hotkey status. Click to toggle hotkeys.",
         }
-        if hasattr(self, "work_experience_menu_button"):
-            tips[self.work_experience_menu_button] = (
-                "Work Experience menu · Right-click to reset parent and child iterators"
-            )
         for widget, tip in tips.items():
             widget.setToolTip(tip if visible else "")
 
@@ -1609,24 +1617,6 @@ class MainWindow(QMainWindow):
         self.titles_list.customContextMenuRequested.connect(self._toggle_work_entry_at)
         self.titles_list.model().rowsMoved.connect(self._work_history_reordered)
         workspace.layout.addWidget(self.titles_list, 1)
-        self.work_experience_menu_button = HoverIconButton()
-        self.work_experience_menu_button.setParent(workspace)
-        self.work_experience_menu_button.setObjectName("paneMenuButton")
-        self.work_experience_menu_button.setFixedSize(24, 24)
-        self.work_experience_menu_button.set_state_icons(
-            QIcon(self._single_icon_pixmap("pane_menu", 20)),
-            QIcon(self._single_icon_pixmap("pane_menu", 20, "#65a6e8")),
-        )
-        self.work_experience_menu_button.setIconSize(QSize(20, 20))
-        self.work_experience_menu_button.setContextMenuPolicy(
-            Qt.ContextMenuPolicy.CustomContextMenu
-        )
-        self.work_experience_menu_button.customContextMenuRequested.connect(
-            lambda _position: self._reset_work_iterators()
-        )
-        workspace.menu_button = self.work_experience_menu_button
-        self.work_experience_menu_button.show()
-
         self.field_strip = QWidget()
         field_layout = QHBoxLayout(self.field_strip)
         field_layout.setContentsMargins(0, 0, 0, 0)
@@ -2028,21 +2018,6 @@ class MainWindow(QMainWindow):
             current,
             lambda field: field not in self.disabled_child_fields,
         )
-
-    def _reset_work_iterators(self) -> None:
-        self.job_order = [replace(entry, enabled=True) for entry in self.config.work_history]
-        self.field_order = list(self.default_field_order)
-        self.disabled_child_fields.clear()
-        by_name = {button.field_name: button for button in self.field_buttons}
-        layout = self.field_strip.layout()
-        self.field_buttons = [by_name[name] for name in self.field_order]
-        for button in self.field_buttons:
-            layout.removeWidget(button)
-            layout.addWidget(button, 1)
-        self._rebuild_titles(0)
-        self._rebuild_job_fields(0)
-        self._save_work_iterator_state()
-        self.statusBar().showMessage("Parent and child iterators reset", 1800)
 
     def _update_paste_status(self) -> None:
         if not hasattr(self, "job_fields_list") or self.job_fields_list.currentRow() < 0:
@@ -2715,13 +2690,7 @@ class MainWindow(QMainWindow):
                 self._capture_has_content_cache if assignment == "analyze_job" else True
             )
             if isinstance(button, MatrixButton):
-                work_experience = assignment == "iterate_work_exp"
-                if work_experience:
-                    state_icon = "paste" if self.pages.currentIndex() == 0 else "small_toggle"
-                    button.corner_icon.setPixmap(self._single_icon_pixmap(state_icon, 17))
-                    button.corner_icon.show()
-                else:
-                    button.corner_icon.hide()
+                button.corner_icon.hide()
 
     def trigger_matrix(self, key: str) -> None:
         bindings = (

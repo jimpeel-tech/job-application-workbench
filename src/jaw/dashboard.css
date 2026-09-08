@@ -644,3 +644,14 @@ input,select,.btn{background:#292d34;color:var(--text);border:1px solid var(--li
 .tracker-title-input{font-size:28px;font-weight:700;line-height:1.15}
 .tracker-company-input{font-size:14px}
 @media(max-width:800px){.tracker-job-heading-edit{width:100%;min-width:0}}
+
+
+/* JAW UI cleanup: retire contextual Tips and keep Keybinds viewport-contained. */
+.tips-shell{display:none!important}
+.tips-shell #tipsToggle{display:none!important}
+#keybindPage.active{height:calc(100vh - 64px);overflow:hidden}
+.keybind-page{height:100%;display:flex;flex-direction:column}
+.keybind-toolbar{flex:0 0 auto}
+.keybind-layout{flex:1 1 auto;min-height:0}
+.action-palette,.matrix-editor{min-height:0}
+.matrix-editor{overflow:auto}
