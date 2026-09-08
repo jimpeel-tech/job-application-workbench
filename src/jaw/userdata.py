@@ -9,8 +9,12 @@ from typing import Any, Iterable
 from .icons import infer_icon_names
 from .keyboard_layouts import (
     DEFAULT_KEYBOARD_LAYOUT,
+    KEYBIND_POSITION_MODEL,
     canonical_keyboard_layout,
+    is_position_id,
+    layout_key_bindings_to_positions,
     normalize_custom_layouts,
+    resolve_keyboard_layout,
 )
 from .paths import database_path
 from .persistence import UserRepository
@@ -79,6 +83,7 @@ def default_user_data_path() -> Path:
 
 def empty_keybinds() -> dict[str, Any]:
     return {
+        "binding_model": KEYBIND_POSITION_MODEL,
         "configured": False,
         "base": {},
         "layer2": {},
@@ -147,49 +152,49 @@ def _changed_sync_categories(old: dict[str, Any], new: dict[str, Any]) -> set[st
 
 
 def initial_keybinds() -> dict[str, Any]:
-    """Read-only first-run QWERTY workflow defaults."""
+    """Read-only first-run workflow defaults keyed by physical matrix position."""
     defaults = empty_keybinds()
     defaults.update(
         {
             "configured": True,
             "base": {
-                '1': 'open_dashboard',
-                '2': 'analyze_job',
-                '3': 'find_company',
-                '4': 'toggle_answers',
-                '5': 'toggle_keyboard',
-                'Q': 'country',
-                'W': 'sequence:q',
-                'E': 'previous_iterator',
-                'R': 'iterate_work_exp',
-                'T': 'sequence:links',
-                'A': 'layer3_hold',
-                'S': 'sequence:a',
-                'D': 'next_iterator',
-                'F': 'iterate_skills',
-                'G': 'smart_capture',
-                'Z': 'linkedin',
-                'X': 'portfolio',
-                'C': 'full_name',
-                'V': 'phone',
-                'B': 'email',
+                'P00': 'open_dashboard',
+                'P01': 'analyze_job',
+                'P02': 'find_company',
+                'P03': 'toggle_answers',
+                'P04': 'toggle_keyboard',
+                'P10': 'country',
+                'P11': 'sequence:q',
+                'P12': 'previous_iterator',
+                'P13': 'iterate_work_exp',
+                'P14': 'sequence:links',
+                'P20': 'layer3_hold',
+                'P21': 'sequence:a',
+                'P22': 'next_iterator',
+                'P23': 'iterate_skills',
+                'P24': 'smart_capture',
+                'P30': 'linkedin',
+                'P31': 'portfolio',
+                'P32': 'full_name',
+                'P33': 'phone',
+                'P34': 'email',
             },
             "layer2": {
-                '1': 'cycle_date_format',
-                '2': 'cycle_name_format',
-                'Q': 'address',
-                'W': 'city',
-                'E': 'move_up_or_relay',
-                'R': 'previous_work_exp',
-                'A': 'state',
-                'S': 'zip',
-                'D': 'move_down_or_relay',
-                'F': 'next_work_exp',
-                'G': 'github',
-                'Z': 'facebook',
-                'X': 'x',
-                'C': 'first_name',
-                'V': 'last_name',
+                'P00': 'cycle_date_format',
+                'P01': 'cycle_name_format',
+                'P10': 'address',
+                'P11': 'city',
+                'P12': 'move_up_or_relay',
+                'P13': 'previous_work_exp',
+                'P20': 'state',
+                'P21': 'zip',
+                'P22': 'move_down_or_relay',
+                'P23': 'next_work_exp',
+                'P24': 'github',
+                'P30': 'facebook',
+                'P31': 'x',
+                'P32': 'first_name',
+                'P33': 'last_name',
             },
             "layer3": {},
         }
@@ -243,6 +248,39 @@ def normalize_layer_bindings(keybinds: dict[str, Any]) -> dict[str, Any]:
         normalized.get("custom_layouts", {})
     )
     return normalized
+
+
+def _normalize_keybind_storage(
+    raw_keybinds: Any,
+    keyboard_layout: Any,
+) -> tuple[str, dict[str, Any]]:
+    """Normalize persisted bindings to layout-independent physical positions."""
+    normalized = normalize_layer_bindings(dict(raw_keybinds or {}))
+    custom_layouts = normalized.get("custom_layouts", {})
+    selected = (
+        canonical_keyboard_layout(keyboard_layout, custom_layouts)
+        or DEFAULT_KEYBOARD_LAYOUT
+    )
+
+    keys = [
+        str(key).strip().upper()
+        for layer in ("base", "layer2", "layer3")
+        for key in normalized.get(layer, {})
+    ]
+    already_positioned = (
+        normalized.get("binding_model") == KEYBIND_POSITION_MODEL
+        or (bool(keys) and all(is_position_id(key) for key in keys))
+    )
+    if not already_positioned:
+        rows = resolve_keyboard_layout(selected, custom_layouts)
+        for layer in ("base", "layer2", "layer3"):
+            normalized[layer] = layout_key_bindings_to_positions(
+                normalized.get(layer, {}),
+                rows,
+            )
+
+    normalized["binding_model"] = KEYBIND_POSITION_MODEL
+    return selected, normalized
 
 
 def _new_id(prefix: str) -> str:
@@ -656,6 +694,10 @@ class UserDataStore:
         model = _normalize_capability_model(
             data.get("capability_model")
         )
+        keyboard_layout, keybinds = _normalize_keybind_storage(
+            data.get("keybinds", empty_keybinds()),
+            data.get("keyboard_layout", DEFAULT_KEYBOARD_LAYOUT),
+        )
 
         return {
             "sync_revisions": _normalize_sync_revisions(data.get("sync_revisions")),
@@ -686,18 +728,8 @@ class UserDataStore:
                 if data.get("name_format") == "full"
                 else "first_last"
             ),
-            "keyboard_layout": (
-                canonical_keyboard_layout(
-                    data.get("keyboard_layout", DEFAULT_KEYBOARD_LAYOUT),
-                    normalize_layer_bindings(
-                        data.get("keybinds", empty_keybinds())
-                    ).get("custom_layouts", {}),
-                )
-                or DEFAULT_KEYBOARD_LAYOUT
-            ),
-            "keybinds": normalize_layer_bindings(
-                data.get("keybinds", empty_keybinds())
-            ),
+            "keyboard_layout": keyboard_layout,
+            "keybinds": keybinds,
         }
 
     def read(self, user_id: int | None = None) -> dict[str, Any]:
@@ -1654,20 +1686,52 @@ class UserDataStore:
         data = self.read()
         cleaned = empty_keybinds()
         cleaned["configured"] = True
+        cleaned["custom_layouts"] = normalize_custom_layouts(
+            payload.get("custom_layouts", {})
+        )
+        requested_layout = payload.get("keyboard_layout")
+        if requested_layout is None:
+            selected_layout = (
+                canonical_keyboard_layout(
+                    data.get("keyboard_layout"),
+                    cleaned["custom_layouts"],
+                )
+                or DEFAULT_KEYBOARD_LAYOUT
+            )
+        else:
+            selected_layout = canonical_keyboard_layout(
+                requested_layout,
+                cleaned["custom_layouts"],
+            )
+            if selected_layout is None:
+                raise ValueError("Unsupported keyboard layout")
+        layout_rows = resolve_keyboard_layout(
+            selected_layout,
+            cleaned["custom_layouts"],
+        )
 
         for layer in (
             "base",
             "layer2",
             "layer3",
         ):
-            cleaned[layer] = {
-                str(key).upper(): str(action)
+            incoming_bindings = {
+                str(key).strip().upper(): str(action)
                 for key, action in dict(
                     payload.get(layer, {})
                 ).items()
-                if len(str(key).strip()) == 1
-                and str(key).strip().isalnum()
             }
+            if any(is_position_id(key) for key in incoming_bindings):
+                cleaned[layer] = {
+                    key: action
+                    for key, action in incoming_bindings.items()
+                    if is_position_id(key)
+                }
+            else:
+                cleaned[layer] = layout_key_bindings_to_positions(
+                    incoming_bindings,
+                    layout_rows,
+                )
 
         defaults = empty_keybinds()[
             "hotkey_settings"
@@ -1746,13 +1810,8 @@ class UserDataStore:
             if isinstance(value, dict)
         }
 
-        cleaned["custom_layouts"] = normalize_custom_layouts(
-            payload.get("custom_layouts", {})
-        )
-
-        data["keybinds"] = (
-            normalize_layer_bindings(cleaned)
-        )
+        data["keyboard_layout"] = selected_layout
+        data["keybinds"] = normalize_layer_bindings(cleaned)
         self.write(data)
 
     def save_analysis_settings(

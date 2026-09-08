@@ -9,8 +9,11 @@ from jaw.database import JobDatabase
 from jaw.keyboard_layouts import (
     BUILTIN_KEYBOARD_LAYOUTS,
     DEFAULT_KEYBOARD_LAYOUT,
+    KEYBIND_POSITION_MODEL,
     canonical_keyboard_layout,
+    layout_key_bindings_to_positions,
     normalize_custom_layouts,
+    position_bindings_to_layout_keys,
     resolve_keyboard_layout,
 )
 from jaw.userdata import UserDataStore
@@ -119,3 +122,59 @@ def test_keybind_api_publishes_builtin_layout_catalog(tmp_path):
     assert payload["builtin_layouts"]["colemak-dh"][1] == ["Q", "W", "F", "P", "B"]
     assert "qwerty" not in payload["custom_layouts"]
     assert "colemak-dh" not in payload["custom_layouts"]
+
+
+def test_physical_bindings_materialize_at_same_positions_across_layouts():
+    slots = {
+        "P12": "previous_iterator",
+        "P13": "iterate_work_exp",
+        "P23": "iterate_skills",
+        "P24": "smart_capture",
+    }
+    qwerty = position_bindings_to_layout_keys(
+        slots,
+        resolve_keyboard_layout("qwerty"),
+    )
+    colemak = position_bindings_to_layout_keys(
+        slots,
+        resolve_keyboard_layout("colemak-dh"),
+    )
+
+    assert qwerty == {
+        "E": "previous_iterator",
+        "R": "iterate_work_exp",
+        "F": "iterate_skills",
+        "G": "smart_capture",
+    }
+    assert colemak == {
+        "F": "previous_iterator",
+        "P": "iterate_work_exp",
+        "T": "iterate_skills",
+        "G": "smart_capture",
+    }
+    assert layout_key_bindings_to_positions(
+        colemak,
+        resolve_keyboard_layout("colemak-dh"),
+    ) == slots
+
+
+def test_switching_layout_changes_runtime_keys_not_persisted_positions(tmp_path):
+    database_path = tmp_path / "data" / "jaw.db"
+    store = UserDataStore(database_path)
+    before = store.read()["keybinds"]
+    assert before["binding_model"] == KEYBIND_POSITION_MODEL
+    assert before["base"]["P12"] == "previous_iterator"
+    assert before["base"]["P13"] == "iterate_work_exp"
+
+    store.set_keyboard_layout("colemak-dh")
+    after = store.read()
+    assert after["keyboard_layout"] == "colemak-dh"
+    assert after["keybinds"]["base"] == before["base"]
+
+    from jaw.config import load_config
+
+    config = load_config(tmp_path / "config.toml")
+    assert config.matrix["F"].partition("|")[0] == "previous_iterator"
+    assert config.matrix["P"].partition("|")[0] == "iterate_work_exp"
+    assert config.matrix["T"].partition("|")[0] == "iterate_skills"
+    assert config.matrix["G"].partition("|")[0] == "smart_capture"

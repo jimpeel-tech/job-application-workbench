@@ -129,9 +129,10 @@ def test_first_run_uses_sanitized_default_template(tmp_path: Path):
     assert data["iterator_preferences"] == {}
     assert data["answers"] == []
     assert data["keyboard_layout"] == "qwerty"
+    assert data["keybinds"]["binding_model"] == "physical-v1"
 
-    expected_base = {'1': 'open_dashboard', '2': 'analyze_job', '3': 'find_company', '4': 'toggle_answers', '5': 'toggle_keyboard', 'Q': 'country', 'W': 'sequence:q', 'E': 'previous_iterator', 'R': 'iterate_work_exp', 'T': 'sequence:links', 'A': 'layer3_hold', 'S': 'sequence:a', 'D': 'next_iterator', 'F': 'iterate_skills', 'G': 'smart_capture', 'Z': 'linkedin', 'X': 'portfolio', 'C': 'full_name', 'V': 'phone', 'B': 'email'}
-    expected_layer2 = {'1': 'cycle_date_format', '2': 'cycle_name_format', 'Q': 'address', 'W': 'city', 'E': 'move_up_or_relay', 'R': 'previous_work_exp', 'A': 'state', 'S': 'zip', 'D': 'move_down_or_relay', 'F': 'next_work_exp', 'G': 'github', 'Z': 'facebook', 'X': 'x', 'C': 'first_name', 'V': 'last_name'}
+    expected_base = {'P00': 'open_dashboard', 'P01': 'analyze_job', 'P02': 'find_company', 'P03': 'toggle_answers', 'P04': 'toggle_keyboard', 'P10': 'country', 'P11': 'sequence:q', 'P12': 'previous_iterator', 'P13': 'iterate_work_exp', 'P14': 'sequence:links', 'P20': 'layer3_hold', 'P21': 'sequence:a', 'P22': 'next_iterator', 'P23': 'iterate_skills', 'P24': 'smart_capture', 'P30': 'linkedin', 'P31': 'portfolio', 'P32': 'full_name', 'P33': 'phone', 'P34': 'email'}
+    expected_layer2 = {'P00': 'cycle_date_format', 'P01': 'cycle_name_format', 'P10': 'address', 'P11': 'city', 'P12': 'move_up_or_relay', 'P13': 'previous_work_exp', 'P20': 'state', 'P21': 'zip', 'P22': 'move_down_or_relay', 'P23': 'next_work_exp', 'P24': 'github', 'P30': 'facebook', 'P31': 'x', 'P32': 'first_name', 'P33': 'last_name'}
     assert data["keybinds"]["base"] == expected_base
     assert data["keybinds"]["layer2"] == expected_layer2
     assert data["keybinds"]["layer3"] == {}
@@ -545,7 +546,7 @@ def test_iterator_order_disabled_state_and_work_enabled_state_are_persistent(
 def test_keybinds_are_saved_per_user_and_allow_custom_layouts(tmp_path: Path):
     store = seed(tmp_path / "data" / "jaw.db")
     store.save_keybinds({
-        "base": {"q": "first_name", "p": "iterate_work_exp"},
+        "base": {"q": "first_name", "w": "iterate_work_exp"},
         "layer2": {"space": "toggle_hotkeys"},
         "layer3": {"q": "email"},
         "hotkey_settings": {
@@ -563,15 +564,15 @@ def test_keybinds_are_saved_per_user_and_allow_custom_layouts(tmp_path: Path):
         "action_displays": {
             "first_name": {"label": "Given name", "icons": ["paste"]},
         },
-        "custom_layouts": {"My Layout": [["ESC", "Q"], ["SPACE", "ENTER"]]},
+        "custom_layouts": {"My Layout": [["1", "2", "3", "4", "5"], ["Q", "W", "E", "R", "T"], ["A", "S", "D", "F", "G"], ["Z", "X", "C", "V", "B"]]},
     })
     store.set_keyboard_layout("My Layout")
 
     data = store.read()
     assert data["keybinds"]["configured"] is True
-    assert data["keybinds"]["base"] == {"Q": "first_name", "P": "iterate_work_exp"}
+    assert data["keybinds"]["base"] == {"P10": "first_name", "P11": "iterate_work_exp"}
     assert data["keybinds"]["layer2"] == {}
-    assert data["keybinds"]["layer3"] == {"Q": "email"}
+    assert data["keybinds"]["layer3"] == {"P10": "email"}
     assert data["keybinds"]["hotkey_settings"]["layers"] == {
         "layer2": {
             "enabled": False, "hold": False,
@@ -583,7 +584,10 @@ def test_keybinds_are_saved_per_user_and_allow_custom_layouts(tmp_path: Path):
     assert data["keybinds"]["action_displays"]["first_name"]["label"] == "Given name"
     assert data["keybinds"]["action_displays"]["first_name"]["icons"] == ["paste"]
     assert data["keybinds"]["custom_layouts"]["My Layout"] == [
-        ["", "Q"], ["", ""],
+        ["1", "2", "3", "4", "5"],
+        ["Q", "W", "E", "R", "T"],
+        ["A", "S", "D", "F", "G"],
+        ["Z", "X", "C", "V", "B"],
     ]
     assert data["keyboard_layout"] == "My Layout"
 
@@ -647,7 +651,7 @@ def test_custom_data_types_and_action_rename_keep_stable_id(tmp_path: Path):
         "type": "iterator", "field_ids": ["short_value", "long_value"],
         "auto_return": False,
     }]
-    assert data["keybinds"]["base"]["Q"] == "custom_action_stable"
+    assert data["keybinds"]["base"]["P10"] == "custom_action_stable"
 
 
 def test_custom_action_labels_are_unique_and_delete_cleans_bindings(tmp_path: Path):
@@ -707,7 +711,7 @@ def test_custom_action_rejects_reserved_label_and_field_delete_cascades(tmp_path
     ])
     data = store.read()
     assert data["custom_actions"][0]["field_ids"] == ["second"]
-    assert data["keybinds"]["base"] == {"W": "custom_action_fields"}
+    assert data["keybinds"]["base"] == {"P11": "custom_action_fields"}
     assert "first" not in data["keybinds"]["action_displays"]
 
 

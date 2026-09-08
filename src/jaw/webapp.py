@@ -166,6 +166,9 @@ class DashboardServer:
                     labels.setdefault("layer2", "Layer 2")
                     self.send_json(
                         {
+                            "binding_model": stored.get(
+                                "binding_model", "physical-v1"
+                            ),
                             "base": {
                                 str(key).upper(): str(value).partition("|")[0]
                                 for key, value in base.items()

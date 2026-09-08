@@ -24,6 +24,68 @@ BUILTIN_KEYBOARD_LAYOUT_LABELS = {
     "colemak-dh": "Colemak-DH",
 }
 
+KEYBIND_POSITION_MODEL = "physical-v1"
+
+
+def position_id(row: int, column: int) -> str:
+    """Stable identifier for one physical cell in JAW's 4x5 matrix."""
+    if not 0 <= row < 4 or not 0 <= column < 5:
+        raise ValueError("Keyboard position is outside the 4x5 matrix")
+    return f"P{row}{column}"
+
+
+def is_position_id(value: Any) -> bool:
+    text = str(value or "").strip().upper()
+    return (
+        len(text) == 3
+        and text.startswith("P")
+        and text[1].isdigit()
+        and text[2].isdigit()
+        and 0 <= int(text[1]) < 4
+        and 0 <= int(text[2]) < 5
+    )
+
+
+def layout_key_bindings_to_positions(
+    bindings: Any,
+    rows: list[list[str]],
+) -> dict[str, str]:
+    """Convert legacy key-name bindings to stable physical matrix positions."""
+    incoming = {
+        str(key).strip().upper(): str(action)
+        for key, action in dict(bindings or {}).items()
+    }
+    result: dict[str, str] = {}
+    for row_index in range(4):
+        row = rows[row_index] if row_index < len(rows) else []
+        for column_index in range(5):
+            key = str(row[column_index] if column_index < len(row) else "").strip().upper()
+            action = incoming.get(key, "") if key else ""
+            if action:
+                result[position_id(row_index, column_index)] = action
+    return result
+
+
+def position_bindings_to_layout_keys(
+    bindings: Any,
+    rows: list[list[str]],
+) -> dict[str, str]:
+    """Materialize physical bindings as the key names of a selected layout."""
+    incoming = {
+        str(slot).strip().upper(): str(action)
+        for slot, action in dict(bindings or {}).items()
+        if is_position_id(slot)
+    }
+    result: dict[str, str] = {}
+    for row_index in range(4):
+        row = rows[row_index] if row_index < len(rows) else []
+        for column_index in range(5):
+            key = str(row[column_index] if column_index < len(row) else "").strip().upper()
+            action = incoming.get(position_id(row_index, column_index), "")
+            if key and action:
+                result[key] = action
+    return result
+
 
 def normalize_layout_rows(rows: Any) -> list[list[str]]:
     """Normalize a custom 4x5 matrix and remove duplicate physical keys."""

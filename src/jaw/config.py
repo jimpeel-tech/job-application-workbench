@@ -6,6 +6,11 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 from .icons import infer_icon_names
+from .keyboard_layouts import (
+    DEFAULT_KEYBOARD_LAYOUT,
+    position_bindings_to_layout_keys,
+    resolve_keyboard_layout,
+)
 from .model import PasteItem
 from .paths import config_path as writable_config_path
 from .smart_capture import (
@@ -60,43 +65,43 @@ RATING_GUIDANCE = {
 }
 DEFAULT_DASHBOARD_PORT = 8765
 DEFAULT_MATRIX_BASE = {
-    '1': 'open_dashboard',
-    '2': 'analyze_job',
-    '3': 'find_company',
-    '4': 'toggle_answers',
-    '5': 'toggle_keyboard',
-    'Q': 'country',
-    'W': 'sequence:q',
-    'E': 'previous_iterator',
-    'R': 'iterate_work_exp',
-    'T': 'sequence:links',
-    'A': 'layer3_hold',
-    'S': 'sequence:a',
-    'D': 'next_iterator',
-    'F': 'iterate_skills',
-    'G': 'smart_capture',
-    'Z': 'linkedin',
-    'X': 'portfolio',
-    'C': 'full_name',
-    'V': 'phone',
-    'B': 'email',
+    'P00': 'open_dashboard',
+    'P01': 'analyze_job',
+    'P02': 'find_company',
+    'P03': 'toggle_answers',
+    'P04': 'toggle_keyboard',
+    'P10': 'country',
+    'P11': 'sequence:q',
+    'P12': 'previous_iterator',
+    'P13': 'iterate_work_exp',
+    'P14': 'sequence:links',
+    'P20': 'layer3_hold',
+    'P21': 'sequence:a',
+    'P22': 'next_iterator',
+    'P23': 'iterate_skills',
+    'P24': 'smart_capture',
+    'P30': 'linkedin',
+    'P31': 'portfolio',
+    'P32': 'full_name',
+    'P33': 'phone',
+    'P34': 'email',
 }
 DEFAULT_MATRIX_LAYER2 = {
-    '1': 'cycle_date_format',
-    '2': 'cycle_name_format',
-    'Q': 'address',
-    'W': 'city',
-    'E': 'move_up_or_relay',
-    'R': 'previous_work_exp',
-    'A': 'state',
-    'S': 'zip',
-    'D': 'move_down_or_relay',
-    'F': 'next_work_exp',
-    'G': 'github',
-    'Z': 'facebook',
-    'X': 'x',
-    'C': 'first_name',
-    'V': 'last_name',
+    'P00': 'cycle_date_format',
+    'P01': 'cycle_name_format',
+    'P10': 'address',
+    'P11': 'city',
+    'P12': 'move_up_or_relay',
+    'P13': 'previous_work_exp',
+    'P20': 'state',
+    'P21': 'zip',
+    'P22': 'move_down_or_relay',
+    'P23': 'next_work_exp',
+    'P24': 'github',
+    'P30': 'facebook',
+    'P31': 'x',
+    'P32': 'first_name',
+    'P33': 'last_name',
 }
 DEFAULT_MATRIX_LAYER3: dict[str, str] = {}
 DEFAULT_SEQUENCES = {
@@ -566,6 +571,8 @@ def load_config(path: str | Path | None = None, *, user_id: int | None = None) -
     sequences = {key: list(values) for key, values in DEFAULT_SEQUENCES.items()}
     layer2 = dict(DEFAULT_MATRIX_LAYER2)
     layer3 = dict(DEFAULT_MATRIX_LAYER3)
+    keyboard_layout = DEFAULT_KEYBOARD_LAYOUT
+    keyboard_custom_layouts: dict[str, list[list[str]]] = {}
     hotkey_settings = {
         "toggle": "SHIFT+SPACE",
         "window": "CTRL+SHIFT+F1",
@@ -806,6 +813,10 @@ def load_config(path: str | Path | None = None, *, user_id: int | None = None) -
 
     if user_database_path.exists():
         keybinds = user_data.get("keybinds", {})
+        keyboard_layout = str(
+            user_data.get("keyboard_layout") or DEFAULT_KEYBOARD_LAYOUT
+        )
+        keyboard_custom_layouts = dict(keybinds.get("custom_layouts", {}))
         if keybinds.get("configured"):
             matrix = {
                 str(key).upper(): str(value)
@@ -864,8 +875,8 @@ def load_config(path: str | Path | None = None, *, user_id: int | None = None) -
         for bindings in (matrix, layer2, layer3)
         for binding in bindings.values()
     }
-    if "analyze_job" not in assigned_actions and not matrix.get("4"):
-        matrix["4"] = "analyze_job|Analysis"
+    if "analyze_job" not in assigned_actions and not matrix.get("P01"):
+        matrix["P01"] = "analyze_job|Analysis"
     action_displays.setdefault(
         "analyze_job", {"label": "Analysis", "icons": ["analysis"]}
     )
@@ -895,6 +906,14 @@ def load_config(path: str | Path | None = None, *, user_id: int | None = None) -
     openai_model = str(
         analysis_settings.get("model", DEFAULT_OPENAI_MODEL)
     )
+
+    layout_rows = resolve_keyboard_layout(
+        keyboard_layout,
+        keyboard_custom_layouts,
+    )
+    matrix = position_bindings_to_layout_keys(matrix, layout_rows)
+    layer2 = position_bindings_to_layout_keys(layer2, layout_rows)
+    layer3 = position_bindings_to_layout_keys(layer3, layout_rows)
 
     return AppConfig(
         profile_items=profile_items,
