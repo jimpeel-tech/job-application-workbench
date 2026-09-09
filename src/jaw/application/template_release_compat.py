@@ -34,16 +34,24 @@ def _source_project_version() -> str:
 
 
 def current_jaw_version() -> str:
-    """Return JAW's runtime version without duplicating the release number in code."""
+    """Return JAW's runtime version without duplicating the release number in code.
+
+    A source checkout prefers pyproject.toml so an editable install cannot leave stale
+    distribution metadata after a version bump. Packaged builds fall back to the
+    distribution metadata copied into the executable by tools/build_windows.py.
+    """
 
     override = str(os.environ.get("JAW_VERSION") or "").strip()
+    source_version = _source_project_version()
     if override:
         candidate = override
+    elif source_version:
+        candidate = source_version
     else:
         try:
             candidate = distribution_version("jaw")
         except PackageNotFoundError:
-            candidate = _source_project_version()
+            candidate = ""
     match = _VERSION_PREFIX.match(str(candidate or "").strip())
     return ".".join(match.groups()) if match else "0.0.0"
 
