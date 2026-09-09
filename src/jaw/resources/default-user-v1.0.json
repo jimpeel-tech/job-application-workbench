@@ -1,7 +1,7 @@
 {
   "format": "jaw-user-data",
   "version": 4,
-  "user_name": "Default",
+  "user_name": "Ol Sarge",
   "sync_revisions": {
     "profile": 0,
     "capabilities": 0,
@@ -30,24 +30,49 @@
     }
   },
   "user": {
-    "first_name": "",
-    "last_name": "",
-    "email": "",
-    "phone_number": "",
-    "street_address": "",
-    "city": "",
-    "state": "",
-    "zip_code": "",
-    "country": "",
-    "linkedin": "",
-    "github": "",
-    "portfolio": "",
+    "first_name": "Ol",
+    "last_name": "Sarge",
+    "email": "ol.sarge@example.com",
+    "phone_number": "979-555-0147",
+    "street_address": "123 Maroon Way",
+    "city": "College Station",
+    "state": "TX",
+    "zip_code": "77840",
+    "country": "United States",
+    "linkedin": "https://example.com/ol-sarge/linkedin",
+    "github": "https://example.com/ol-sarge/github",
+    "portfolio": "https://example.com/ol-sarge",
     "facebook": "",
     "x": ""
   },
   "custom_fields": [],
   "custom_actions": [],
-  "work_history": [],
+  "work_history": [
+    {
+      "title": "Senior Software Engineer",
+      "company": "Reveille Systems",
+      "start": "January 2023",
+      "end": "Present",
+      "highlights": "Led the design and development of distributed services for a cloud-based operations platform using Python, TypeScript, PostgreSQL, and AWS.\n\nDesigned an event-driven processing architecture that reduced coupling between core services and improved application scalability.\n\nImproved API performance through database query optimization and targeted caching, reducing p95 response times by more than 50%.\n\nStandardized CI/CD, automated testing, and observability patterns across multiple services.\n\nMentored engineers through code reviews, design discussions, and production troubleshooting.",
+      "enabled": true
+    },
+    {
+      "title": "Software Engineer II",
+      "company": "Maroon Stack Labs",
+      "start": "June 2020",
+      "end": "December 2022",
+      "highlights": "Developed backend services and REST APIs for a multi-tenant SaaS application using Python, Node.js, PostgreSQL, and AWS.\n\nHelped separate tightly coupled application components into independently deployable services with clearer API and data ownership boundaries.\n\nRedesigned high-volume database queries and indexes, reducing report generation times by approximately 70%.\n\nExpanded automated integration testing and CI validation to improve release reliability.\n\nParticipated in architecture reviews, incident response, and technical planning for new product capabilities.",
+      "enabled": true
+    },
+    {
+      "title": "Software Engineer",
+      "company": "Brazos Byteworks",
+      "start": "July 2017",
+      "end": "May 2020",
+      "highlights": "Developed web applications and internal business systems using JavaScript, Python, SQL, and React.\n\nBuilt reusable API and application components that reduced duplicated implementation across customer-facing features.\n\nIntroduced automated unit testing and code-quality checks into the team's development workflow.\n\nWorked with product and engineering teams to troubleshoot production issues, improve application performance, and deliver incremental product enhancements.",
+      "enabled": true
+    }
+  ],
   "iterator_preferences": {},
   "answers": [],
   "analysis_settings": {
