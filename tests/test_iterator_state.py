@@ -3,6 +3,7 @@ from jaw.desktop.iterator_state import (
     cyclic_enabled_index,
     disabled_iterator_items,
     enabled_iterator_sequence,
+    enabled_position_for_item,
     next_cyclic_index,
     ordered_iterator_sequence,
     set_iterator_order,
@@ -39,6 +40,29 @@ def test_enabled_sequence_respects_order_and_disabled_items() -> None:
         "links",
         ["linkedin", "portfolio", "github"],
     ) == ["github", "portfolio"]
+
+
+def test_clicked_item_maps_to_enabled_iterator_position() -> None:
+    preferences = {
+        "iterate_address": {
+            "order": ["zip", "country", "city"],
+            "disabled": ["country"],
+        }
+    }
+    displayed = ["zip", "country", "city", "state"]
+
+    assert enabled_position_for_item(
+        preferences, "iterate_address", displayed, "zip"
+    ) == 0
+    assert enabled_position_for_item(
+        preferences, "iterate_address", displayed, "city"
+    ) == 1
+    assert enabled_position_for_item(
+        preferences, "iterate_address", displayed, "state"
+    ) == 2
+    assert enabled_position_for_item(
+        preferences, "iterate_address", displayed, "country"
+    ) is None
 
 
 def test_toggle_returns_an_independent_preference_snapshot() -> None:
