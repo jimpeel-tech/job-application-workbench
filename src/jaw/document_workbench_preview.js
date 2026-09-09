@@ -10,6 +10,52 @@
   const previews = new Map();
   const PREVIEW_WINDOW = 'jaw-document-preview';
   const ERROR_WINDOW = 'jaw-document-error';
+  const PROVIDER_DEFAULTS = {
+    ollama: 'qwen3:14b',
+    openai: 'gpt-5.6-terra'
+  };
+
+  const statusActions = shell.querySelector('.wb-status-actions');
+  const modelButton = document.getElementById('wbStatusGenerationModel') || document.createElement('button');
+  modelButton.className = 'wb-status-button';
+  modelButton.id = 'wbStatusGenerationModel';
+  modelButton.type = 'button';
+  modelButton.textContent = 'AI: Loading…';
+  if (!modelButton.parentElement) statusActions?.prepend(modelButton);
+
+  const modelPopup = document.createElement('div');
+  modelPopup.className = 'wb-generation-popup';
+  modelPopup.hidden = true;
+  modelPopup.innerHTML = `
+    <div class="wb-generation-card" role="dialog" aria-modal="true" aria-labelledby="wbGenerationModelTitle">
+      <div class="wb-generation-head"><strong id="wbGenerationModelTitle">Document Generation Model</strong><button class="wb-generation-close" type="button" aria-label="Close">×</button></div>
+      <div style="padding:14px 14px 4px">
+        <label class="wb-field"><span>Provider</span><select id="wbGenerationProvider"><option value="ollama">Ollama</option><option value="openai">OpenAI</option></select></label>
+        <label class="wb-field"><span>Model</span><input id="wbGenerationModel" type="text" autocomplete="off" spellcheck="false"></label>
+        <div class="wb-generation-status" id="wbGenerationModelHint">Applies to Document Preview and Generate only. Job Analysis settings are unchanged.</div>
+      </div>
+      <div class="wb-generation-actions"><button class="wb-button" id="wbGenerationUseUser" type="button">Use user setting</button><span style="flex:1"></span><button class="wb-button" id="wbGenerationModelCancel" type="button">Cancel</button><button class="wb-button primary" id="wbGenerationModelApply" type="button">Apply</button></div>
+    </div>`;
+  shell.appendChild(modelPopup);
+
+  const modelEls = {
+    provider: document.getElementById('wbGenerationProvider'),
+    model: document.getElementById('wbGenerationModel'),
+    useUser: document.getElementById('wbGenerationUseUser'),
+    cancel: document.getElementById('wbGenerationModelCancel'),
+    apply: document.getElementById('wbGenerationModelApply'),
+    hint: document.getElementById('wbGenerationModelHint')
+  };
+
+  let generationSettings = {
+    loaded: false,
+    userId: '',
+    inheritedProvider: 'openai',
+    inheritedModel: PROVIDER_DEFAULTS.openai,
+    provider: 'openai',
+    model: PROVIDER_DEFAULTS.openai,
+    overridden: false
+  };
 
   const resultPopup = document.createElement('div');
   resultPopup.className = 'wb-generation-popup';
@@ -51,6 +97,104 @@
       if (resourceId) buffers[resourceId] = editor.value;
     });
     return buffers;
+  }
+  function providerLabel(provider) {
+    return provider === 'ollama' ? 'Ollama' : provider === 'openai' ? 'OpenAI' : provider;
+  }
+  function generationStorageKey(kind, userId) {
+    return `jaw.workbench.generation${kind}.${userId}`;
+  }
+  function updateModelButton() {
+    if (!generationSettings.loaded) {
+      modelButton.textContent = 'AI: User setting';
+      modelButton.title = 'Click to choose the Document generation provider and model';
+      return;
+    }
+    modelButton.textContent = `AI: ${providerLabel(generationSettings.provider)} · ${generationSettings.model}`;
+    modelButton.title = generationSettings.overridden
+      ? 'Documents override · Click to change'
+      : 'Inherited from active user settings · Click to change';
+    modelButton.classList.toggle('active', generationSettings.overridden);
+  }
+  async function refreshGenerationSettings() {
+    try {
+      const response = await fetch('/api/user-data', { cache: 'no-store' });
+      const user = await response.json();
+      if (!response.ok) throw new Error(user.error || `Request failed (${response.status})`);
+      const userId = String(user.active_user_id || '');
+      const inherited = user.analysis_settings || {};
+      const inheritedProvider = ['ollama', 'openai'].includes(String(inherited.provider || '').toLowerCase())
+        ? String(inherited.provider).toLowerCase()
+        : 'openai';
+      const inheritedModel = String(inherited.model || '').trim() || PROVIDER_DEFAULTS[inheritedProvider];
+      const storedProvider = userId ? String(localStorage.getItem(generationStorageKey('Provider', userId)) || '').toLowerCase() : '';
+      const storedModel = userId ? String(localStorage.getItem(generationStorageKey('Model', userId)) || '').trim() : '';
+      const overridden = ['ollama', 'openai'].includes(storedProvider) && Boolean(storedModel);
+      generationSettings = {
+        loaded: true,
+        userId,
+        inheritedProvider,
+        inheritedModel,
+        provider: overridden ? storedProvider : inheritedProvider,
+        model: overridden ? storedModel : inheritedModel,
+        overridden
+      };
+      updateModelButton();
+    } catch (error) {
+      generationSettings.loaded = false;
+      updateModelButton();
+      modelButton.title = `Could not read user generation setting: ${String(error.message || error)}`;
+    }
+  }
+  function generationPayload() {
+    if (!generationSettings.loaded) return {};
+    return {
+      generation_provider: generationSettings.provider,
+      generation_model: generationSettings.model
+    };
+  }
+  function closeModelPopup() { modelPopup.hidden = true; }
+  function openModelPopup() {
+    modelEls.provider.value = generationSettings.provider;
+    modelEls.model.value = generationSettings.model;
+    modelEls.useUser.disabled = !generationSettings.overridden;
+    modelEls.hint.textContent = generationSettings.overridden
+      ? `Documents override. User setting: ${providerLabel(generationSettings.inheritedProvider)} · ${generationSettings.inheritedModel}.`
+      : 'Using the active user setting. Changes here apply to Document Preview and Generate only.';
+    modelPopup.hidden = false;
+    requestAnimationFrame(() => modelEls.model.focus());
+  }
+  function applyModelOverride() {
+    if (!generationSettings.loaded || !generationSettings.userId) {
+      setStatus('Could not determine the active user generation settings.', 'error');
+      return;
+    }
+    const provider = String(modelEls.provider.value || '').trim().toLowerCase();
+    const model = String(modelEls.model.value || '').trim();
+    if (!['ollama', 'openai'].includes(provider) || !model) {
+      setStatus('Choose a provider and model.', 'error');
+      return;
+    }
+    localStorage.setItem(generationStorageKey('Provider', generationSettings.userId), provider);
+    localStorage.setItem(generationStorageKey('Model', generationSettings.userId), model);
+    generationSettings = { ...generationSettings, provider, model, overridden: true };
+    updateModelButton();
+    closeModelPopup();
+    setStatus(`Document AI · ${providerLabel(provider)} · ${model}`, 'ok');
+  }
+  function useUserGenerationSetting() {
+    if (!generationSettings.loaded || !generationSettings.userId) return;
+    localStorage.removeItem(generationStorageKey('Provider', generationSettings.userId));
+    localStorage.removeItem(generationStorageKey('Model', generationSettings.userId));
+    generationSettings = {
+      ...generationSettings,
+      provider: generationSettings.inheritedProvider,
+      model: generationSettings.inheritedModel,
+      overridden: false
+    };
+    updateModelButton();
+    closeModelPopup();
+    setStatus(`Document AI · ${providerLabel(generationSettings.provider)} · ${generationSettings.model}`, 'ok');
   }
   function pdfBlob(base64) {
     const binary = atob(base64);
@@ -130,7 +274,8 @@
       const generated = await workbench.mutate('generate', {
         document_id: documentId,
         preview: true,
-        working_buffers: currentWorkingBuffers()
+        working_buffers: currentWorkingBuffers(),
+        ...generationPayload()
       });
       if (!generated.pdf_base64) throw new Error('Renderer returned no PDF preview');
       const url = rememberPreview(documentId, generated.pdf_base64);
@@ -156,7 +301,8 @@
       const generated = await workbench.mutate('generate', {
         document_id: documentId,
         output_directory: localStorage.getItem('jaw.workbench.outputDirectory') || '',
-        working_buffers: currentWorkingBuffers()
+        working_buffers: currentWorkingBuffers(),
+        ...generationPayload()
       });
       if (!generated.pdf_base64) throw new Error('Renderer returned no PDF preview');
       rememberPreview(documentId, generated.pdf_base64);
@@ -178,12 +324,28 @@
 
   generateButton.addEventListener('click', generate);
   previewButton.addEventListener('click', preview);
+  modelButton.addEventListener('click', openModelPopup);
+  modelEls.provider?.addEventListener('change', () => {
+    const provider = String(modelEls.provider.value || '').toLowerCase();
+    modelEls.model.value = provider === generationSettings.inheritedProvider
+      ? generationSettings.inheritedModel
+      : (PROVIDER_DEFAULTS[provider] || '');
+  });
+  modelEls.apply?.addEventListener('click', applyModelOverride);
+  modelEls.cancel?.addEventListener('click', closeModelPopup);
+  modelEls.useUser?.addEventListener('click', useUserGenerationSetting);
+  modelPopup.querySelector('.wb-generation-close')?.addEventListener('click', closeModelPopup);
+  modelPopup.addEventListener('mousedown', event => { if (event.target === modelPopup) closeModelPopup(); });
   resultPopup.querySelector('.wb-generation-close')?.addEventListener('click', closeResultPopup);
   document.getElementById('wbGenerationDismiss')?.addEventListener('click', closeResultPopup);
   popupEls.open?.addEventListener('click', () => openGenerated('file'));
   popupEls.location?.addEventListener('click', () => openGenerated('location'));
   resultPopup.addEventListener('mousedown', event => { if (event.target === resultPopup) closeResultPopup(); });
-  store.subscribe(syncButtons);
+  store.subscribe((_snapshot, reason) => {
+    syncButtons();
+    if (reason === 'load') void refreshGenerationSettings();
+  });
   window.addEventListener('beforeunload', () => { for (const url of previews.values()) URL.revokeObjectURL(url); });
   syncButtons();
+  void refreshGenerationSettings();
 })();
