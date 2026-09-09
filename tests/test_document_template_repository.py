@@ -94,17 +94,23 @@ def _repository(tmp_path: Path, *, downloader=None) -> tuple[JobDatabase, Templa
     return database, repository
 
 
-def _zip_repository(tmp_path: Path) -> bytes:
-    source = tmp_path / "download-source" / "jaw-templates-0.1.0"
+def _zip_repository(
+    tmp_path: Path,
+    *,
+    version: str = "0.1.0",
+    template_api: int = 1,
+) -> bytes:
+    source = tmp_path / "download-source" / f"jaw-templates-{version}"
     package = _write_package(
         source / "templates",
-        repo_version="0.1.0",
+        repo_version=version,
     )
     (source / "repo.json").write_text(
         json.dumps(
             {
-                "repo_version": "0.1.0",
+                "repo_version": version,
                 "format_version": 1,
+                "template_api": template_api,
                 "minimum_jaw_version": "0.1.0",
                 "templates": [
                     {"id": "repository-example", "path": "templates/repository-example"}
@@ -122,6 +128,15 @@ def _zip_repository(tmp_path: Path) -> bytes:
             if path.is_file():
                 archive.write(path, path.relative_to(source.parent))
     return output.getvalue()
+
+
+def _release_registry(*releases: dict) -> bytes:
+    return json.dumps(
+        {
+            "registry_format": 1,
+            "releases": list(releases),
+        }
+    ).encode("utf-8")
 
 
 def test_local_package_catalog_and_clone_create_new_private_graph(tmp_path: Path) -> None:
@@ -248,10 +263,21 @@ def test_invalid_local_package_is_visible_but_cannot_clone(tmp_path: Path) -> No
 
 def test_download_replaces_examples_without_touching_local_templates(tmp_path: Path) -> None:
     archive = _zip_repository(tmp_path)
+    registry = _release_registry(
+        {
+            "version": "0.1.0",
+            "ref": "v0.1.0",
+            "template_api": 1,
+            "package_format": 1,
+            "jaw": ">=0.1.0,<0.2.0",
+        }
+    )
     requested_urls: list[str] = []
 
     def downloader(url: str) -> bytes:
         requested_urls.append(url)
+        if url.endswith("/releases.json"):
+            return registry
         return archive
 
     _, repository = _repository(tmp_path, downloader=downloader)
@@ -263,10 +289,14 @@ def test_download_replaces_examples_without_touching_local_templates(tmp_path: P
     result = repository.download("0.1.0")
 
     assert requested_urls == [
-        "https://codeload.github.com/jimpeel-tech/jaw-templates/zip/refs/tags/v0.1.0"
+        "https://raw.githubusercontent.com/jimpeel-tech/jaw-templates/main/releases.json",
+        "https://codeload.github.com/jimpeel-tech/jaw-templates/zip/refs/tags/v0.1.0",
     ]
     assert result["downloaded"] is True
     assert result["version"] == "0.1.0"
+    assert result["reference"] == "v0.1.0"
+    assert result["template_api"] == 1
+    assert result["catalog"]["repository"]["release_resolution"] == "compatible"
     assert not stale.exists()
     assert (repository.local_root / "my-local" / "template.json").is_file()
     assert (repository.examples_root / "repo.json").is_file()
@@ -294,6 +324,7 @@ def test_repository_http_catalog_and_clone_routes(tmp_path: Path, monkeypatch) -
         with urllib.request.urlopen(f"{server.url}/api/workbench/repository") as response:
             catalog = json.loads(response.read())
         assert catalog["local_path"] == str((template_root / "local").resolve())
+        assert catalog["repository"]["release_resolution"] == "compatible"
         assert catalog["templates"][0]["id"] == "repository-example"
 
         request = urllib.request.Request(
