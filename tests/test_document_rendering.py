@@ -95,11 +95,9 @@ def test_find_tectonic_search_path_defaults_to_packaged_font_resource_directory(
 
     assert tectonic_module.find_tectonic_search_path() == expected.resolve()
     assert (expected / "README.md").is_file()
-    assert not any(
-        item.suffix.lower() in {".ttf", ".otf", ".ttc"}
-        for item in expected.iterdir()
-        if item.is_file()
-    )
+    assert (expected / "OpenSans-Regular.ttf").is_file()
+    assert (expected / "Montserrat-Regular.ttf").is_file()
+    assert (expected / "licenses").is_dir()
 
 
 def test_tectonic_renderer_invokes_untrusted_mode_and_returns_pdf(
