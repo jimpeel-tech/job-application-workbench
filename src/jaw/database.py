@@ -5,6 +5,8 @@ from contextlib import contextmanager
 from pathlib import Path
 from typing import Any
 
+from .demo_jobs import seed_packaged_demo_jobs
+from .paths import database_path
 from .persistence import (
     CaptureRepository,
     DocumentWorkbenchRepository,
@@ -18,11 +20,18 @@ from .persistence.schema import SCHEMA, _ensure_column, initialize_schema
 class JobDatabase:
     """Facade over JAW's focused SQLite repositories."""
 
-    def __init__(self, path: str | Path) -> None:
+    def __init__(self, path: str | Path, *, seed_demo: bool | None = None) -> None:
         self.path = Path(path)
         self.path.parent.mkdir(parents=True, exist_ok=True)
+        should_seed_demo = (
+            self.path.resolve() == database_path().resolve()
+            if seed_demo is None
+            else bool(seed_demo)
+        )
         with self.connect() as connection:
             initialize_schema(connection)
+            if should_seed_demo:
+                seed_packaged_demo_jobs(connection)
 
         # Resolve ``self.connect`` at call time so tests and embedding applications
         # can still replace the connection boundary after construction.
