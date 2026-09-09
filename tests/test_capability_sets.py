@@ -124,6 +124,7 @@ def test_desktop_capability_set_selector_is_id_driven() -> None:
 
 def test_capability_set_usage_flags_control_documents_and_paste(tmp_path: Path) -> None:
     store = UserDataStore(tmp_path / "jaw.db")
+    store.clear_capabilities()
     capability = store.upsert_entity(
         {
             "id": "cap_k8s",
