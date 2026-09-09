@@ -109,23 +109,28 @@ def test_cycle_layers_reserves_its_key_and_retired_toggles_are_removed():
     assert "layer2_toggle" not in cleaned["action_displays"]
 
 
-def test_first_run_uses_sanitized_default_template(tmp_path: Path):
+def test_first_run_uses_seeded_demo_template(tmp_path: Path):
     store = UserDataStore(tmp_path / "data" / "jaw.db")
     data = store.read()
     template = json.loads(
         DEFAULT_USER_TEMPLATE_PATH.read_text(encoding="utf-8")
     )
 
-    assert data["active_user_name"] == "Default"
+    assert data["active_user_name"] == "Ol Sarge"
     assert template["version"] == 4
     assert data["capability_model"]["version"] == 2
     assert data["capability_model"]["entities"] == []
     assert data["capability_model"]["relationships"] == []
     assert data["capability_model"]["active_set_id"] == SYSTEM_SET_ALL
-    assert not any(data["user"].values())
+    assert data["user"] == template["user"]
+    assert [entry["company"] for entry in data["work_history"]] == [
+        "Reveille Systems",
+        "Maroon Stack Labs",
+        "Brazos Byteworks",
+    ]
+    assert data["work_history"] == template["work_history"]
     assert data["custom_fields"] == []
     assert data["custom_actions"] == []
-    assert data["work_history"] == []
     assert data["iterator_preferences"] == {}
     assert data["answers"] == []
     assert data["keyboard_layout"] == "qwerty"
@@ -150,6 +155,8 @@ def test_first_run_uses_sanitized_default_template(tmp_path: Path):
 
     # First-run state remains stable after persistence.
     persisted = UserDataStore(store.path).read()
+    assert persisted["user"] == template["user"]
+    assert persisted["work_history"] == template["work_history"]
     assert persisted["capability_model"]["entities"] == []
     assert persisted["keybinds"]["base"] == expected_base
 
@@ -437,7 +444,6 @@ def test_bulk_add_and_merge_import_preserve_graph_identity(tmp_path: Path):
         "target_id": loki_id,
     }])
     exported = store.export_data()
-
     store.delete_entities_by_id([grafana_id, loki_id])
     store.import_data(exported, "merge")
     store.import_data(exported, "merge")
