@@ -133,10 +133,10 @@ def test_first_run_uses_seeded_demo_template(tmp_path: Path):
         "Brazos Byteworks",
     ]
     assert data["work_history"] == template["work_history"]
-    assert data["custom_fields"] == []
-    assert data["custom_actions"] == []
-    assert data["iterator_preferences"] == {}
-    assert data["answers"] == []
+    assert data["custom_fields"] == template.get("custom_fields", [])
+    assert data["custom_actions"] == template.get("custom_actions", [])
+    assert data["iterator_preferences"] == template.get("iterator_preferences", {})
+    assert data["answers"] == template.get("answers", [])
     assert data["keyboard_layout"] == "qwerty"
     assert data["keybinds"]["binding_model"] == "physical-v1"
 
