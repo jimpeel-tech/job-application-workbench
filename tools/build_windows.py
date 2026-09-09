@@ -62,6 +62,12 @@ def main() -> int:
         str(ROOT / "src"),
         "--collect-data",
         "jaw",
+        # Template-release compatibility reads the installed JAW version via
+        # importlib.metadata. Preserve the distribution metadata inside both
+        # onefile and onedir builds so packaged JAW resolves the same version
+        # declared in pyproject.toml.
+        "--copy-metadata",
+        "jaw",
         "--distpath",
         str(DIST_DIR),
         "--workpath",
