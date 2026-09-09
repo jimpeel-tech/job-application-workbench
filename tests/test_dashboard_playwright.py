@@ -16,6 +16,7 @@ def test_dashboard_capabilities_smoke_in_real_browser(tmp_path):
 
     database_path = tmp_path / "data" / "jaw.db"
     store = UserDataStore(database_path)
+    store.clear_capabilities()
     first_user = store.read()
     first_user_id = int(first_user["active_user_id"])
     kubernetes = store.upsert_entity(
