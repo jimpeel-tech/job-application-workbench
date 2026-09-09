@@ -174,7 +174,7 @@ def _insert_job(
             pay_min,pay_max,currency,pay_period,pay_disclosed,match_score,summary,
             strong_matches,concerns,missing_qualifications,status,applied_at
         ) VALUES (
-            ?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,
+            ?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?, ?,
             CASE WHEN ?='Applied' THEN CURRENT_TIMESTAMP ELSE NULL END
         )
         """,
