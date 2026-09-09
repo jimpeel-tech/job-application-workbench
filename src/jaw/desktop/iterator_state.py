@@ -54,6 +54,21 @@ def enabled_iterator_sequence(
     ]
 
 
+def enabled_position_for_item(
+    preferences: IteratorPreferences,
+    action: str,
+    displayed_items: Sequence[str],
+    item_id: str,
+) -> int | None:
+    """Map a clicked display item to its logical enabled iterator position."""
+    disabled = disabled_iterator_items(preferences, action)
+    enabled = [item for item in displayed_items if item and item not in disabled]
+    try:
+        return enabled.index(item_id)
+    except ValueError:
+        return None
+
+
 def iterator_preview_rows(
     values: Sequence[str],
     current_index: int,
