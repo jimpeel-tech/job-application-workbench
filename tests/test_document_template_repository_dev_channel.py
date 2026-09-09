@@ -32,6 +32,7 @@ def _archive(repo_version: str = "0.1.0") -> bytes:
             {
                 "repo_version": repo_version,
                 "format_version": 1,
+                "template_api": 1,
                 "minimum_jaw_version": "0.1.0",
                 "templates": [
                     {"id": "basic-document", "path": "templates/basic-document"}
@@ -76,6 +77,23 @@ def _archive(repo_version: str = "0.1.0") -> bytes:
     return output.getvalue()
 
 
+def _registry(version: str = "0.1.0") -> bytes:
+    return json.dumps(
+        {
+            "registry_format": 1,
+            "releases": [
+                {
+                    "version": version,
+                    "ref": f"v{version}",
+                    "template_api": 1,
+                    "package_format": 1,
+                    "jaw": ">=0.1.0,<0.2.0",
+                }
+            ],
+        }
+    ).encode("utf-8")
+
+
 def _repository(
     tmp_path: Path,
     *,
@@ -113,6 +131,7 @@ def test_dev_download_uses_branch_and_preserves_local(tmp_path: Path) -> None:
     assert result["downloaded"] is True
     assert result["channel"] == "dev"
     assert result["version"] == "0.2.0"
+    assert result["template_api"] == 1
     assert (local / "notes.txt").read_text(encoding="utf-8") == "keep"
     assert result["catalog"]["repository"]["installed_channel"] == "dev"
     assert result["catalog"]["repository"]["installed_reference"] == "dev"
@@ -123,19 +142,24 @@ def test_dev_download_uses_branch_and_preserves_local(tmp_path: Path) -> None:
 def test_release_download_restores_release_channel_metadata(tmp_path: Path) -> None:
     requested: list[str] = []
     payload = _archive("0.1.0")
+    registry = _registry("0.1.0")
 
     def downloader(url: str) -> bytes:
         requested.append(url)
+        if url.endswith("/releases.json"):
+            return registry
         return payload
 
     repository = _repository(tmp_path, downloader=downloader)
     repository.download(channel="dev")
     result = repository.download("0.1.0", channel="release")
 
-    assert requested[-1] == (
-        "https://codeload.github.com/jimpeel-tech/jaw-templates/zip/refs/tags/v0.1.0"
-    )
+    assert requested[-2:] == [
+        "https://raw.githubusercontent.com/jimpeel-tech/jaw-templates/main/releases.json",
+        "https://codeload.github.com/jimpeel-tech/jaw-templates/zip/refs/tags/v0.1.0",
+    ]
     assert result["channel"] == "release"
+    assert result["template_api"] == 1
     assert result["catalog"]["repository"]["installed_channel"] == "release"
     assert result["catalog"]["repository"]["installed_reference"] == "v0.1.0"
 
