@@ -33,6 +33,7 @@ from ..smart_capture import (
     merge_capture_values,
     normalize_smart_capture_settings,
 )
+from .iterator_state import enabled_position_for_item
 from .styles import STYLESHEET
 from .workers import CaptureVerificationWorker
 
@@ -46,8 +47,39 @@ class MainWindow(BaseMainWindow):
 
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
+        self.custom_iterator_list.currentRowChanged.connect(
+            self._sync_custom_iterator_selection
+        )
         self._capture_verification_started_at: float | None = None
         self._capture_verification_elapsed_s: float | None = None
+
+    def _sync_custom_iterator_selection(self, row: int) -> None:
+        if row < 0 or not self.active_custom_iterator:
+            return
+        item = self.custom_iterator_list.item(row)
+        if item is None:
+            return
+        item_id = str(item.data(Qt.ItemDataRole.UserRole) or "")
+        if not item_id:
+            return
+        displayed_items = [
+            str(
+                self.custom_iterator_list.item(index).data(Qt.ItemDataRole.UserRole)
+                or ""
+            )
+            for index in range(self.custom_iterator_list.count())
+        ]
+        position = enabled_position_for_item(
+            self.config.iterator_preferences,
+            self.active_custom_iterator,
+            displayed_items,
+            item_id,
+        )
+        if position is None:
+            return
+        position_key = self.active_custom_position_key or self.active_custom_iterator
+        self._sequence_positions[position_key] = position
+        self._update_cursor_badge()
 
     def _settings_panel(self) -> QWidget:
         scroll = super()._settings_panel()
