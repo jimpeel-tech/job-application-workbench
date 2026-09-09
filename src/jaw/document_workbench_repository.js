@@ -82,13 +82,17 @@
     if (!list || !version) return;
 
     const repo = catalog.repository || {};
+    const automaticRelease = repo.release_resolution === 'compatible';
+    const releaseLabel = automaticRelease
+      ? `Latest compatible with JAW v${repo.jaw_version || '—'}`
+      : `Available v${repo.available_version || '—'}`;
     if (downloadDev) downloadDev.hidden = !repo.can_download_dev;
     if (repo.installed_channel === 'dev') {
-      version.textContent = `Installed Dev${repo.installed_version ? ` · repo v${repo.installed_version}` : ''} · Release v${repo.available_version || '—'} available`;
+      version.textContent = `Installed Dev${repo.installed_version ? ` · repo v${repo.installed_version}` : ''} · Release: ${releaseLabel}`;
     } else {
       version.textContent = repo.installed_version
-        ? `Installed v${repo.installed_version} · Available v${repo.available_version || '—'}`
-        : `Not downloaded · Available v${repo.available_version || '—'}`;
+        ? `Installed v${repo.installed_version} · Release: ${releaseLabel}`
+        : `Not downloaded · Release: ${releaseLabel}`;
     }
 
     const items = catalog.templates || [];
@@ -137,13 +141,10 @@
     const development = channel === 'dev';
     try {
       setBusy(true);
-      setMessage(development ? 'Downloading development templates…' : 'Downloading official templates…');
+      setMessage(development ? 'Downloading development templates…' : 'Resolving compatible release…');
       const result = await request('/api/workbench/repository/download', development
         ? { channel: 'dev' }
-        : {
-            channel: 'release',
-            version: catalog?.repository?.available_version || '',
-          });
+        : { channel: 'release' });
       renderCatalog(result.catalog);
       setMessage(
         development ? `Downloaded Dev · repo v${result.version}` : `Downloaded v${result.version}`,
