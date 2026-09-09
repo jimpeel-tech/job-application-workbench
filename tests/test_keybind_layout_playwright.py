@@ -60,7 +60,7 @@ def test_keyboard_layout_switch_preserves_physical_action_positions(tmp_path):
                 )
                 playwright.expect(matrix.locator('[data-slot="P24"] .key-name')).to_have_text("G")
                 playwright.expect(matrix.locator('[data-slot="P24"] .key-action')).to_contain_text(
-                    "Smart Capture"
+                    "Capture"
                 )
 
                 with page.expect_response(
