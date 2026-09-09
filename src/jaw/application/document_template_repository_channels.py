@@ -57,10 +57,13 @@ class TemplateRepository(_BaseTemplateRepository):
         if channel_key == "release":
             result = super().download(version)
             installed_version = str(result.get("version") or "")
+            reference = str(result.get("reference") or f"v{installed_version}")
+            template_api = int(result.get("template_api") or 0)
             self._write_install_metadata(
                 channel="release",
-                reference=f"v{installed_version}",
+                reference=reference,
                 repo_version=installed_version,
+                template_api=template_api,
             )
             return {
                 **result,
@@ -93,6 +96,7 @@ class TemplateRepository(_BaseTemplateRepository):
             if not repo_version:
                 raise ValueError("Development template repository is missing repo_version")
             self._validate_repository(source_root, repo_version)
+            template_api = int(manifest.get("template_api") or 1)
 
             stage = self.root / ".examples-download"
             backup = self.root / ".examples-backup"
@@ -105,6 +109,7 @@ class TemplateRepository(_BaseTemplateRepository):
                 channel="dev",
                 reference=_DEV_BRANCH,
                 repo_version=repo_version,
+                template_api=template_api,
             )
 
             moved_existing = False
@@ -127,6 +132,7 @@ class TemplateRepository(_BaseTemplateRepository):
             "downloaded": True,
             "channel": "dev",
             "version": repo_version,
+            "template_api": template_api,
             "catalog": self.catalog(),
         }
 
@@ -146,12 +152,14 @@ class TemplateRepository(_BaseTemplateRepository):
         channel: str,
         reference: str,
         repo_version: str,
+        template_api: int = 0,
     ) -> None:
         self._write_install_metadata_to(
             self.examples_root,
             channel=channel,
             reference=reference,
             repo_version=repo_version,
+            template_api=template_api,
         )
 
     @staticmethod
@@ -161,18 +169,18 @@ class TemplateRepository(_BaseTemplateRepository):
         channel: str,
         reference: str,
         repo_version: str,
+        template_api: int = 0,
     ) -> None:
         root.mkdir(parents=True, exist_ok=True)
+        metadata = {
+            "channel": channel,
+            "reference": reference,
+            "repo_version": repo_version,
+        }
+        if template_api > 0:
+            metadata["template_api"] = template_api
         (root / _INSTALL_METADATA).write_text(
-            json.dumps(
-                {
-                    "channel": channel,
-                    "reference": reference,
-                    "repo_version": repo_version,
-                },
-                indent=2,
-            )
-            + "\n",
+            json.dumps(metadata, indent=2) + "\n",
             encoding="utf-8",
         )
 
