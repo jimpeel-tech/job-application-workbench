@@ -1,0 +1,216 @@
+{
+  "format": "jaw-demo-jobs",
+  "version": 1,
+  "jobs": [
+    {
+      "company": "12th Man Software",
+      "title": "Senior Software Engineer",
+      "location": "Austin, Texas",
+      "remote_status": "Hybrid",
+      "source_url": "",
+      "raw_description": "Senior Software Engineer\n12th Man Software\n\nAustin, Texas\nHybrid — 2 days per week in office\n\nSalary: $155,000–$190,000 USD annually\n\nAbout 12th Man Software\n\n12th Man Software builds cloud-based operations software used by organizations to coordinate complex workflows, automate business processes, and make operational data available in real time. Our engineering teams own services from design through production and work closely with product teams to turn difficult operational problems into reliable software.\n\nWe are looking for a Senior Software Engineer to help design and build the next generation of our application platform. This role is a strong fit for an engineer who enjoys backend development, distributed systems, API design, and improving the engineering practices around production software.\n\nResponsibilities\n\n- Design, build, and maintain production services using Python and TypeScript.\n- Develop REST APIs used by web applications and external integrations.\n- Design scalable service boundaries and data models for new product capabilities.\n- Build event-driven workflows for asynchronous and high-volume processing.\n- Improve application performance through profiling, database optimization, and caching.\n- Design and maintain PostgreSQL schemas, queries, indexes, and migrations.\n- Build automated unit, integration, and service-level tests.\n- Contribute to CI/CD pipelines and improve deployment safety and developer feedback loops.\n- Operate services in AWS and participate in production troubleshooting and incident response.\n- Improve logging, metrics, tracing, and application observability.\n- Review code and technical designs from other engineers.\n- Mentor engineers and contribute to architecture and engineering standards.\n\nRequired Qualifications\n\n- 6+ years of professional software engineering experience.\n- Strong experience with Python, TypeScript, JavaScript, or similar languages.\n- Experience designing and maintaining REST APIs.\n- Strong understanding of software architecture and system design.\n- Experience building distributed or service-oriented applications.\n- Strong SQL and relational database experience, preferably PostgreSQL.\n- Experience with automated testing and modern CI/CD practices.\n- Experience deploying or operating applications in AWS or another major cloud platform.\n- Experience with Docker or similar container technologies.\n- Ability to troubleshoot software across application, database, and infrastructure boundaries.\n- Strong written and verbal communication skills.\n\nPreferred Qualifications\n\n- Experience with event-driven architectures using technologies such as Kafka, SQS, or similar messaging systems.\n- Experience with Kubernetes.\n- Experience designing multi-tenant SaaS applications.\n- Familiarity with infrastructure as code.\n- Experience mentoring engineers or leading technical projects.\n\n12th Man Software is an equal opportunity employer. We value engineers who are curious, collaborative, and willing to improve both the product and the systems used to build it.",
+      "pay_min": 155000.0,
+      "pay_max": 190000.0,
+      "currency": "USD",
+      "pay_period": "year",
+      "pay_disclosed": true,
+      "match_score": 94,
+      "summary": "Excellent alignment with the role’s backend stack and production responsibilities. The candidate has more than eight years of software engineering experience, including senior-level work with Python, TypeScript, REST APIs, PostgreSQL, AWS, distributed services, event-driven architecture, testing, performance optimization, and mentoring. The main limitations are comparatively narrow rated experience in CI/CD, data modeling, and observability, plus no stated infrastructure-as-code experience.",
+      "strong_matches": [
+        "More than eight years of professional software engineering experience, including a current Senior Software Engineer role.",
+        "Expert Python and advanced TypeScript experience used to build production cloud services.",
+        "Advanced REST API, software architecture, system design, SQL, and automated testing capabilities.",
+        "Direct experience designing distributed services and event-driven processing architectures.",
+        "Production PostgreSQL experience covering query and index optimization, including substantial performance improvements.",
+        "Production AWS experience plus incident response and troubleshooting involvement.",
+        "Advanced Docker experience, satisfying the container technology requirement.",
+        "Direct performance optimization experience involving database tuning and caching.",
+        "Code review and mentoring experience through design discussions, production troubleshooting, and engineering guidance.",
+        "Multi-tenant SaaS experience, matching a preferred qualification."
+      ],
+      "concerns": [
+        "CI/CD is rated Hands-on rather than Proficient, although the work history includes standardizing pipelines and expanding CI validation.",
+        "Data modeling and observability are rated Hands-on, while both are recurring responsibilities in this role.",
+        "Kubernetes is only Conceptual; it is preferred rather than required.",
+        "Specific messaging technologies such as Kafka or SQS are unassessed, though event-driven architecture itself is rated Proficient.",
+        "Infrastructure as code is not evidenced and is only a preferred qualification.",
+        "Strong written and verbal communication is not directly assessed, though mentoring, architecture reviews, and design discussions provide supporting evidence."
+      ],
+      "missing_qualifications": [],
+      "status": "Applying",
+      "events": [
+        {
+          "event_type": "Captured",
+          "details": "",
+          "source": "manual",
+          "source_ref": null,
+          "metadata": {}
+        },
+        {
+          "event_type": "Analyzed",
+          "details": "Model: gpt-5.6-sol",
+          "source": "manual",
+          "source_ref": null,
+          "metadata": {}
+        },
+        {
+          "event_type": "Applying",
+          "details": "",
+          "source": "manual",
+          "source_ref": null,
+          "metadata": {}
+        }
+      ],
+      "analysis_runs": [
+        {
+          "model": "gpt-5.6-sol",
+          "prompt_version": "brief-v1",
+          "raw_result": {
+            "company": "12th Man Software",
+            "title": "Senior Software Engineer",
+            "location": "Austin, Texas",
+            "remote_status": "Hybrid",
+            "pay_min": 155000.0,
+            "pay_max": 190000.0,
+            "currency": "USD",
+            "pay_period": "year",
+            "pay_disclosed": true,
+            "match_score": 94,
+            "summary": "Excellent alignment with the role’s backend stack and production responsibilities. The candidate has more than eight years of software engineering experience, including senior-level work with Python, TypeScript, REST APIs, PostgreSQL, AWS, distributed services, event-driven architecture, testing, performance optimization, and mentoring. The main limitations are comparatively narrow rated experience in CI/CD, data modeling, and observability, plus no stated infrastructure-as-code experience.",
+            "strong_matches": [
+              "More than eight years of professional software engineering experience, including a current Senior Software Engineer role.",
+              "Expert Python and advanced TypeScript experience used to build production cloud services.",
+              "Advanced REST API, software architecture, system design, SQL, and automated testing capabilities.",
+              "Direct experience designing distributed services and event-driven processing architectures.",
+              "Production PostgreSQL experience covering query and index optimization, including substantial performance improvements.",
+              "Production AWS experience plus incident response and troubleshooting involvement.",
+              "Advanced Docker experience, satisfying the container technology requirement.",
+              "Direct performance optimization experience involving database tuning and caching.",
+              "Code review and mentoring experience through design discussions, production troubleshooting, and engineering guidance.",
+              "Multi-tenant SaaS experience, matching a preferred qualification."
+            ],
+            "concerns": [
+              "CI/CD is rated Hands-on rather than Proficient, although the work history includes standardizing pipelines and expanding CI validation.",
+              "Data modeling and observability are rated Hands-on, while both are recurring responsibilities in this role.",
+              "Kubernetes is only Conceptual; it is preferred rather than required.",
+              "Specific messaging technologies such as Kafka or SQS are unassessed, though event-driven architecture itself is rated Proficient.",
+              "Infrastructure as code is not evidenced and is only a preferred qualification.",
+              "Strong written and verbal communication is not directly assessed, though mentoring, architecture reviews, and design discussions provide supporting evidence."
+            ],
+            "missing_qualifications": []
+          }
+        }
+      ],
+      "questions": [
+        {
+          "question": "Expected Salary?",
+          "suggested_answer": "",
+          "submitted_answer": "175,000"
+        },
+        {
+          "question": "What is a past achievement that you would like to highlight?",
+          "suggested_answer": "",
+          "submitted_answer": "At Reveille Systems, I led the design and development of distributed services for a cloud-based operations platform using Python, TypeScript, PostgreSQL, and AWS. The new architecture reduced infrastructure costs by 40% and improved processing throughput by 60%, while also making the platform easier to scale and maintain."
+        }
+      ]
+    },
+    {
+      "company": "Howdy Technologies",
+      "title": "Senior Backend Engineer",
+      "location": "United States",
+      "remote_status": "Remote",
+      "source_url": "",
+      "raw_description": "Senior Backend Engineer\nHowdy Technologies\n\nRemote — United States\n\nSalary: $150,000–$180,000 USD annually\n\nAbout Howdy Technologies\n\nHowdy Technologies builds a real-time data platform that helps businesses integrate operational systems, process high-volume events, and deliver data to internal and customer-facing applications.\n\nOur backend platform processes millions of events each day across a collection of independently deployed services. We are expanding the team responsible for the APIs, data pipelines, and distributed systems at the core of the platform.\n\nWe are looking for a Senior Backend Engineer who enjoys solving reliability, scalability, and data consistency problems in production systems.\n\nResponsibilities\n\n- Design and develop backend services and APIs for a distributed SaaS platform.\n- Build new services primarily in Go while maintaining several existing Python services.\n- Design APIs and service contracts used across engineering teams.\n- Develop event-driven workflows using Kafka and AWS messaging services.\n- Design PostgreSQL data models and optimize queries for high-volume workloads.\n- Build resilient services using appropriate retry, timeout, idempotency, and failure-handling patterns.\n- Improve automated testing across unit, integration, and end-to-end layers.\n- Build and improve CI/CD workflows for independently deployed services.\n- Package and deploy applications using Docker.\n- Operate services in AWS and participate in an engineering on-call rotation.\n- Develop metrics, logs, dashboards, and alerts used to understand production behavior.\n- Investigate performance problems and production incidents across distributed systems.\n- Participate in architecture reviews and mentor engineers through design and code review.\n\nRequired Qualifications\n\n- 5+ years of professional backend software engineering experience.\n- Strong experience building production APIs and backend services.\n- Experience with Go, or substantial experience with another backend language and the ability to become productive in Go.\n- Strong knowledge of SQL and relational database design.\n- Experience with PostgreSQL or a similar relational database.\n- Understanding of distributed systems concepts and common failure modes.\n- Experience with asynchronous processing or message-driven systems.\n- Experience with AWS or another major cloud provider.\n- Experience with Docker and CI/CD pipelines.\n- Experience using application metrics, logs, and tracing to troubleshoot production systems.\n- Ability to independently drive technical work from design through production.\n\nPreferred Qualifications\n\n- Production experience with Go.\n- Experience with Kafka.\n- Experience with Kubernetes.\n- Experience with Terraform or another infrastructure-as-code tool.\n- Familiarity with OpenTelemetry.\n- Experience operating high-throughput or low-latency systems.\n- Experience leading technical projects across multiple engineers.\n\nOur engineers are expected to care about maintainability as much as feature delivery. We value simple designs, clear ownership, thoughtful engineering tradeoffs, and leaving systems easier to operate than we found them.",
+      "pay_min": 150000.0,
+      "pay_max": 180000.0,
+      "currency": "USD",
+      "pay_period": "year",
+      "pay_disclosed": true,
+      "match_score": 86,
+      "summary": "Strong backend fit with more than eight years of experience and direct alignment in Python, production APIs, PostgreSQL, AWS, distributed services, event-driven architecture, testing, Docker, performance optimization, architecture reviews, and mentoring. The main gaps are no demonstrated Go or Kafka experience and limited assessed depth in CI/CD and observability.",
+      "strong_matches": [
+        "Backend experience: More than eight years building production applications, services, and APIs.",
+        "Python: Expert capability with production use across multiple backend roles.",
+        "APIs and architecture: Advanced REST API and software architecture skills, including service contracts and independently deployed services.",
+        "SQL and PostgreSQL: Advanced SQL capability with repeated PostgreSQL query and index optimization for high-volume workloads.",
+        "Distributed and event-driven systems: Proficient capabilities backed by recent design of distributed services and event-driven processing.",
+        "AWS and Docker: Production experience operating on AWS and advanced Docker capability.",
+        "Automated testing: Advanced capability spanning unit, integration, and CI validation work.",
+        "Performance and reliability: Demonstrated production troubleshooting and reductions of API latency and report-generation time.",
+        "Technical leadership: Led service design and mentored engineers through reviews, design discussions, and production troubleshooting."
+      ],
+      "concerns": [
+        "Go: No demonstrated experience, although the requirement permits substantial experience in another backend language; expert Python provides relevant transferability.",
+        "Kafka: No demonstrated experience; it is preferred rather than required, despite being central to the listed responsibilities.",
+        "CI/CD: Direct experience is present, but the capability is rated Hands-on rather than production-proficient.",
+        "Observability: Metrics, logging, dashboards, alerts, and tracing are not individually evidenced; observability is rated Hands-on.",
+        "Kubernetes: Only Conceptual familiarity is assessed, and it is a preferred qualification.",
+        "Infrastructure as code and OpenTelemetry: No evidence is provided, but both are only preferred.",
+        "On-call rotation: Incident response is documented, but prior formal on-call participation is not explicit."
+      ],
+      "missing_qualifications": [
+        "Production tracing: The role explicitly requires using metrics, logs, and tracing to troubleshoot production systems; the snapshot shows observability work and incident response but does not specifically establish tracing experience."
+      ],
+      "status": "Reviewing",
+      "events": [
+        {
+          "event_type": "Captured",
+          "details": "",
+          "source": "manual",
+          "source_ref": null,
+          "metadata": {}
+        },
+        {
+          "event_type": "Analyzed",
+          "details": "Model: gpt-5.6-sol",
+          "source": "manual",
+          "source_ref": null,
+          "metadata": {}
+        }
+      ],
+      "analysis_runs": [
+        {
+          "model": "gpt-5.6-sol",
+          "prompt_version": "brief-v1",
+          "raw_result": {
+            "company": "Howdy Technologies",
+            "title": "Senior Backend Engineer",
+            "location": "United States",
+            "remote_status": "Remote",
+            "pay_min": 150000.0,
+            "pay_max": 180000.0,
+            "currency": "USD",
+            "pay_period": "year",
+            "pay_disclosed": true,
+            "match_score": 86,
+            "summary": "Strong backend fit with more than eight years of experience and direct alignment in Python, production APIs, PostgreSQL, AWS, distributed services, event-driven architecture, testing, Docker, performance optimization, architecture reviews, and mentoring. The main gaps are no demonstrated Go or Kafka experience and limited assessed depth in CI/CD and observability.",
+            "strong_matches": [
+              "Backend experience: More than eight years building production applications, services, and APIs.",
+              "Python: Expert capability with production use across multiple backend roles.",
+              "APIs and architecture: Advanced REST API and software architecture skills, including service contracts and independently deployed services.",
+              "SQL and PostgreSQL: Advanced SQL capability with repeated PostgreSQL query and index optimization for high-volume workloads.",
+              "Distributed and event-driven systems: Proficient capabilities backed by recent design of distributed services and event-driven processing.",
+              "AWS and Docker: Production experience operating on AWS and advanced Docker capability.",
+              "Automated testing: Advanced capability spanning unit, integration, and CI validation work.",
+              "Performance and reliability: Demonstrated production troubleshooting and reductions of API latency and report-generation time.",
+              "Technical leadership: Led service design and mentored engineers through reviews, design discussions, and production troubleshooting."
+            ],
+            "concerns": [
+              "Go: No demonstrated experience, although the requirement permits substantial experience in another backend language; expert Python provides relevant transferability.",
+              "Kafka: No demonstrated experience; it is preferred rather than required, despite being central to the listed responsibilities.",
+              "CI/CD: Direct experience is present, but the capability is rated Hands-on rather than production-proficient.",
+              "Observability: Metrics, logging, dashboards, alerts, and tracing are not individually evidenced; observability is rated Hands-on.",
+              "Kubernetes: Only Conceptual familiarity is assessed, and it is a preferred qualification.",
+              "Infrastructure as code and OpenTelemetry: No evidence is provided, but both are only preferred.",
+              "On-call rotation: Incident response is documented, but prior formal on-call participation is not explicit."
+            ],
+            "missing_qualifications": [
+              "Production tracing: The role explicitly requires using metrics, logs, and tracing to troubleshoot production systems; the snapshot shows observability work and incident response but does not specifically establish tracing experience."
+            ]
+          }
+        }
+      ],
+      "questions": []
+    }
+  ]
+}

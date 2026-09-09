@@ -1,26 +1,504 @@
 {
   "format": "jaw-user-data",
-  "version": 4,
+  "version": 6,
   "user_name": "Ol Sarge",
   "sync_revisions": {
-    "profile": 0,
-    "capabilities": 0,
-    "actions": 0,
-    "keybinds": 0
+    "profile": 32,
+    "capabilities": 50,
+    "actions": 18,
+    "keybinds": 4
   },
   "capability_model": {
     "version": 2,
-    "entities": [],
-    "relationships": [],
+    "entities": [
+      {
+        "id": "ent_482b891c6e7b4e99a8488fcef3751dee",
+        "type": "competency",
+        "canonical_name": "API Design",
+        "display_name": "API Design",
+        "aliases": [],
+        "rating": 3,
+        "match_enabled": true,
+        "iterator_enabled": true
+      },
+      {
+        "id": "ent_9a45e4b8aa9d480d8672e9fcf656e51a",
+        "type": "competency",
+        "canonical_name": "Automated Testing",
+        "display_name": "Automated Testing",
+        "aliases": [],
+        "rating": 4,
+        "match_enabled": true,
+        "iterator_enabled": true
+      },
+      {
+        "id": "ent_a0e564c025c144b6ad3c625890a9777a",
+        "type": "technology",
+        "canonical_name": "Amazon Web Services",
+        "display_name": "AWS",
+        "aliases": [],
+        "rating": 3,
+        "match_enabled": true,
+        "iterator_enabled": true
+      },
+      {
+        "id": "ent_52c0ffed64084df3b84c516ffa464558",
+        "type": "competency",
+        "canonical_name": "Continuous Integration and Continuous Delivery",
+        "display_name": "CI/CD",
+        "aliases": [],
+        "rating": 2,
+        "match_enabled": true,
+        "iterator_enabled": true
+      },
+      {
+        "id": "ent_5636a4148fdd470989464571d3fa6b83",
+        "type": "competency",
+        "canonical_name": "Code Review & Mentoring",
+        "display_name": "Code Review & Mentoring",
+        "aliases": [],
+        "rating": 3,
+        "match_enabled": true,
+        "iterator_enabled": true
+      },
+      {
+        "id": "ent_d6ffc94126d14dd28289aae34161a7bc",
+        "type": "competency",
+        "canonical_name": "Data Modeling",
+        "display_name": "Data Modeling",
+        "aliases": [
+          "Data Modelling"
+        ],
+        "rating": 2,
+        "match_enabled": true,
+        "iterator_enabled": true
+      },
+      {
+        "id": "ent_9a77e9f046f04ff2b1e3d996e3f71d69",
+        "type": "technology",
+        "canonical_name": "Distributed Systems",
+        "display_name": "Distributed Systems",
+        "aliases": [],
+        "rating": 3,
+        "match_enabled": true,
+        "iterator_enabled": true
+      },
+      {
+        "id": "ent_cb5f038014244da2b95bf9c1f047fee0",
+        "type": "product",
+        "canonical_name": "Docker",
+        "display_name": "Docker",
+        "aliases": [],
+        "rating": 4,
+        "match_enabled": true,
+        "iterator_enabled": true
+      },
+      {
+        "id": "ent_b35fb2cc39d7484cb95499b3b5f39483",
+        "type": "competency",
+        "canonical_name": "Event-Driven Architecture",
+        "display_name": "Event-Driven Architecture",
+        "aliases": [
+          "EDA"
+        ],
+        "rating": 3,
+        "match_enabled": true,
+        "iterator_enabled": true
+      },
+      {
+        "id": "ent_a48693eefbb245b897105ceb3de05b46",
+        "type": "technology",
+        "canonical_name": "JavaScript",
+        "display_name": "JavaScript",
+        "aliases": [
+          "JS"
+        ],
+        "rating": 3,
+        "match_enabled": true,
+        "iterator_enabled": true
+      },
+      {
+        "id": "ent_c788ce3858544a56b573af8c447361fa",
+        "type": "technology",
+        "canonical_name": "Kubernetes",
+        "display_name": "Kubernetes",
+        "aliases": [
+          "K8s"
+        ],
+        "rating": 1,
+        "match_enabled": true,
+        "iterator_enabled": true
+      },
+      {
+        "id": "ent_48587d9b3be5468e929372acad602e28",
+        "type": "competency",
+        "canonical_name": "Microservices Architecture",
+        "display_name": "Microservices",
+        "aliases": [],
+        "rating": 2,
+        "match_enabled": true,
+        "iterator_enabled": true
+      },
+      {
+        "id": "ent_7527766890cc403695445bac675c9111",
+        "type": "technology",
+        "canonical_name": "Node.js",
+        "display_name": "Node.js",
+        "aliases": [
+          "NodeJS"
+        ],
+        "rating": 3,
+        "match_enabled": true,
+        "iterator_enabled": true
+      },
+      {
+        "id": "ent_e0ecdbda4a56412eb5d6b0ab639f7ad7",
+        "type": "competency",
+        "canonical_name": "Observability",
+        "display_name": "Observability",
+        "aliases": [],
+        "rating": 2,
+        "match_enabled": true,
+        "iterator_enabled": true
+      },
+      {
+        "id": "ent_5c7c28821b424625be6380d0ae5c2021",
+        "type": "competency",
+        "canonical_name": "Performance Optimization",
+        "display_name": "Performance Optimization",
+        "aliases": [],
+        "rating": 3,
+        "match_enabled": true,
+        "iterator_enabled": true
+      },
+      {
+        "id": "ent_1ee4e47c96e046dca1187e3d5e78fd55",
+        "type": "technology",
+        "canonical_name": "Python",
+        "display_name": "Python",
+        "aliases": [],
+        "rating": 5,
+        "match_enabled": true,
+        "iterator_enabled": true
+      },
+      {
+        "id": "ent_b32835a52e3e4101a9183c455b90ab5f",
+        "type": "product",
+        "canonical_name": "React",
+        "display_name": "React",
+        "aliases": [
+          "React.js",
+          "ReactJS"
+        ],
+        "rating": 3,
+        "match_enabled": true,
+        "iterator_enabled": true
+      },
+      {
+        "id": "ent_e1f86afeb0b046e6986882ce949d21b1",
+        "type": "technology",
+        "canonical_name": "Relational Databases",
+        "display_name": "Relational Databases",
+        "aliases": [],
+        "rating": 3,
+        "match_enabled": true,
+        "iterator_enabled": true
+      },
+      {
+        "id": "ent_964aeea939384774a293baf5fc3ef313",
+        "type": "technology",
+        "canonical_name": "REST APIs",
+        "display_name": "REST APIs",
+        "aliases": [
+          "RESTful APIs"
+        ],
+        "rating": 4,
+        "match_enabled": true,
+        "iterator_enabled": true
+      },
+      {
+        "id": "ent_11aa55ff89a24e6ca5f9ad8d171b3798",
+        "type": "competency",
+        "canonical_name": "Software Architecture",
+        "display_name": "Software Architecture",
+        "aliases": [],
+        "rating": 4,
+        "match_enabled": true,
+        "iterator_enabled": true
+      },
+      {
+        "id": "ent_0496501b3b37485dbffe930f96c5eeec",
+        "type": "technology",
+        "canonical_name": "Structured Query Language",
+        "display_name": "SQL",
+        "aliases": [],
+        "rating": 4,
+        "match_enabled": true,
+        "iterator_enabled": true
+      },
+      {
+        "id": "ent_8318c3d9c34846a4bbd5856c27d3f097",
+        "type": "competency",
+        "canonical_name": "System Design",
+        "display_name": "System Design",
+        "aliases": [],
+        "rating": 4,
+        "match_enabled": true,
+        "iterator_enabled": true
+      },
+      {
+        "id": "ent_e73c0921e7464bcc830ba6cf337aa2d7",
+        "type": "technology",
+        "canonical_name": "TypeScript",
+        "display_name": "TypeScript",
+        "aliases": [],
+        "rating": 4,
+        "match_enabled": true,
+        "iterator_enabled": true
+      }
+    ],
+    "relationships": [
+      {
+        "source_id": "ent_8318c3d9c34846a4bbd5856c27d3f097",
+        "type": "related_to",
+        "target_id": "ent_11aa55ff89a24e6ca5f9ad8d171b3798"
+      },
+      {
+        "source_id": "ent_482b891c6e7b4e99a8488fcef3751dee",
+        "type": "related_to",
+        "target_id": "ent_8318c3d9c34846a4bbd5856c27d3f097"
+      },
+      {
+        "source_id": "ent_964aeea939384774a293baf5fc3ef313",
+        "type": "related_to",
+        "target_id": "ent_482b891c6e7b4e99a8488fcef3751dee"
+      },
+      {
+        "source_id": "ent_48587d9b3be5468e929372acad602e28",
+        "type": "related_to",
+        "target_id": "ent_9a77e9f046f04ff2b1e3d996e3f71d69"
+      },
+      {
+        "source_id": "ent_b35fb2cc39d7484cb95499b3b5f39483",
+        "type": "related_to",
+        "target_id": "ent_9a77e9f046f04ff2b1e3d996e3f71d69"
+      },
+      {
+        "source_id": "ent_d6ffc94126d14dd28289aae34161a7bc",
+        "type": "related_to",
+        "target_id": "ent_e1f86afeb0b046e6986882ce949d21b1"
+      },
+      {
+        "source_id": "ent_e1f86afeb0b046e6986882ce949d21b1",
+        "type": "related_to",
+        "target_id": "ent_0496501b3b37485dbffe930f96c5eeec"
+      },
+      {
+        "source_id": "ent_e73c0921e7464bcc830ba6cf337aa2d7",
+        "type": "based_on",
+        "target_id": "ent_a48693eefbb245b897105ceb3de05b46"
+      },
+      {
+        "source_id": "ent_7527766890cc403695445bac675c9111",
+        "type": "based_on",
+        "target_id": "ent_a48693eefbb245b897105ceb3de05b46"
+      },
+      {
+        "source_id": "ent_b32835a52e3e4101a9183c455b90ab5f",
+        "type": "based_on",
+        "target_id": "ent_a48693eefbb245b897105ceb3de05b46"
+      },
+      {
+        "source_id": "ent_9a45e4b8aa9d480d8672e9fcf656e51a",
+        "type": "related_to",
+        "target_id": "ent_52c0ffed64084df3b84c516ffa464558"
+      },
+      {
+        "source_id": "ent_cb5f038014244da2b95bf9c1f047fee0",
+        "type": "related_to",
+        "target_id": "ent_c788ce3858544a56b573af8c447361fa"
+      },
+      {
+        "source_id": "ent_5c7c28821b424625be6380d0ae5c2021",
+        "type": "uses",
+        "target_id": "ent_e0ecdbda4a56412eb5d6b0ab639f7ad7"
+      }
+    ],
     "active_set_id": "__all__",
     "view_preferences": {
       "hierarchy": {
-        "section_granularity": 3,
-        "entity_granularity": 3,
+        "section_granularity": 5,
+        "entity_granularity": 5,
         "l1_section_target": 6,
         "l1_section_min": 4,
         "l1_section_max": 8,
-        "group_min_entities": 3
+        "group_min_entities": 3,
+        "projection": {
+          "version": 3,
+          "source": "smart-add",
+          "tree": {
+            "name": "Capabilities",
+            "entity_ids": [],
+            "children": [
+              {
+                "name": "Architecture & System Design",
+                "entity_ids": [],
+                "children": [
+                  {
+                    "name": "Software & Distributed Architecture",
+                    "entity_ids": [],
+                    "children": [
+                      {
+                        "name": "Architecture & System Design Practices",
+                        "entity_ids": [
+                          "ent_11aa55ff89a24e6ca5f9ad8d171b3798",
+                          "ent_8318c3d9c34846a4bbd5856c27d3f097"
+                        ],
+                        "children": []
+                      },
+                      {
+                        "name": "Distributed Architecture",
+                        "entity_ids": [
+                          "ent_9a77e9f046f04ff2b1e3d996e3f71d69",
+                          "ent_48587d9b3be5468e929372acad602e28",
+                          "ent_b35fb2cc39d7484cb95499b3b5f39483"
+                        ],
+                        "children": []
+                      }
+                    ]
+                  },
+                  {
+                    "name": "Interfaces & Data Design",
+                    "entity_ids": [],
+                    "children": [
+                      {
+                        "name": "API Design & Integration",
+                        "entity_ids": [
+                          "ent_482b891c6e7b4e99a8488fcef3751dee",
+                          "ent_964aeea939384774a293baf5fc3ef313"
+                        ],
+                        "children": []
+                      },
+                      {
+                        "name": "Data Design & Persistence",
+                        "entity_ids": [
+                          "ent_d6ffc94126d14dd28289aae34161a7bc",
+                          "ent_e1f86afeb0b046e6986882ce949d21b1",
+                          "ent_0496501b3b37485dbffe930f96c5eeec"
+                        ],
+                        "children": []
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "name": "Software Engineering",
+                "entity_ids": [],
+                "children": [
+                  {
+                    "name": "Languages & Runtime",
+                    "entity_ids": [],
+                    "children": [
+                      {
+                        "name": "Programming Languages",
+                        "entity_ids": [
+                          "ent_1ee4e47c96e046dca1187e3d5e78fd55",
+                          "ent_e73c0921e7464bcc830ba6cf337aa2d7",
+                          "ent_a48693eefbb245b897105ceb3de05b46"
+                        ],
+                        "children": []
+                      },
+                      {
+                        "name": "Runtime Platforms",
+                        "entity_ids": [
+                          "ent_7527766890cc403695445bac675c9111"
+                        ],
+                        "children": []
+                      }
+                    ]
+                  },
+                  {
+                    "name": "Application Development",
+                    "entity_ids": [],
+                    "children": [
+                      {
+                        "name": "Frontend Development",
+                        "entity_ids": [
+                          "ent_b32835a52e3e4101a9183c455b90ab5f"
+                        ],
+                        "children": []
+                      },
+                      {
+                        "name": "Quality & Engineering Collaboration",
+                        "entity_ids": [
+                          "ent_9a45e4b8aa9d480d8672e9fcf656e51a",
+                          "ent_5636a4148fdd470989464571d3fa6b83"
+                        ],
+                        "children": []
+                      }
+                    ]
+                  },
+                  {
+                    "name": "Performance Engineering",
+                    "entity_ids": [
+                      "ent_5c7c28821b424625be6380d0ae5c2021"
+                    ],
+                    "children": []
+                  }
+                ]
+              },
+              {
+                "name": "Platform, Delivery & Reliability",
+                "entity_ids": [],
+                "children": [
+                  {
+                    "name": "Delivery & Container Platforms",
+                    "entity_ids": [],
+                    "children": [
+                      {
+                        "name": "Delivery Automation",
+                        "entity_ids": [
+                          "ent_52c0ffed64084df3b84c516ffa464558"
+                        ],
+                        "children": []
+                      },
+                      {
+                        "name": "Containers & Orchestration",
+                        "entity_ids": [
+                          "ent_cb5f038014244da2b95bf9c1f047fee0",
+                          "ent_c788ce3858544a56b573af8c447361fa"
+                        ],
+                        "children": []
+                      }
+                    ]
+                  },
+                  {
+                    "name": "Cloud & Reliability Engineering",
+                    "entity_ids": [],
+                    "children": [
+                      {
+                        "name": "Cloud Platforms",
+                        "entity_ids": [
+                          "ent_a0e564c025c144b6ad3c625890a9777a"
+                        ],
+                        "children": []
+                      },
+                      {
+                        "name": "Reliability & Observability",
+                        "entity_ids": [
+                          "ent_e0ecdbda4a56412eb5d6b0ab639f7ad7"
+                        ],
+                        "children": []
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        "display_mode": "compact"
       },
       "layout": {
         "left_pane": "fixed",
@@ -45,15 +523,39 @@
     "facebook": "",
     "x": ""
   },
-  "custom_fields": [],
-  "custom_actions": [],
+  "custom_fields": [
+    {
+      "id": "custom_382bdba1accc4b199153a0cb87992a59",
+      "label": "Certifications",
+      "value": "Certified Kubernetes Application Developer",
+      "type": "multi"
+    },
+    {
+      "id": "custom_09475df907a44d659d91df65ead488be",
+      "label": "Certifications 2",
+      "value": "AWS Certified Solutions Architect – Associate",
+      "type": "single"
+    }
+  ],
+  "custom_actions": [
+    {
+      "id": "custom_action_8b86d49cbd31435f93a09c49120a0d6c",
+      "label": "Certifications",
+      "type": "iterator",
+      "field_ids": [
+        "custom_382bdba1accc4b199153a0cb87992a59",
+        "custom_09475df907a44d659d91df65ead488be"
+      ],
+      "auto_return": false
+    }
+  ],
   "work_history": [
     {
       "title": "Senior Software Engineer",
       "company": "Reveille Systems",
       "start": "January 2023",
       "end": "Present",
-      "highlights": "Led the design and development of distributed services for a cloud-based operations platform using Python, TypeScript, PostgreSQL, and AWS.\n\nDesigned an event-driven processing architecture that reduced coupling between core services and improved application scalability.\n\nImproved API performance through database query optimization and targeted caching, reducing p95 response times by more than 50%.\n\nStandardized CI/CD, automated testing, and observability patterns across multiple services.\n\nMentored engineers through code reviews, design discussions, and production troubleshooting.",
+      "highlights": "• Led the design and development of distributed services for a cloud-based operations platform using Python, TypeScript, PostgreSQL, and AWS.\n• Designed an event-driven processing architecture that reduced coupling between core services and improved application scalability.\n• Improved API performance through database query optimization and targeted caching, reducing p95 response times by more than 50%.\n• Standardized CI/CD, automated testing, and observability patterns across multiple services.\n• Mentored engineers through code reviews, design discussions, and production troubleshooting.",
       "enabled": true
     },
     {
@@ -61,7 +563,7 @@
       "company": "Maroon Stack Labs",
       "start": "June 2020",
       "end": "December 2022",
-      "highlights": "Developed backend services and REST APIs for a multi-tenant SaaS application using Python, Node.js, PostgreSQL, and AWS.\n\nHelped separate tightly coupled application components into independently deployable services with clearer API and data ownership boundaries.\n\nRedesigned high-volume database queries and indexes, reducing report generation times by approximately 70%.\n\nExpanded automated integration testing and CI validation to improve release reliability.\n\nParticipated in architecture reviews, incident response, and technical planning for new product capabilities.",
+      "highlights": "• Developed backend services and REST APIs for a multi-tenant SaaS application using Python, Node.js, PostgreSQL, and AWS.\n• Helped separate tightly coupled application components into independently deployable services with clearer API and data ownership boundaries.\n• Redesigned high-volume database queries and indexes, reducing report generation times by approximately 70%.\n• Expanded automated integration testing and CI validation to improve release reliability.\n• Participated in architecture reviews, incident response, and technical planning for new product capabilities.",
       "enabled": true
     },
     {
@@ -69,20 +571,26 @@
       "company": "Brazos Byteworks",
       "start": "July 2017",
       "end": "May 2020",
-      "highlights": "Developed web applications and internal business systems using JavaScript, Python, SQL, and React.\n\nBuilt reusable API and application components that reduced duplicated implementation across customer-facing features.\n\nIntroduced automated unit testing and code-quality checks into the team's development workflow.\n\nWorked with product and engineering teams to troubleshoot production issues, improve application performance, and deliver incremental product enhancements.",
+      "highlights": "• Developed web applications and internal business systems using JavaScript, Python, SQL, and React.\n• Built reusable API and application components that reduced duplicated implementation across customer-facing features.\n• Introduced automated unit testing and code-quality checks into the team's development workflow.\n• Worked with product and engineering teams to troubleshoot production issues, improve application performance, and deliver incremental product enhancements.",
       "enabled": true
     }
   ],
   "iterator_preferences": {},
-  "answers": [],
+  "answers": [
+    {
+      "title": "Have you worked with distributed systems?",
+      "answer": "At Reveille Systems, I led the design and development of distributed services for a cloud-based operations platform using Python, TypeScript, PostgreSQL, and AWS. The new architecture reduced infrastructure costs by 40% and improved processing throughput by 60%, while also making the platform easier to scale and maintain."
+    }
+  ],
   "analysis_settings": {
-    "mode": "local",
+    "mode": "generative",
     "provider": "openai",
     "model": "gpt-5.6-sol"
   },
   "name_format": "first_last",
   "keyboard_layout": "qwerty",
   "keybinds": {
+    "binding_model": "physical-v1",
     "configured": true,
     "base": {
       "P00": "open_dashboard",
@@ -216,7 +724,7 @@
         ]
       },
       "smart_capture": {
-        "label": "Smart Capture",
+        "label": "Capture",
         "icons": [
           "selection"
         ]
@@ -240,7 +748,7 @@
         ]
       },
       "previous_work_exp": {
-        "label": "Prev Work Exp",
+        "label": "Work Exp",
         "icons": [
           "iterate",
           "arrow_up"
@@ -253,14 +761,13 @@
         ]
       },
       "next_work_exp": {
-        "label": "Next Work Exp",
+        "label": "Work Exp",
         "icons": [
           "iterate",
           "arrow_down"
         ]
       }
     },
-    "custom_layouts": {},
-    "binding_model": "physical-v1"
+    "custom_layouts": {}
   }
 }
