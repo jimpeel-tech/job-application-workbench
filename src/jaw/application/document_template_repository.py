@@ -15,19 +15,26 @@ import zipfile
 from collections.abc import Callable, Mapping
 from pathlib import Path
 from typing import Any
+from urllib.parse import quote
 
 from ..documents.workbench_symbols import referenced_occurrences
 from ..paths import app_home
 from ..persistence.document_workbench import DocumentWorkbenchRepository
 from .document_workbench_service import DocumentWorkbenchService
+from .template_release_compat import (
+    JAW_VERSION,
+    SUPPORTED_TEMPLATE_APIS,
+    TEMPLATE_PACKAGE_FORMAT_VERSION,
+    select_compatible_release,
+)
 
 OFFICIAL_REPOSITORY = "jimpeel-tech/jaw-templates"
-OFFICIAL_REPOSITORY_VERSION = "0.1.0"
-PACKAGE_FORMAT_VERSION = 1
+RELEASE_REGISTRY_BRANCH = "main"
+PACKAGE_FORMAT_VERSION = TEMPLATE_PACKAGE_FORMAT_VERSION
 _MAX_ARCHIVE_BYTES = 20 * 1024 * 1024
 _MAX_EXTRACTED_BYTES = 40 * 1024 * 1024
+_MAX_RELEASE_REGISTRY_BYTES = 256 * 1024
 _SYMBOL = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
-_VERSION = re.compile(r"^\d+\.\d+\.\d+$")
 
 Downloader = Callable[[str], bytes]
 
@@ -56,6 +63,7 @@ class TemplateRepository:
         self.examples_root = self.root / "examples"
         self.local_root = self.root / "local"
         self._downloader = downloader or self._download_bytes
+        self._resolved_release: dict[str, Any] | None = None
 
     def catalog(self) -> dict[str, Any]:
         self._ensure_directories()
@@ -65,19 +73,28 @@ class TemplateRepository:
         ]
         templates.sort(key=lambda item: (str(item["source"]), str(item["name"]).casefold()))
         installed_version = ""
+        installed_template_api = 0
         repo_manifest = self.examples_root / "repo.json"
         if repo_manifest.is_file():
             try:
-                installed_version = str(self._read_json(repo_manifest).get("repo_version") or "")
-            except ValueError:
+                installed = self._read_json(repo_manifest)
+                installed_version = str(installed.get("repo_version") or "")
+                installed_template_api = int(installed.get("template_api") or 1)
+            except (TypeError, ValueError):
                 installed_version = ""
+                installed_template_api = 0
+        available_version = str((self._resolved_release or {}).get("version") or "")
         return {
             "repository": {
                 "name": "Template Repository",
                 "github": OFFICIAL_REPOSITORY,
-                "available_version": OFFICIAL_REPOSITORY_VERSION,
+                "available_version": available_version,
+                "release_resolution": "compatible",
                 "installed_version": installed_version,
+                "installed_template_api": installed_template_api,
                 "format_version": PACKAGE_FORMAT_VERSION,
+                "jaw_version": JAW_VERSION,
+                "supported_template_apis": sorted(SUPPORTED_TEMPLATE_APIS),
             },
             "root": str(self.root),
             "examples_path": str(self.examples_root),
@@ -86,18 +103,15 @@ class TemplateRepository:
         }
 
     def download(self, version: str | None = None) -> dict[str, Any]:
-        requested = str(version or OFFICIAL_REPOSITORY_VERSION).strip()
-        if not _VERSION.fullmatch(requested):
-            raise ValueError("Template repository version must use major.minor.patch")
-        if requested != OFFICIAL_REPOSITORY_VERSION:
-            raise ValueError(
-                f"JAW currently supports official template repository version "
-                f"{OFFICIAL_REPOSITORY_VERSION}"
-            )
+        release = self._resolve_release(version)
+        requested = str(release["version"])
+        reference = str(release["ref"])
+        template_api = int(release["template_api"])
 
         self._ensure_directories()
         url = (
-            f"https://codeload.github.com/{OFFICIAL_REPOSITORY}/zip/refs/tags/v{requested}"
+            f"https://codeload.github.com/{OFFICIAL_REPOSITORY}/zip/refs/tags/"
+            f"{quote(reference, safe='')}"
         )
         archive_bytes = self._downloader(url)
         if not archive_bytes:
@@ -111,14 +125,22 @@ class TemplateRepository:
             extracted.mkdir()
             self._extract_archive(archive_bytes, extracted)
             source_root = self._archive_repository_root(extracted)
-            repo_manifest = self._validate_repository(source_root, requested)
+            repo_manifest = self._validate_repository(
+                source_root,
+                requested,
+                expected_template_api=template_api,
+            )
 
             stage = self.root / ".examples-download"
             backup = self.root / ".examples-backup"
             shutil.rmtree(stage, ignore_errors=True)
             shutil.rmtree(backup, ignore_errors=True)
             shutil.copytree(source_root, stage)
-            self._validate_repository(stage, requested)
+            self._validate_repository(
+                stage,
+                requested,
+                expected_template_api=template_api,
+            )
 
             moved_existing = False
             try:
@@ -139,8 +161,41 @@ class TemplateRepository:
         return {
             "downloaded": True,
             "version": str(repo_manifest["repo_version"]),
+            "reference": reference,
+            "template_api": template_api,
             "catalog": self.catalog(),
         }
+
+    def _release_registry_url(self) -> str:
+        return (
+            f"https://raw.githubusercontent.com/{OFFICIAL_REPOSITORY}/"
+            f"{RELEASE_REGISTRY_BRANCH}/releases.json"
+        )
+
+    def _release_registry(self) -> dict[str, Any]:
+        data = self._downloader(self._release_registry_url())
+        if not data:
+            raise ValueError("Official template release registry was empty")
+        if len(data) > _MAX_RELEASE_REGISTRY_BYTES:
+            raise ValueError("Official template release registry is too large")
+        try:
+            value = json.loads(data.decode("utf-8"))
+        except (UnicodeDecodeError, json.JSONDecodeError) as error:
+            raise ValueError("Official template release registry is invalid JSON") from error
+        if not isinstance(value, dict):
+            raise ValueError("Official template release registry must contain a JSON object")
+        return value
+
+    def _resolve_release(self, version: str | None = None) -> dict[str, Any]:
+        release = select_compatible_release(
+            self._release_registry(),
+            jaw_version=JAW_VERSION,
+            requested_version=version,
+            supported_template_apis=SUPPORTED_TEMPLATE_APIS,
+            package_format=PACKAGE_FORMAT_VERSION,
+        )
+        self._resolved_release = dict(release)
+        return dict(release)
 
     def open_local(self) -> dict[str, Any]:
         self._ensure_directories()
@@ -460,12 +515,33 @@ class TemplateRepository:
             index += 1
         return f"{base} {index}"
 
-    def _validate_repository(self, root: Path, expected_version: str) -> dict[str, Any]:
+    def _validate_repository(
+        self,
+        root: Path,
+        expected_version: str,
+        *,
+        expected_template_api: int | None = None,
+    ) -> dict[str, Any]:
         manifest = self._read_json(root / "repo.json")
         if int(manifest.get("format_version") or 0) != PACKAGE_FORMAT_VERSION:
             raise ValueError("Official template repository format is not supported")
+        template_api = int(manifest.get("template_api") or 1)
+        if template_api not in SUPPORTED_TEMPLATE_APIS:
+            raise ValueError(f"Template API {template_api} is not supported by this JAW release")
+        if expected_template_api is not None and template_api != expected_template_api:
+            raise ValueError("Downloaded template repository API did not match release registry")
         if str(manifest.get("repo_version") or "") != expected_version:
             raise ValueError("Downloaded template repository version did not match request")
+
+        minimum_jaw_version = str(manifest.get("minimum_jaw_version") or "").strip()
+        if minimum_jaw_version:
+            from .template_release_compat import version_tuple
+
+            if version_tuple(JAW_VERSION) < version_tuple(minimum_jaw_version):
+                raise ValueError(
+                    f"Template repository requires JAW {minimum_jaw_version} or newer"
+                )
+
         templates = manifest.get("templates") or []
         if not isinstance(templates, list) or not templates:
             raise ValueError("Official template repository does not contain templates")
@@ -476,7 +552,12 @@ class TemplateRepository:
             if not relative:
                 raise ValueError("Official template index entry is missing path")
             package_root = self._safe_child(root, relative)
-            self._load_package(package_root, "example")
+            package = self._load_package(package_root, "example")
+            package_version = str(package.get("repo_version") or "")
+            if package_version and package_version != expected_version:
+                raise ValueError(
+                    f"Template package {package['id']} repo_version does not match repository"
+                )
         return manifest
 
     def _archive_repository_root(self, extracted: Path) -> Path:
@@ -512,14 +593,14 @@ class TemplateRepository:
 
     @staticmethod
     def _download_bytes(url: str) -> bytes:
-        request = urllib.request.Request(url, headers={"User-Agent": "JAW/0.1"})
+        request = urllib.request.Request(url, headers={"User-Agent": f"JAW/{JAW_VERSION}"})
         try:
             with urllib.request.urlopen(request, timeout=30) as response:  # noqa: S310
                 data = response.read(_MAX_ARCHIVE_BYTES + 1)
         except OSError as error:
             raise ValueError(f"Could not download official JAW templates: {error}") from error
         if len(data) > _MAX_ARCHIVE_BYTES:
-            raise ValueError("Template repository archive is too large")
+            raise ValueError("Template repository download is too large")
         return data
 
     def _ensure_directories(self) -> None:
@@ -560,8 +641,10 @@ class TemplateRepository:
 
 __all__ = [
     "TemplateRepository",
+    "JAW_VERSION",
     "OFFICIAL_REPOSITORY",
-    "OFFICIAL_REPOSITORY_VERSION",
     "PACKAGE_FORMAT_VERSION",
+    "RELEASE_REGISTRY_BRANCH",
+    "SUPPORTED_TEMPLATE_APIS",
     "template_repository_root",
 ]
