@@ -58,14 +58,24 @@ def version_tuple(value: str) -> tuple[int, int, int]:
     return tuple(int(part) for part in match.groups())  # type: ignore[return-value]
 
 
+def _requirement_clauses(requirement: str) -> list[tuple[str, tuple[int, int, int]]]:
+    raw_clauses = [part.strip() for part in str(requirement or "").split(",") if part.strip()]
+    if not raw_clauses:
+        raise ValueError("Template release is missing a JAW compatibility range")
+    clauses: list[tuple[str, tuple[int, int, int]]] = []
+    for clause in raw_clauses:
+        match = _RANGE_CLAUSE.fullmatch(clause)
+        if not match:
+            raise ValueError(f"Invalid JAW compatibility clause: {clause}")
+        operator, required = match.groups()
+        clauses.append((operator or "", version_tuple(required)))
+    return clauses
+
+
 def version_satisfies(version: str, requirement: str) -> bool:
     """Evaluate the small comparator grammar used by releases.json."""
 
     current = version_tuple(version)
-    clauses = [part.strip() for part in str(requirement or "").split(",") if part.strip()]
-    if not clauses:
-        raise ValueError("Template release is missing a JAW compatibility range")
-
     operations = {
         ">=": lambda left, right: left >= right,
         "<=": lambda left, right: left <= right,
@@ -74,14 +84,10 @@ def version_satisfies(version: str, requirement: str) -> bool:
         "==": lambda left, right: left == right,
         "": lambda left, right: left == right,
     }
-    for clause in clauses:
-        match = _RANGE_CLAUSE.fullmatch(clause)
-        if not match:
-            raise ValueError(f"Invalid JAW compatibility clause: {clause}")
-        operator, required = match.groups()
-        if not operations[operator or ""](current, version_tuple(required)):
-            return False
-    return True
+    return all(
+        operations[operator](current, required)
+        for operator, required in _requirement_clauses(requirement)
+    )
 
 
 def normalize_release_registry(value: Mapping[str, Any]) -> list[dict[str, Any]]:
@@ -114,9 +120,7 @@ def normalize_release_registry(value: Mapping[str, Any]) -> list[dict[str, Any]]
         if package_format <= 0:
             raise ValueError(f"Template release {release_version} has invalid package_format")
         jaw_requirement = str(raw.get("jaw") or "").strip()
-        # Validate the grammar now; compatibility is evaluated during selection.
-        for probe in ("0.0.0", "999999.0.0"):
-            version_satisfies(probe, jaw_requirement)
+        _requirement_clauses(jaw_requirement)
 
         releases.append(
             {
