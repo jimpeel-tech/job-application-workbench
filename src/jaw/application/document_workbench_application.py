@@ -14,6 +14,8 @@ from collections.abc import Mapping
 from pathlib import Path
 from typing import Any
 
+from ..config import DEFAULT_OPENAI_MODEL
+from ..documents.text_generation import DEFAULT_OLLAMA_MODEL
 from .document_generation_context import DocumentGenerationContext
 from .document_template_repository_channels import TemplateRepository
 from .document_workbench_job_generation import generate_job, routing_state, save_routing
@@ -230,15 +232,48 @@ class DocumentWorkbenchApplication:
         )
         return {**result, "state": self.state(user_id)}
 
+    def generation_settings(
+        self,
+        user_id: int,
+        payload: Mapping[str, Any] | None = None,
+    ) -> dict[str, str]:
+        """Resolve a Documents-only provider/model override without mutating user settings."""
+
+        requested = payload or {}
+        user_state = self.user_data.read(user_id=user_id)
+        inherited = user_state.get("analysis_settings") or {}
+        if not isinstance(inherited, Mapping):
+            inherited = {}
+
+        inherited_provider = str(inherited.get("provider") or "openai").strip().casefold()
+        if inherited_provider not in {"ollama", "openai"}:
+            inherited_provider = "openai"
+        inherited_model = str(inherited.get("model") or "").strip()
+
+        provider_override = str(requested.get("generation_provider") or "").strip().casefold()
+        provider = provider_override or inherited_provider
+        if provider not in {"ollama", "openai"}:
+            raise ValueError("Document generation provider must be OpenAI or Ollama")
+
+        model_override = str(requested.get("generation_model") or "").strip()
+        if model_override:
+            model = model_override
+        elif provider_override and provider != inherited_provider:
+            model = DEFAULT_OLLAMA_MODEL if provider == "ollama" else DEFAULT_OPENAI_MODEL
+        else:
+            model = inherited_model
+
+        if not model:
+            model = DEFAULT_OLLAMA_MODEL if provider == "ollama" else DEFAULT_OPENAI_MODEL
+
+        return {"provider": provider, "model": model}
+
     def generate(self, user_id: int, payload: Mapping[str, Any]) -> dict[str, Any]:
         document_id = str(payload.get("document_id") or payload.get("resource_id") or "").strip()
         if not document_id:
             raise ValueError("document_id is required")
         context = self.generation_contexts.context_mapping(user_id, require_job=True)
-        user_state = self.user_data.read(user_id=user_id)
-        analysis_settings = user_state.get("analysis_settings") or {}
-        if not isinstance(analysis_settings, Mapping):
-            analysis_settings = {}
+        analysis_settings = self.generation_settings(user_id, payload)
         working_buffers = payload.get("working_buffers")
         if not isinstance(working_buffers, Mapping):
             working_buffers = {}
