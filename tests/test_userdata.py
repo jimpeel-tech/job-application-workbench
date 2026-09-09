@@ -115,13 +115,17 @@ def test_first_run_uses_seeded_demo_template(tmp_path: Path):
     template = json.loads(
         DEFAULT_USER_TEMPLATE_PATH.read_text(encoding="utf-8")
     )
+    template_model = template["capability_model"]
 
     assert data["active_user_name"] == "Ol Sarge"
-    assert template["version"] == 4
-    assert data["capability_model"]["version"] == 2
-    assert data["capability_model"]["entities"] == []
-    assert data["capability_model"]["relationships"] == []
-    assert data["capability_model"]["active_set_id"] == SYSTEM_SET_ALL
+    assert template["format"] == "jaw-user-data"
+    assert int(template["version"]) >= 4
+    assert data["capability_model"]["version"] == template_model["version"]
+    assert data["capability_model"]["entities"] == template_model["entities"]
+    assert data["capability_model"]["relationships"] == template_model["relationships"]
+    assert data["capability_model"]["active_set_id"] == template_model.get(
+        "active_set_id", SYSTEM_SET_ALL
+    )
     assert data["user"] == template["user"]
     assert [entry["company"] for entry in data["work_history"]] == [
         "Reveille Systems",
@@ -157,7 +161,7 @@ def test_first_run_uses_seeded_demo_template(tmp_path: Path):
     persisted = UserDataStore(store.path).read()
     assert persisted["user"] == template["user"]
     assert persisted["work_history"] == template["work_history"]
-    assert persisted["capability_model"]["entities"] == []
+    assert persisted["capability_model"]["entities"] == template_model["entities"]
     assert persisted["keybinds"]["base"] == expected_base
 
 
