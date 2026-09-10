@@ -3,10 +3,10 @@
   "version": 6,
   "user_name": "Ol Sarge",
   "sync_revisions": {
-    "profile": 32,
-    "capabilities": 50,
-    "actions": 18,
-    "keybinds": 4
+    "profile": 0,
+    "capabilities": 0,
+    "actions": 0,
+    "keybinds": 1
   },
   "capability_model": {
     "version": 2,
@@ -631,7 +631,12 @@
       "P32": "first_name",
       "P33": "last_name"
     },
-    "layer3": {},
+    "layer3": {
+      "P23": "facebook",
+      "P13": "portfolio",
+      "P33": "linkedin",
+      "P24": "github"
+    },
     "hotkey_settings": {
       "toggle": "SHIFT+SPACE",
       "window": "CTRL+SHIFT+F1",
