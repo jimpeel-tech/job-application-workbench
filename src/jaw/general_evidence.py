@@ -277,6 +277,45 @@ def extract_employment_type_evidence(content: str) -> GeneralFieldEvidence | Non
             rule="contract_length_to_hire",
         )
 
+    # The current scalar employment_type field primarily represents workload
+    # classification (full-time/part-time/contract). When a posting also exposes
+    # an HR relationship such as "Regular Employee", prefer an explicit statement
+    # that the role itself is full-time or part-time.
+    prose_patterns = (
+        re.compile(
+            r"\b(?:this|the)\s+(?:position|role|job)\s+(?:will\s+be|is)\s+"
+            r"(?P<value>(?:permanent\s+)?(?:full[- ]time|part[- ]time)"
+            r"(?:\s*,?\s*(?:exempt|salaried|contract))?)\b",
+            re.IGNORECASE,
+        ),
+        re.compile(
+            r"\bthis\s+is\s+an?\s+"
+            r"(?P<value>(?:permanent\s+)?(?:full[- ]time|part[- ]time)"
+            r"(?:\s*,?\s*(?:exempt|salaried|contract))?)\s+"
+            r"(?:position|role|job)\b",
+            re.IGNORECASE,
+        ),
+        re.compile(
+            r"\bthis\s+"
+            r"(?P<value>(?:permanent\s+)?(?:full[- ]time|part[- ]time)"
+            r"(?:\s*,?\s*(?:exempt|salaried|contract))?)\s+"
+            r"(?:position|role|job)\b",
+            re.IGNORECASE,
+        ),
+    )
+    for pattern in prose_patterns:
+        match = pattern.search(content)
+        if match:
+            value = _normalize_employment_type(match.group("value"))
+            if value:
+                return GeneralFieldEvidence(
+                    field="employment_type",
+                    value=value,
+                    evidence=_context_line(content, match.start(), match.end()),
+                    confidence=0.995,
+                    rule="employment_type_prose",
+                )
+
     labeled_patterns = (
         (
             re.compile(
@@ -320,41 +359,6 @@ def extract_employment_type_evidence(content: str) -> GeneralFieldEvidence | Non
             confidence=0.98,
             rule="benefit_type_salaried_full_time",
         )
-
-    prose_patterns = (
-        re.compile(
-            r"\b(?:this|the)\s+(?:position|role|job)\s+(?:will\s+be|is)\s+"
-            r"(?P<value>(?:permanent\s+)?(?:full[- ]time|part[- ]time)"
-            r"(?:\s*,?\s*(?:exempt|salaried|contract))?)\b",
-            re.IGNORECASE,
-        ),
-        re.compile(
-            r"\bthis\s+is\s+an?\s+"
-            r"(?P<value>(?:permanent\s+)?(?:full[- ]time|part[- ]time)"
-            r"(?:\s*,?\s*(?:exempt|salaried|contract))?)\s+"
-            r"(?:position|role|job)\b",
-            re.IGNORECASE,
-        ),
-        re.compile(
-            r"\bthis\s+"
-            r"(?P<value>(?:permanent\s+)?(?:full[- ]time|part[- ]time)"
-            r"(?:\s*,?\s*(?:exempt|salaried|contract))?)\s+"
-            r"(?:position|role|job)\b",
-            re.IGNORECASE,
-        ),
-    )
-    for pattern in prose_patterns:
-        match = pattern.search(content)
-        if match:
-            value = _normalize_employment_type(match.group("value"))
-            if value:
-                return GeneralFieldEvidence(
-                    field="employment_type",
-                    value=value,
-                    evidence=_context_line(content, match.start(), match.end()),
-                    confidence=0.98,
-                    rule="employment_type_prose",
-                )
 
     compact = re.search(
         r"(?:^|\n)[^\n]{0,100}(?:·|\|)\s*"
