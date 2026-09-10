@@ -56,6 +56,9 @@ def test_duplicate_template_symbols_navigate_to_the_exact_resource_jid(tmp_path)
 
                 editor = page.locator('[data-wb-editor="template"]')
                 playwright.expect(editor).to_have_value("{{ body }}\n{{ body }}")
+                page.wait_for_function(
+                    "() => window.JawWorkbenchReferenceIds?.bindingsFor('template').length === 2"
+                )
 
                 def click_reference(index: int) -> None:
                     page.evaluate(
@@ -138,6 +141,9 @@ def test_duplicate_function_symbols_navigate_to_the_exact_resource_jid(tmp_path)
 
                 editor = page.locator('[data-wb-editor="section"]')
                 playwright.expect(editor).to_have_value("{{ helper }}\n{{ helper }}")
+                page.wait_for_function(
+                    "() => window.JawWorkbenchReferenceIds?.bindingsFor('section').length === 2"
+                )
 
                 def click_reference(index: int) -> None:
                     page.evaluate(
