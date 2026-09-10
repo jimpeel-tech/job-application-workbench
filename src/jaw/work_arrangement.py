@@ -28,7 +28,7 @@ _LOCATION_ROW = re.compile(
     re.IGNORECASE,
 )
 _JOINED_LOCATION_ROW = re.compile(
-    r"\bLocation\s*:\s*(?P<body>.{1,180}?)"
+    r"(?:\blocation|(?<=[a-z])(?-i:Location))\s*:\s*(?P<body>.{1,180}?)"
     r"(?=\b(?:Employment\s+Type|Compensation|Contract\s+Length|Benefits|Job\s+Summary)\s*:|$)",
     re.IGNORECASE | re.DOTALL,
 )
