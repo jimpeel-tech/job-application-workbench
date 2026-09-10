@@ -503,7 +503,7 @@ def extract_application_deadline_evidence(content: str) -> GeneralFieldEvidence 
 
 
 def _normalize_employment_type(value: str) -> str:
-    raw = " ".join(str(value).split()).strip(" \t:;,.\")
+    raw = " ".join(str(value).split()).strip(" \t:;,.")
     lowered = raw.casefold().replace("–", "-").replace("—", "-")
     lowered = re.sub(r"\bfull[\s-]*time\b", "full-time", lowered)
     lowered = re.sub(r"\bpart[\s-]*time\b", "part-time", lowered)
