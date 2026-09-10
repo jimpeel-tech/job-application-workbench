@@ -60,6 +60,7 @@ jaw = [
   "resources/*",
   "resources/documents/*",
   "resources/fonts/*",
+  "resources/fonts/licenses/*",
   "resources/icons/*",
 ]
 
