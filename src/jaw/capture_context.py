@@ -4,8 +4,9 @@ import re
 from typing import Any
 
 from .capture import CaptureClassification, classify_capture
+from .work_arrangement import analyze_work_arrangement, looks_like_work_arrangement_metadata
 
-_CLASSIFIER_VERSION = "context-rules-v3"
+_CLASSIFIER_VERSION = "context-rules-v4"
 
 _REQUIREMENT_HEADINGS = (
     "requirements",
@@ -71,14 +72,7 @@ def classifier_version() -> str:
 
 
 def capture_metrics(content: str, sequence: int | None = None) -> dict[str, Any]:
-    """Describe the raw selection before field extraction.
-
-    These metrics are intentionally cheap and deterministic. They preserve signals
-    about how browser-selected text arrived (short identity text, prose, bullets,
-    key/value rows, collapsed metadata badges, and capture order) so later parsing
-    and fixture review can reason about human capture behavior without changing the
-    original text.
-    """
+    """Describe the raw selection before field extraction."""
     text = str(content)
     nonempty_lines = [line for line in text.splitlines() if line.strip()]
     paragraphs = [
@@ -92,6 +86,8 @@ def capture_metrics(content: str, sequence: int | None = None) -> dict[str, Any]
     pipe_count = text.count("|")
     tab_count = text.count("\t")
     collapsed_metadata = _has_collapsed_metadata_boundaries(text)
+    arrangement_metadata = looks_like_work_arrangement_metadata(text)
+    arrangement_analysis = analyze_work_arrangement(text)
     size_class = _size_class(len(text), len(words))
     shape = _capture_shape(
         characters=len(text),
@@ -103,6 +99,7 @@ def capture_metrics(content: str, sequence: int | None = None) -> dict[str, Any]
         key_value_lines=key_value_lines,
         pipe_count=pipe_count,
         tab_count=tab_count,
+        work_arrangement_metadata=arrangement_metadata,
     )
 
     metrics: dict[str, Any] = {
@@ -116,6 +113,7 @@ def capture_metrics(content: str, sequence: int | None = None) -> dict[str, Any]
         "tab_count": tab_count,
         "key_value_lines": key_value_lines,
         "metadata_signals": metadata_hits,
+        "work_arrangement_signal": bool(arrangement_analysis.evidence),
         "single_line": len(nonempty_lines) <= 1,
         "delimiter_heavy": inline_separators + tab_count >= 2,
         "collapsed_metadata_suspected": collapsed_metadata,
@@ -133,6 +131,17 @@ def normalize_capture_for_parser(content: str, content_type: str) -> str:
     text = str(content).replace("\r\n", "\n").replace("\r", "\n").strip()
     if content_type != "job_metadata" or "\n" in text:
         return text
+
+    # A short arrangement/location badge is meaningful structure. Expand it into
+    # explicit rows the legacy field extractor already understands while retaining
+    # the raw selection separately in the capture event.
+    if looks_like_work_arrangement_metadata(text):
+        analysis = analyze_work_arrangement(text)
+        if analysis.status:
+            rows = [analysis.status]
+            if analysis.location:
+                rows.append(f"Location: {analysis.location}")
+            return "\n".join(rows)
 
     # Browser selection can collapse adjacent DOM badges into one string, e.g.
     # ``Full-TimeRemote$200,000 - $250,000 /yr``. Split only on vocabulary we
@@ -205,6 +214,15 @@ def classify_capture_context(
             "responsibilities heading and supporting content",
         )
 
+    if looks_like_work_arrangement_metadata(text):
+        analysis = analyze_work_arrangement(text)
+        confidence = 0.96 if analysis.location else 0.92
+        return CaptureClassification(
+            "job_metadata",
+            confidence,
+            "explicit work-arrangement metadata",
+        )
+
     metadata_signals = _metadata_signal_count(text)
     if metadata_signals >= 2 and len(text) <= 320:
         confidence = min(0.96, 0.78 + (metadata_signals * 0.05))
@@ -221,7 +239,9 @@ def classify_capture_context(
 
 def _starts_with_heading(lowered: str, headings: tuple[str, ...]) -> bool:
     return any(
-        lowered == heading or lowered.startswith(f"{heading} ") or lowered.startswith(f"{heading}:")
+        lowered == heading
+        or lowered.startswith(f"{heading} ")
+        or lowered.startswith(f"{heading}:")
         for heading in headings
     )
 
@@ -280,11 +300,12 @@ def _capture_shape(
     key_value_lines: int,
     pipe_count: int,
     tab_count: int,
+    work_arrangement_metadata: bool,
 ) -> str:
     """Assign a broad structural prior; this is evidence, not final classification."""
     if key_value_lines >= 2 or tab_count >= 2 or (pipe_count >= 2 and lines <= 8):
         return "table_like"
-    if metadata_signals >= 2 and characters <= 400:
+    if work_arrangement_metadata or (metadata_signals >= 2 and characters <= 400):
         return "metadata_like"
     if (
         characters <= 120
