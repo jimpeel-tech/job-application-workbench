@@ -2,7 +2,7 @@ import json
 
 import pytest
 
-from jaw.fixture_export import FixtureExportError, export_snapshot
+from jaw.fixture_export import FixtureExportError, export_all_snapshots, export_snapshot
 
 
 def _write_snapshot(root, fixture_id, created_at):
@@ -48,6 +48,25 @@ def test_export_snapshot_copies_latest_to_private_inbox_and_removes_identity(tmp
     assert "active_user_id" not in manifest
     assert "active_user_name" not in manifest
     assert (destination / "captures.json").is_file()
+
+
+def test_export_all_snapshots_exports_only_missing_fixtures_in_capture_order(tmp_path):
+    workspace = tmp_path / "job-application-workbench"
+    fixture_repo = tmp_path / "jaw-fixtures"
+    workspace.mkdir()
+    fixture_repo.mkdir()
+    _write_snapshot(workspace, "first", "2026-09-10T10:00:00-05:00")
+    _write_snapshot(workspace, "second", "2026-09-10T11:00:00-05:00")
+    _write_snapshot(workspace, "third", "2026-09-10T12:00:00-05:00")
+    (fixture_repo / "inbox" / "second").mkdir(parents=True)
+
+    destinations = export_all_snapshots(workspace, fixture_repo)
+
+    assert [path.name for path in destinations] == ["first", "third"]
+    assert (fixture_repo / "inbox" / "first" / "captures.json").is_file()
+    assert (fixture_repo / "inbox" / "third" / "captures.json").is_file()
+
+    assert export_all_snapshots(workspace, fixture_repo) == []
 
 
 def test_export_snapshot_refuses_expected_values(tmp_path):
