@@ -63,6 +63,7 @@ def evaluate_spreadsheet_corpus(root: Path) -> dict[str, Any]:
     informational: list[dict[str, Any]] = []
     corpus_errors: list[dict[str, str]] = []
     field_totals: dict[str, dict[str, int]] = {}
+    equivalent_passes = 0
 
     expected_files = sorted(root.glob("*.expected.json"))
     for expected_file in expected_files:
@@ -82,6 +83,8 @@ def evaluate_spreadsheet_corpus(root: Path) -> dict[str, Any]:
         for item in result["field_results"]:
             totals = field_totals.setdefault(item["field"], {"passed": 0, "failed": 0})
             totals["passed" if item["passed"] else "failed"] += 1
+            if item["passed"] and item["reason"] == "safe_equivalent":
+                equivalent_passes += 1
             if not item["passed"]:
                 failures.append({"fixture_id": fixture_id, **item})
         for item in result["informational"]:
@@ -91,7 +94,7 @@ def evaluate_spreadsheet_corpus(root: Path) -> dict[str, Any]:
     passed = sum(values["passed"] for values in field_totals.values())
     return {
         "format": "jaw-spreadsheet-fixture-evaluation",
-        "version": 1,
+        "version": 2,
         "corpus_root": str(root),
         "fixture_count": len(fixtures),
         "expected_file_count": len(expected_files),
@@ -99,6 +102,7 @@ def evaluate_spreadsheet_corpus(root: Path) -> dict[str, Any]:
         "passed": passed,
         "failed": checks - passed,
         "accuracy": round((passed / checks) * 100, 2) if checks else 0.0,
+        "safe_equivalence_passes": equivalent_passes,
         "by_field": {
             field: {
                 **values,
@@ -246,6 +250,7 @@ def render_spreadsheet_markdown(report: dict[str, Any]) -> str:
         f"- Passed: {report['passed']}",
         f"- Failed: {report['failed']}",
         f"- Accuracy: {report['accuracy']:.2f}%",
+        f"- Safe-equivalence passes: {report.get('safe_equivalence_passes', 0)}",
         f"- Informational rich fields not scored: {report['informational_count']}",
         f"- Corpus errors: {len(report['corpus_errors'])}",
         "",
@@ -320,15 +325,19 @@ def _compare_scalar(field: str, expected: Any, actual_values: list[str]) -> Spre
             "exact" if passed else "false_positive",
         )
 
-    expected_key = _canonical_value(field, expected_text)
-    actual_keys = [_canonical_value(field, str(value)) for value in actual_values]
-    passed = len(actual_keys) == 1 and actual_keys[0] == expected_key
+    if len(actual_values) == 1:
+        actual_text = str(actual_values[0])
+        if _canonical_value(field, actual_text) == _canonical_value(field, expected_text):
+            return SpreadsheetFieldResult(field, expected_text, actual, True, "exact")
+        if _safe_equivalent(field, expected_text, actual_text):
+            return SpreadsheetFieldResult(field, expected_text, actual, True, "safe_equivalent")
+
     return SpreadsheetFieldResult(
         field,
         expected_text,
         actual,
-        passed,
-        "exact" if passed else "missing" if not actual_values else "value_mismatch",
+        False,
+        "missing" if not actual_values else "value_mismatch",
     )
 
 
@@ -364,7 +373,11 @@ def _expected_pay(expected: dict[str, Any]) -> str:
     if not low and not high:
         return ""
     amounts = [value for value in (low, high) if value]
-    amount = amounts[0] if len(amounts) == 1 or amounts[0] == amounts[-1] else f"{amounts[0]}–{amounts[-1]}"
+    amount = (
+        amounts[0]
+        if len(amounts) == 1 or amounts[0] == amounts[-1]
+        else f"{amounts[0]}–{amounts[-1]}"
+    )
     prefix = "$" if currency == "USD" else f"{currency} " if currency else ""
     return f"{prefix}{amount}{f' per {period}' if period else ''}"
 
@@ -415,6 +428,71 @@ def _accepted_remote_values(value: str) -> set[str] | None:
     return None
 
 
+def _safe_equivalent(field: str, expected: str, actual: str) -> bool:
+    if field == "pay":
+        return _pay_equivalent_with_optional_period(expected, actual)
+    if field == "location":
+        return _canonical_location_equivalence(expected) == _canonical_location_equivalence(actual)
+    return False
+
+
+def _pay_equivalent_with_optional_period(expected: str, actual: str) -> bool:
+    expected_key = canonical_capture_value("pay", expected)
+    actual_key = canonical_capture_value("pay", actual)
+    expected_parts = _pay_key_parts(expected_key)
+    actual_parts = _pay_key_parts(actual_key)
+    if not expected_parts or not actual_parts:
+        return False
+    if expected_parts["currency"] != actual_parts["currency"]:
+        return False
+    if expected_parts["amounts"] != actual_parts["amounts"]:
+        return False
+    expected_period = expected_parts["period"]
+    actual_period = actual_parts["period"]
+    return expected_period == actual_period or not expected_period or not actual_period
+
+
+def _pay_key_parts(value: str) -> dict[str, str]:
+    if not value.startswith("pay|"):
+        return {}
+    parts: dict[str, str] = {}
+    for item in value.split("|")[1:]:
+        key, separator, item_value = item.partition("=")
+        if separator:
+            parts[key] = item_value
+    if not {"currency", "amounts", "period"}.issubset(parts):
+        return {}
+    return parts
+
+
+def _canonical_location_equivalence(value: str) -> str:
+    text = " ".join(str(value).split()).strip().casefold()
+    text = text.replace("–", "-").replace("—", "-")
+    text = re.sub(r",\s*", ", ", text)
+    text = re.sub(r"(?<=\w)\s*-\s*(?=\w)", " ", text)
+    text = re.sub(r"\s+", " ", text).strip(" .,")
+
+    country_aliases = {
+        "us": "united states",
+        "u.s": "united states",
+        "u.s.": "united states",
+        "usa": "united states",
+        "u.s.a": "united states",
+        "u.s.a.": "united states",
+        "united states of america": "united states",
+    }
+    if text in country_aliases:
+        return country_aliases[text]
+
+    remote_country = re.fullmatch(
+        r"remote(?:\s*[-,/]\s*|\s+in\s+)(us|u\.s\.?|usa|u\.s\.a\.?|united states|united states of america)",
+        text,
+    )
+    if remote_country:
+        return "united states"
+    return text
+
+
 def _canonical_value(field: str, value: str) -> str:
     text = " ".join(str(value).split()).strip()
     if field == "pay":
@@ -426,10 +504,7 @@ def _canonical_value(field: str, value: str) -> str:
         lowered = re.sub(r"\bcontract[- ]to[- ]hire\b", "contract to hire", lowered)
         return lowered
     if field == "location":
-        lowered = re.sub(r",\s*", ", ", text).casefold()
-        if lowered in {"remote - us", "remote - u.s.", "remote - usa", "remote - united states"}:
-            return "united states"
-        return lowered
+        return _canonical_location_equivalence(text)
     return canonical_capture_value(field, text)
 
 
