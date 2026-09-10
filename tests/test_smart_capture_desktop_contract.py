@@ -41,7 +41,7 @@ def test_smart_capture_settings_round_trip_through_runtime_config(tmp_path: Path
     loaded = load_config(config_path)
     assert loaded.smart_capture_settings["analysis_mode"] == "ollama"
     assert loaded.smart_capture_settings["dev"] is True
-    assert loaded.smart_capture_settings["focus_mode"] is True
+    assert loaded.smart_capture_settings["focus_mode"] is False
     assert "company" in loaded.smart_capture_settings["visible_fields"]
     assert "title" in loaded.smart_capture_settings["visible_fields"]
 
@@ -85,6 +85,17 @@ def test_production_smart_capture_uses_flat_tabs_and_retires_fixture_mode():
     # Cursor rendering belongs to BaseMainWindow. Keeping this subclass free of
     # its own badge updater prevents it from overwriting iterator/rolodex state.
     assert "def _update_cursor_badge" not in source
+
+
+def test_hotkey_disabled_status_is_persistent_and_uses_configured_toggle():
+    source = Path("src/jaw/desktop/smart_capture_window.py").read_text(encoding="utf-8")
+    assert 'self.hotkeys_status_label = QLabel()' in source
+    assert 'self.statusBar().insertWidget(0, self.hotkeys_status_label, 1)' in source
+    assert 'self.config.hotkey_settings.get("toggle", "SHIFT+SPACE")' in source
+    assert 'f"Hotkeys disabled · {shortcut} to enable"' in source
+    assert '"SPACE": "Spacebar"' in source
+    assert "def _update_hotkeys_visual_state" in source
+    assert "self._refresh_hotkeys_status()" in source
 
 
 def test_tracker_and_analysis_desktop_dispatch_remain_separate():
