@@ -13,6 +13,11 @@
 </p>
 
 ## What JAW does
+<p align="center">
+  <a href="visuals/workflow.png">
+    <img src="visuals/workflow.png" alt="workflow" width="100%">
+  </a>
+</p>
 
 - **Desktop application assistant** — configurable global hotkeys and iterators for profile data, work experience, skills, links, and reusable answers.
 - **Smart Capture** — capture selected job-description text, parse important fields, and optionally verify/enrich the result with Ollama.
@@ -25,6 +30,12 @@
 - **Optional Chrome helper** — reuse the existing JAW dashboard tab instead of opening duplicate tabs.
 
 JAW stores its application data locally in SQLite. The default dashboard is served only through the local JAW process at `http://127.0.0.1:8765`.
+
+<p align="center">
+  <a href="visuals/jaw_architecture.png">
+    <img src="visuals/jaw_architecture.png" alt="workflow" width="100%">
+  </a>
+</p>
 
 ## Visual tour
 
