@@ -42,7 +42,8 @@ JAW follows semantic versioning. The initial public release is `0.1.0` and shoul
 - Source and wheel installation support on Python 3.11+.
 - Runtime web assets included and smoke-tested from an installed wheel.
 - Dashboard bound to loopback by default with loopback Host and mutation-Origin validation.
-- No third-party font binaries bundled with JAW; custom fonts can be staged with `JAW_TECTONIC_SEARCH_PATH`.
+- Open-source Montserrat, Open Sans, and Qwitcher Grypen font families bundled for reproducible built-in document rendering, with their license texts included in distributions.
+- Additional custom fonts can be staged with `JAW_TECTONIC_SEARCH_PATH`.
 - Personal databases, configuration, exports, token caches, environment files, and private regression fixtures excluded from version control.
 
 ### Documentation
