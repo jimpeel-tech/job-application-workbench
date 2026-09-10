@@ -4,6 +4,14 @@
 
 > **Project status:** JAW `v0.1.0` is the initial public alpha release. It is primarily tested on Windows and supports both source installs and automated standalone Windows executable builds.
 
+## Download
+
+[![Download JAW for Windows](https://img.shields.io/badge/Download-JAW%20for%20Windows-0078D4?logo=windows&logoColor=white)](https://github.com/jimpeel-tech/job-application-workbench/releases/latest/download/JAW.exe)
+
+**Windows:** [Download the latest `JAW.exe`](https://github.com/jimpeel-tech/job-application-workbench/releases/latest/download/JAW.exe). The standalone executable does not require Python to be installed.
+
+[View all releases](https://github.com/jimpeel-tech/job-application-workbench/releases) · [SHA-256 checksum](https://github.com/jimpeel-tech/job-application-workbench/releases/latest/download/JAW.exe.sha256)
+
 [![Buy Me a Coffee](https://img.shields.io/badge/Buy%20me%20a%20coffee-support-F6C915?logo=buy-me-a-coffee&logoColor=000000)](https://buymeacoffee.com/jimpeel)
 
 <p align="center">
@@ -78,7 +86,16 @@ _Click any image to view it full size._
 
 ## Quick start
 
-### Requirements
+### Windows executable
+
+1. [Download the latest `JAW.exe`](https://github.com/jimpeel-tech/job-application-workbench/releases/latest/download/JAW.exe).
+2. Run `JAW.exe`.
+
+The standalone executable is the simplest way to try JAW on Windows and does not require a Python installation.
+
+### Install from source
+
+Requirements:
 
 - Windows 10 or Windows 11
 - Python 3.11+
