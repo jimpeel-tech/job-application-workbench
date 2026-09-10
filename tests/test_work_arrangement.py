@@ -9,6 +9,7 @@ from jaw.capture_context import (
     normalize_capture_for_parser,
 )
 from jaw.database import JobDatabase
+from jaw.parser_resolution import resolve_parser_evidence
 from jaw.work_arrangement import analyze_work_arrangement
 
 
@@ -95,3 +96,86 @@ def test_remote_us_scope_is_remote_eligibility_not_office_location():
     assert analysis.status == "Remote"
     assert analysis.location == "United States"
     assert analysis.evidence[0].location_relation == "remote_eligibility"
+
+
+def test_servicenow_flexible_header_uses_neighboring_posting_location():
+    content = (
+        "Engineering, Infrastructure and Operations\n"
+        "San Diego\n"
+        "Flexible\n"
+        "September 04, 2026\n\n"
+        "Work Personas\n"
+        "Work personas (flexible, remote, or required in office) are categories assigned "
+        "depending on the nature of the work."
+    )
+
+    analysis = analyze_work_arrangement(content)
+
+    assert analysis.status == "Flexible"
+    assert analysis.location == "San Diego"
+    assert analysis.conflict is False
+
+
+def test_location_row_remote_extracts_remote_eligibility():
+    analysis = analyze_work_arrangement("Location: remote - Austin,TX")
+
+    assert analysis.status == "Remote"
+    assert analysis.location == "Austin, TX"
+    assert analysis.evidence[0].location_relation == "remote_eligibility"
+
+
+def test_periodic_office_attendance_without_remote_claim_is_hybrid():
+    content = (
+        "Candidates may live in San Antonio or Austin Texas areas. "
+        "This role will require 2 to 3 days per month at the One Frost Corporate Campus "
+        "office in San Antonio."
+    )
+
+    analysis = analyze_work_arrangement(content)
+
+    assert analysis.status == "Hybrid"
+    assert analysis.location == "San Antonio, TX"
+    assert analysis.conflict is False
+    assert analysis.evidence[0].frequency == "2 to 3 days per month"
+
+
+def test_joined_location_metadata_prefers_hybrid_and_keeps_location():
+    content = (
+        "Job Role: SRE EngineerLocation: Austin TX/South Lake, TX "
+        "(Onsite- Hybrid)Employment Type: Full-Time"
+    )
+
+    analysis = analyze_work_arrangement(content)
+
+    assert analysis.status == "Hybrid"
+    assert analysis.location == "Austin TX/South Lake, TX"
+    assert analysis.evidence[0].location_relation == "office_location"
+
+
+def test_remote_country_metadata_dedupes_country_code_and_name():
+    analysis = analyze_work_arrangement("Remote - MX ; Mexico; Remote")
+
+    assert analysis.status == "Remote"
+    assert analysis.location == "Mexico"
+    assert analysis.evidence[0].location_relation == "remote_eligibility"
+
+
+def test_remote_support_and_hybrid_engineering_are_not_work_arrangements():
+    analysis = analyze_work_arrangement(
+        "Provide remote support for network repairs. This is a hybrid engineering and "
+        "operations role supporting cloud systems."
+    )
+
+    assert analysis.status == ""
+    assert analysis.evidence == ()
+
+
+def test_structured_work_arrangement_overrides_legacy_resolution():
+    resolution = resolve_parser_evidence(
+        [],
+        "Location: remote - Austin,TX\nContract Length: 6-Months Contract to Hire",
+    )
+
+    assert resolution.values["remote_status"] == ("Remote",)
+    assert resolution.values["location"] == ("Austin, TX",)
+    assert resolution.fields["remote_status"].priority == 95
