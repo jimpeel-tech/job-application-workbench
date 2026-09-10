@@ -2,7 +2,7 @@
 
 **JAW** is a Windows-first, local-first desktop application for reducing repetitive work during job applications. It combines reusable application data, keyboard-driven paste workflows, job capture and analysis, application tracking, capability matching, and document generation in one local workspace.
 
-> **Project status:** JAW is preparing for its initial `v0.1.0` public alpha release. It is primarily tested on Windows and supports both source installs and automated standalone Windows executable builds.
+> **Project status:** JAW `v0.1.0` is the initial public alpha release. It is primarily tested on Windows and supports both source installs and automated standalone Windows executable builds.
 
 [![Buy Me a Coffee](https://img.shields.io/badge/Buy%20me%20a%20coffee-support-F6C915?logo=buy-me-a-coffee&logoColor=000000)](https://buymeacoffee.com/jimpeel)
 
@@ -169,7 +169,7 @@ Document
 
 Templates are normally LaTeX + Jinja. Sections hold document-facing content and can use JAW generation features; Functions provide reusable/extracted logic.
 
-PDF rendering uses Tectonic. JAW does not bundle third-party font binaries; templates that require custom fonts can use `JAW_TECTONIC_SEARCH_PATH`.
+PDF rendering uses Tectonic. JAW bundles the open-source Montserrat, Open Sans, and Qwitcher Grypen font families used by its built-in templates, together with their license texts. Additional custom fonts can be supplied with `JAW_TECTONIC_SEARCH_PATH`.
 
 See [Document Workbench](docs/document-workbench.md) and [Tectonic Setup](docs/tectonic.md).
 
