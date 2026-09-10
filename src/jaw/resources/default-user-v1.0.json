@@ -583,7 +583,7 @@
     }
   ],
   "analysis_settings": {
-    "mode": "generative",
+    "mode": "local",
     "provider": "openai",
     "model": "gpt-5.6-sol"
   },
