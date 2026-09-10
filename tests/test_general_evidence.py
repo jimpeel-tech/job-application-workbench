@@ -61,6 +61,30 @@ def test_linkedin_company_logo_prefix_is_cleaned():
     assert company.value == "Addison Group"
 
 
+def test_company_title_identity_pair_beats_description_company_guess():
+    company = extract_company_evidence(
+        "Techfinite Systems\n\n"
+        "Sr.DevOps Engineer\n\n"
+        "At WrongCo, we build tools for engineering teams."
+    )
+
+    assert company is not None
+    assert company.value == "Techfinite Systems"
+    assert company.rule == "capture_identity_pair"
+
+
+def test_title_company_identity_pair_supports_reverse_capture_order():
+    company = extract_company_evidence(
+        "Principal Site Reliability Engineer\n\n"
+        "Microsoft\n\n"
+        "At WrongCo, we build tools for engineering teams."
+    )
+
+    assert company is not None
+    assert company.value == "Microsoft"
+    assert company.rule == "capture_identity_pair"
+
+
 def test_explicit_on_call_participation_is_required():
     on_call = extract_on_call_evidence(
         "This role participates in an on-call rotation for production incidents."
