@@ -5,6 +5,7 @@ from typing import Any, Iterable
 
 from .capture import extract_job_fields
 from .general_evidence import extract_general_evidence
+from .pay_evidence import analyze_pay
 from .value_canonicalization import canonical_capture_value
 from .work_arrangement import analyze_work_arrangement
 
@@ -115,6 +116,7 @@ def _field_priority(field: str, context: str) -> int:
         "application_deadline",
     }:
         return {
+            "pay_evidence": 100,
             "work_arrangement": 95,
             "general_evidence": 95,
             "job_metadata": 90,
@@ -204,6 +206,20 @@ def resolve_parser_evidence(
                 context="general_evidence",
                 capture_index=None,
             )
+        pay = analyze_pay(combined_text)
+        if pay is not None:
+            for field, value in (
+                ("pay_min", pay.pay_min),
+                ("pay_max", pay.pay_max),
+                ("currency", pay.currency),
+                ("pay_period", pay.period),
+            ):
+                add_value(
+                    field,
+                    value,
+                    context="pay_evidence",
+                    capture_index=None,
+                )
         work_arrangement = analyze_work_arrangement(combined_text)
         if work_arrangement.status:
             add_value(
