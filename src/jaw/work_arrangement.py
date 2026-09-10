@@ -45,7 +45,7 @@ _HYBRID_TECHNICAL = re.compile(
 _ATTENDANCE = re.compile(
     r"\b(?:must|required|expected|need(?:ed)?|will|should)\b"
     r"[^.\n]{0,80}\b(?:report|commute|work|be)\b"
-    r"[^.\n]{0,90}\b(?:office|on[- ]?site|onsite|in[- ]office|site|location)\b",
+    r"[^.\n]{0,90}\b(?:office|on[- ]?site|onsite|in[- ]office|site)\b",
     re.IGNORECASE,
 )
 _PERIODIC_OFFICE = re.compile(
