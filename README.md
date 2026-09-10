@@ -141,7 +141,7 @@ JAW's default Ollama model is `qwen3:14b`. Ollama is not required for the determ
 
 ## Basic workflow
 
-1. Start JAW with `jaw`.
+1. Start JAW.
 2. Open the local **User Data** pages and add the profile, work-experience, Q&A, and capability data you want to reuse.
 3. Use the desktop actions while filling an application form.
 4. Use **Smart Capture** on selected job-description text.
