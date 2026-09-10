@@ -53,6 +53,73 @@ class MainWindow(BaseMainWindow):
         self._capture_verification_started_at: float | None = None
         self._capture_verification_elapsed_s: float | None = None
 
+    @staticmethod
+    def _hotkey_shortcut_label(binding: str) -> str:
+        labels = {
+            "CTRL": "Ctrl",
+            "CONTROL": "Ctrl",
+            "SHIFT": "Shift",
+            "ALT": "Alt",
+            "SPACE": "Spacebar",
+        }
+        parts = [part.strip() for part in str(binding).split("+") if part.strip()]
+        return " + ".join(labels.get(part.upper(), part.title()) for part in parts)
+
+    def _refresh_hotkeys_status(self) -> None:
+        if not hasattr(self, "hotkeys_status_label"):
+            self.hotkeys_status_label = QLabel()
+            self.hotkeys_status_label.setObjectName("hotkeysStatus")
+            self.hotkeys_status_label.setContentsMargins(6, 0, 6, 0)
+            self.hotkeys_status_label.setStyleSheet("color: #e1ad62;")
+            self.statusBar().insertWidget(0, self.hotkeys_status_label, 1)
+
+        if self.hotkeys_enabled:
+            self.hotkeys_status_label.clear()
+            self.hotkeys_status_label.hide()
+            return
+
+        binding = str(self.config.hotkey_settings.get("toggle", "SHIFT+SPACE"))
+        shortcut = self._hotkey_shortcut_label(binding)
+        self.hotkeys_status_label.setText(
+            f"Hotkeys disabled · {shortcut} to enable"
+        )
+        self.hotkeys_status_label.show()
+
+    def _update_hotkeys_visual_state(self) -> None:
+        super()._update_hotkeys_visual_state()
+        self._refresh_hotkeys_status()
+
+    def handle_global_key(self, key: str) -> None:
+        if key == "SPECIAL:toggle":
+            self._poll_sync_revisions(force=True)
+            if self._answer_search_active:
+                return
+            self.hotkeys_enabled = not self.hotkeys_enabled
+            self.hotkeys.set_enabled(self.hotkeys_enabled)
+            self._update_hotkeys_visual_state()
+            self.layer_badge.setText(
+                "BASE LAYER" if self.hotkeys_enabled else "HOTKEYS OFF"
+            )
+            if self.hotkeys_enabled:
+                self.statusBar().showMessage("Hotkeys enabled", 1600)
+            return
+        super().handle_global_key(key)
+
+    def trigger_layer2(self, key: str) -> None:
+        assignment = self._resolve_layer_binding(key, self.config.layer2)
+        if assignment == "toggle_hotkeys":
+            self.hotkeys_enabled = not self.hotkeys_enabled
+            self.hotkeys.set_enabled(self.hotkeys_enabled)
+            self._update_hotkeys_visual_state()
+            if self.layer != "Layer 2":
+                self.layer_badge.setText(
+                    "BASE LAYER" if self.hotkeys_enabled else "HOTKEYS OFF"
+                )
+            if self.hotkeys_enabled:
+                self.statusBar().showMessage("Hotkeys enabled", 1600)
+            return
+        super().trigger_layer2(key)
+
     def _sync_custom_iterator_selection(self, row: int) -> None:
         if row < 0 or not self.active_custom_iterator:
             return
