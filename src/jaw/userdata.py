@@ -646,7 +646,7 @@ class UserDataStore:
             "iterator_preferences": {},
             "answers": [],
             "analysis_settings": {
-                "mode": "generative",
+                "mode": "local",
                 "provider": "openai",
                 "model": "gpt-5.6-terra",
             },
@@ -718,7 +718,7 @@ class UserDataStore:
             "analysis_settings": data.get(
                 "analysis_settings",
                 {
-                    "mode": "generative",
+                    "mode": "local",
                     "provider": "openai",
                     "model": "gpt-5.6-terra",
                 },
