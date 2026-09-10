@@ -6,7 +6,8 @@ import os
 import re
 import tomllib
 from collections.abc import Mapping, Sequence
-from importlib.metadata import PackageNotFoundError, version as distribution_version
+from importlib.metadata import PackageNotFoundError
+from importlib.metadata import version as distribution_version
 from pathlib import Path
 from typing import Any
 
