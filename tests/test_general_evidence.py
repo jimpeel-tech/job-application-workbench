@@ -169,6 +169,16 @@ def test_regular_employee_multiline_job_type_is_preserved():
     assert evidence.value == "Regular employee"
 
 
+def test_explicit_full_time_role_beats_regular_employee_relationship():
+    evidence = extract_employment_type_evidence(
+        "Job Type\nRegular Employee\n"
+        "This position will be full-time on-site at Oracle's offices located in Nashville, TN."
+    )
+
+    assert evidence is not None
+    assert evidence.value == "Full-time"
+
+
 def test_permanent_full_time_role_is_preserved():
     evidence = extract_employment_type_evidence(
         "We are unable to sponsor for this permanent full-time role."
