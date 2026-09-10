@@ -281,7 +281,7 @@ class AppConfig:
     action_displays: dict[str, dict[str, str]] = field(default_factory=dict)
     answers: list[AnswerEntry] = field(default_factory=list)
     name_format: str = "first_last"
-    analysis_mode: str = "generative"
+    analysis_mode: str = "local"
     analysis_provider: str = "openai"
     openai_model: str = DEFAULT_OPENAI_MODEL
     dashboard_port: int = DEFAULT_DASHBOARD_PORT
@@ -897,9 +897,9 @@ def load_config(path: str | Path | None = None, *, user_id: int | None = None) -
         if user_database_path.exists()
         else {}
     )
-    analysis_mode = str(analysis_settings.get("mode", "generative")).lower()
+    analysis_mode = str(analysis_settings.get("mode", "local")).lower()
     if analysis_mode not in {"local", "generative"}:
-        analysis_mode = "generative"
+        analysis_mode = "local"
     analysis_provider = str(
         analysis_settings.get("provider", "openai")
     ).lower()

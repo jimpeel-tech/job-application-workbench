@@ -234,7 +234,7 @@ def test_analysis_settings_are_per_user(tmp_path: Path):
     second_id = store.create_user("Second", False)
     store.switch_user(second_id)
     assert store.read()["analysis_settings"] == {
-        "mode": "generative",
+        "mode": "local",
         "provider": "openai",
         "model": "gpt-5.6-terra",
     }
