@@ -102,6 +102,84 @@ def test_contract_length_contract_to_hire_is_employment_type():
     assert evidence.value == "Contract to hire"
 
 
+def test_compact_metadata_full_time_is_employment_type():
+    evidence = extract_employment_type_evidence(
+        "Sr.DevOps Engineer\nHybrid/Remote · Full Time · Experience: 3-4 years"
+    )
+
+    assert evidence is not None
+    assert evidence.value == "Full-time"
+
+
+def test_full_time_exempt_position_preserves_modifier():
+    evidence = extract_employment_type_evidence(
+        "This is a full-time, exempt position that reports to the Senior Director."
+    )
+
+    assert evidence is not None
+    assert evidence.value == "Full-time, exempt"
+
+
+def test_plural_job_types_preserve_full_time_or_contract_alternative():
+    evidence = extract_employment_type_evidence("Job Types: Full-time, Contract")
+
+    assert evidence is not None
+    assert evidence.value == "Full-time or contract"
+
+
+def test_generic_type_label_can_capture_hourly_contract():
+    evidence = extract_employment_type_evidence(
+        "Position: Site Reliability Engineer\nType: Hourly contract\nCompensation: $40 - $70/hour"
+    )
+
+    assert evidence is not None
+    assert evidence.value == "Hourly contract"
+
+
+def test_regular_employee_multiline_job_type_is_preserved():
+    evidence = extract_employment_type_evidence(
+        "Job Type\nRegular Employee\nDoes this position require a security clearance?\nNo"
+    )
+
+    assert evidence is not None
+    assert evidence.value == "Regular employee"
+
+
+def test_permanent_full_time_role_is_preserved():
+    evidence = extract_employment_type_evidence(
+        "We are unable to sponsor for this permanent full-time role."
+    )
+
+    assert evidence is not None
+    assert evidence.value == "Permanent, full-time"
+
+
+def test_contract_full_time_label_is_combined_employment_type():
+    evidence = extract_employment_type_evidence(
+        "Employment Type: Contract — Full-Time\nDepartment: Engineering"
+    )
+
+    assert evidence is not None
+    assert evidence.value == "Full-time contract"
+
+
+def test_benefit_type_salaried_full_time_is_employment_type():
+    evidence = extract_employment_type_evidence(
+        "Job ID 2026-14214 Benefit Type Salaried High Fringe/Full-Time\nOverview"
+    )
+
+    assert evidence is not None
+    assert evidence.value == "Full-time salaried"
+
+
+def test_full_time_experience_requirement_is_not_employment_type():
+    evidence = extract_employment_type_evidence(
+        "1+ years of professional full-time experience preferred, but not required"
+    )
+
+    assert evidence is None
+
+
 def test_clearance_question_answer_no_is_preserved():
     evidence = extract_clearance_evidence(
         "Does this position require a security clearance?\nNo"
