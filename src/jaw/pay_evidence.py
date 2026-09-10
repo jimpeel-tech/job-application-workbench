@@ -50,6 +50,9 @@ def analyze_pay(content: str) -> PayEvidence | None:
         if not _plausible(low, high, "year"):
             continue
         context = _window(text, match.start(), match.end())
+        local = _line(text, match.start(), match.end())
+        if _BAD_CONTEXT.search(local):
+            continue
         score = 15 + _context_score(context)
         candidates.append(
             (
@@ -60,7 +63,7 @@ def analyze_pay(content: str) -> PayEvidence | None:
                     pay_max=_number(high),
                     currency=(match.group("currency") or _currency(context)),
                     period="year",
-                    evidence=_line(text, match.start(), match.end()),
+                    evidence=local,
                     confidence=0.99,
                     rule="min_mid_max_salary_range",
                 ),
@@ -82,6 +85,9 @@ def analyze_pay(content: str) -> PayEvidence | None:
         if not _plausible(low, high, period):
             continue
         context = _window(text, match.start(), match.end())
+        local = _line(text, match.start(), match.end())
+        if _BAD_CONTEXT.search(local):
+            continue
         candidates.append(
             (
                 16 + _context_score(context),
@@ -91,7 +97,7 @@ def analyze_pay(content: str) -> PayEvidence | None:
                     pay_max=_number(high),
                     currency=_currency(context),
                     period=period,
-                    evidence=_line(text, match.start(), match.end()),
+                    evidence=local,
                     confidence=0.99,
                     rule="prose_salary_range",
                 ),
@@ -111,6 +117,7 @@ def analyze_pay(content: str) -> PayEvidence | None:
         low = _amount(match.group("low"), match.group("scale1"))
         high = _amount(match.group("high"), match.group("scale2"))
         context = _window(text, match.start(), match.end())
+        local = _line(text, match.start(), match.end())
         prefix = " ".join(text[max(0, match.start() - 180):match.start()].split())
         period = _period(match.group("period"), context, high)
         if not _plausible(low, high, period):
@@ -128,7 +135,7 @@ def analyze_pay(content: str) -> PayEvidence | None:
             score += 2
         if match.group("period"):
             score += 3
-        if _BAD_CONTEXT.search(context):
+        if _BAD_CONTEXT.search(local):
             score -= 20
         if _SECONDARY_LOCATION.search(prefix):
             score -= 6
@@ -144,7 +151,7 @@ def analyze_pay(content: str) -> PayEvidence | None:
                     pay_max=_number(high),
                     currency=currency,
                     period=period,
-                    evidence=_line(text, match.start(), match.end()),
+                    evidence=local,
                     confidence=min(0.99, 0.80 + score * 0.01),
                     rule="contextual_salary_range",
                 ),
@@ -160,8 +167,9 @@ def analyze_pay(content: str) -> PayEvidence | None:
     for match in single.finditer(text):
         amount = _amount(match.group("amount"), match.group("scale"))
         context = _window(text, match.start(), match.end())
+        local = _line(text, match.start(), match.end())
         period = _period(match.group("period"), context, amount)
-        if not _plausible(amount, amount, period) or _BAD_CONTEXT.search(context):
+        if not _plausible(amount, amount, period) or _BAD_CONTEXT.search(local):
             continue
         score = 9 + _context_score(context)
         candidates.append(
@@ -173,7 +181,7 @@ def analyze_pay(content: str) -> PayEvidence | None:
                     pay_max=_number(amount),
                     currency=_currency(context),
                     period=period,
-                    evidence=_line(text, match.start(), match.end()),
+                    evidence=local,
                     confidence=min(0.97, 0.80 + score * 0.01),
                     rule="contextual_single_pay",
                 ),
