@@ -29,6 +29,30 @@ _GENERIC_COMPANY_VALUES = {
     "location",
     "locations",
 }
+_IDENTITY_NON_COMPANY_VALUES = {
+    "about us",
+    "basic qualifications",
+    "benefits",
+    "company description",
+    "full job description",
+    "job description",
+    "job details",
+    "job type",
+    "location",
+    "locations",
+    "minimum qualifications",
+    "qualifications",
+    "remote",
+    "requirements",
+    "responsibilities",
+    "work type",
+}
+_IDENTITY_TITLE = re.compile(
+    r"\b(?:administrator|analyst|architect|consultant|developer|director|engineer|"
+    r"engineering|lead|manager|officer|principal|scientist|specialist|technician|"
+    r"sre|devops|devsecops)\b",
+    re.IGNORECASE,
+)
 _COMPANY_PATTERNS: tuple[tuple[re.Pattern[str], float, str], ...] = (
     (
         re.compile(r"(?:^|\n)\s*Company\s+logo\s+for,?\s*([^\n]{2,100})", re.IGNORECASE),
@@ -156,6 +180,18 @@ def extract_general_evidence(content: str) -> tuple[GeneralFieldEvidence, ...]:
 
 def extract_company_evidence(content: str) -> GeneralFieldEvidence | None:
     candidates: dict[str, dict[str, object]] = {}
+
+    identity = _identity_company_candidate(content)
+    if identity is not None:
+        value, evidence = identity
+        candidates[value.casefold()] = {
+            "value": value,
+            "confidence": 1.0,
+            "count": 2,
+            "evidence": evidence,
+            "rule": "capture_identity_pair",
+        }
+
     for pattern, confidence, rule in _COMPANY_PATTERNS:
         for match in pattern.finditer(content):
             value = _clean_company(match.group(1))
@@ -500,6 +536,57 @@ def extract_application_deadline_evidence(content: str) -> GeneralFieldEvidence 
             rule="explicit_application_deadline",
         )
     return None
+
+
+def _identity_company_candidate(content: str) -> tuple[str, str] | None:
+    blocks = [block.strip() for block in re.split(r"\n\s*\n", content.strip()) if block.strip()]
+    if len(blocks) < 2:
+        return None
+
+    first = _identity_block_value(blocks[0])
+    second = _identity_block_value(blocks[1])
+    if _looks_like_company_identity(first) and _looks_like_title_identity(second):
+        return first, " | ".join((first, second))
+    if _looks_like_title_identity(first) and _looks_like_company_identity(second):
+        return second, " | ".join((first, second))
+    return None
+
+
+def _identity_block_value(block: str) -> str:
+    lines = [" ".join(line.split()).strip() for line in block.splitlines() if line.strip()]
+    if not lines or len(lines) > 3:
+        return ""
+
+    cleaned = [_clean_company(line) for line in lines]
+    cleaned = [value for value in cleaned if value]
+    if not cleaned:
+        return ""
+
+    unique = list(dict.fromkeys(value.casefold() for value in cleaned))
+    if len(unique) == 1:
+        return cleaned[0]
+    if len(cleaned) == 1:
+        return cleaned[0]
+    return ""
+
+
+def _looks_like_company_identity(value: str) -> bool:
+    if not _valid_company(value) or _looks_like_title_identity(value):
+        return False
+    lowered = value.casefold().strip()
+    if lowered in _IDENTITY_NON_COMPANY_VALUES:
+        return False
+    if any(marker in value for marker in (":", "|", "·", "$", "?")):
+        return False
+    if re.search(r"\b(?:remote|hybrid|on[- ]?site|full[- ]?time|part[- ]?time)\b", lowered):
+        return False
+    return bool(re.search(r"[A-Za-z]", value))
+
+
+def _looks_like_title_identity(value: str) -> bool:
+    if not value or len(value) > 140:
+        return False
+    return bool(_IDENTITY_TITLE.search(value))
 
 
 def _normalize_employment_type(value: str) -> str:
