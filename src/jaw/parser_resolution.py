@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from typing import Any, Iterable
 
 from .capture import extract_job_fields
+from .general_evidence import extract_general_evidence
 from .value_canonicalization import canonical_capture_value
 from .work_arrangement import analyze_work_arrangement
 
@@ -90,6 +91,7 @@ def _field_priority(field: str, context: str) -> int:
         }.get(context, 40)
     if field == "company":
         return {
+            "general_evidence": 105,
             "company": 100,
             "job_description": 50,
             "combined": 30,
@@ -114,6 +116,7 @@ def _field_priority(field: str, context: str) -> int:
     }:
         return {
             "work_arrangement": 95,
+            "general_evidence": 95,
             "job_metadata": 90,
             "job_description": 55,
             "combined": 30,
@@ -135,8 +138,8 @@ def resolve_parser_evidence(
     ties between candidates with the same top context priority; it never allows
     repeated low-authority inference to overrule an explicit high-authority fact.
     The synthetic whole-session extraction is fallback evidence and does not count
-    as independent corroboration. Structured workplace evidence is resolved
-    separately and outranks legacy whole-text workplace guesses.
+    as independent corroboration. Structured workplace and general evidence are
+    resolved separately and outrank legacy whole-text guesses.
     """
     occurrences: dict[str, list[dict[str, Any]]] = {}
 
@@ -190,6 +193,13 @@ def resolve_parser_evidence(
             fallback_context="combined",
             capture_index=None,
         )
+        for item in extract_general_evidence(combined_text):
+            add_value(
+                item.field,
+                item.value,
+                context="general_evidence",
+                capture_index=None,
+            )
         work_arrangement = analyze_work_arrangement(combined_text)
         if work_arrangement.status:
             add_value(
