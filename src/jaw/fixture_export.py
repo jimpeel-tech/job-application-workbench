@@ -27,19 +27,48 @@ def export_snapshot(
     """Copy one observation-only Smart Capture snapshot into the private inbox."""
     workspace = Path(workspace).resolve()
     snapshot_root = workspace / ".jaw-dev" / "fixtures"
+    repository = _resolve_repository(workspace, fixture_repository)
+
+    source = _select_snapshot(snapshot_root, fixture_id)
+    return _export_source(source, repository)
+
+
+def export_all_snapshots(
+    workspace: Path,
+    fixture_repository: Path | None = None,
+) -> list[Path]:
+    """Export every snapshot not already present in the private fixture inbox."""
+    workspace = Path(workspace).resolve()
+    snapshot_root = workspace / ".jaw-dev" / "fixtures"
+    repository = _resolve_repository(workspace, fixture_repository)
+    destination_root = repository / "inbox"
+    destination_root.mkdir(parents=True, exist_ok=True)
+
+    exported: list[Path] = []
+    for _created_at, source in _snapshot_candidates(snapshot_root):
+        manifest = _read_manifest(source / "manifest.json")
+        fixture_id = str(manifest.get("fixture_id", ""))
+        if fixture_id and (destination_root / fixture_id).exists():
+            continue
+        exported.append(_export_source(source, repository))
+    return exported
+
+
+def _resolve_repository(workspace: Path, fixture_repository: Path | None) -> Path:
     repository = (
         Path(fixture_repository).expanduser().resolve()
         if fixture_repository is not None
         else default_fixture_repository(workspace)
     )
-
     if not repository.exists():
         raise FixtureExportError(
             f"Fixture repository does not exist: {repository}. "
             "Clone jaw-fixtures beside JAW or set JAW_FIXTURE_REPO."
         )
+    return repository
 
-    source = _select_snapshot(snapshot_root, fixture_id)
+
+def _export_source(source: Path, repository: Path) -> Path:
     manifest = _read_manifest(source / "manifest.json")
     _validate_snapshot(source, manifest)
 
@@ -70,17 +99,22 @@ def _select_snapshot(snapshot_root: Path, fixture_id: str | None) -> Path:
             raise FixtureExportError(f"Smart Capture snapshot not found: {fixture_id}")
         return source
 
+    candidates = _snapshot_candidates(snapshot_root)
+    if not candidates:
+        raise FixtureExportError(
+            f"No Smart Capture snapshots found under {snapshot_root}"
+        )
+    return candidates[-1][1]
+
+
+def _snapshot_candidates(snapshot_root: Path) -> list[tuple[str, Path]]:
     candidates: list[tuple[str, Path]] = []
     for manifest_path in snapshot_root.glob("*/manifest.json"):
         manifest = _read_manifest(manifest_path)
         if manifest.get("fixture_id"):
             candidates.append((str(manifest.get("created_at", "")), manifest_path.parent))
-    if not candidates:
-        raise FixtureExportError(
-            f"No Smart Capture snapshots found under {snapshot_root}"
-        )
-    candidates.sort(key=lambda item: (item[0], item[1].name), reverse=True)
-    return candidates[0][1]
+    candidates.sort(key=lambda item: (item[0], item[1].name))
+    return candidates
 
 
 def _validate_snapshot(source: Path, manifest: dict[str, Any]) -> None:
