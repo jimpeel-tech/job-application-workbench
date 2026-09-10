@@ -7,7 +7,7 @@ Bundled font families:
 
 - Montserrat — SIL Open Font License 1.1
 - Open Sans — SIL Open Font License 1.1
-- TeX Gyre Heros — GUST Font License
+- Qwitcher Grypen — SIL Open Font License 1.1
 
 The applicable license texts are included under `licenses/`.
 
@@ -17,15 +17,16 @@ Users may additionally provide `.ttf`, `.otf`, or `.ttc` files by setting
 `JAW_TECTONIC_SEARCH_PATH`.
 
 JAW stages supported fonts from that directory into the temporary Tectonic
-render sandbox.
+render sandbox alongside the bundled font resources.
 
 ```powershell
 $env:JAW_TECTONIC_SEARCH_PATH = "C:\Users\you\Fonts\jaw"
 jaw
+```
 
 ## Examples
 
-```
+```latex
 % Main body font
 \setmainfont{OpenSans-Regular.ttf}[
   BoldFont = OpenSans-Bold.ttf,
@@ -40,11 +41,9 @@ jaw
 % Signature font
 \newfontfamily\signaturefont{QwitcherGrypen-Regular.ttf}
 
-
-  \signaturefont
-  \fontsize{15.5pt}{18pt}
-  \selectfont
-  \color{SignatureGray}
-  {{ user.full_name }}
-
+\signaturefont
+\fontsize{15.5pt}{18pt}
+\selectfont
+\color{SignatureGray}
+{{ user.full_name }}
 ```
