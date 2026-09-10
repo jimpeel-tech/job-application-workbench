@@ -142,6 +142,7 @@ def resolve_parser_evidence(
     resolved separately and outrank legacy whole-text guesses.
     """
     occurrences: dict[str, list[dict[str, Any]]] = {}
+    has_combined_text = bool(combined_text.strip())
 
     def add_value(
         field: str,
@@ -176,8 +177,11 @@ def resolve_parser_evidence(
         for raw_field, raw_value in fields.items():
             if isinstance(raw_value, (list, dict)):
                 continue
+            field = str(raw_field)
+            if has_combined_text and field == "on_call":
+                continue
             add_value(
-                str(raw_field),
+                field,
                 str(raw_value),
                 context=context,
                 capture_index=capture_index,
@@ -187,7 +191,7 @@ def resolve_parser_evidence(
         if isinstance(extraction, dict):
             add_extraction(extraction, capture_index=capture_index)
 
-    if combined_text.strip():
+    if has_combined_text:
         add_extraction(
             extract_job_fields(combined_text),
             fallback_context="combined",
