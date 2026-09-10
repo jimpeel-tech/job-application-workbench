@@ -4,6 +4,12 @@
 
 > **Project status:** JAW is preparing for its initial `v0.1.0` public alpha release. It is primarily tested on Windows and supports both source installs and automated standalone Windows executable builds.
 
+<p align="center">
+  <a href="visuals/Capture.png">
+    <img src="visuals/Capture.png" alt="JAW job capture, parsing, and AI-assisted analysis workflow" width="100%">
+  </a>
+</p>
+
 ## What JAW does
 
 - **Desktop application assistant** — configurable global hotkeys and iterators for profile data, work experience, skills, links, and reusable answers.
@@ -17,6 +23,45 @@
 - **Optional Chrome helper** — reuse the existing JAW dashboard tab instead of opening duplicate tabs.
 
 JAW stores its application data locally in SQLite. The default dashboard is served only through the local JAW process at `http://127.0.0.1:8765`.
+
+## Visual tour
+
+<table>
+  <tr>
+    <td width="50%" valign="top">
+      <a href="visuals/Paste%20Assistant.png">
+        <img src="visuals/Paste%20Assistant.png" alt="JAW cursor-aware paste assistant and iterators" width="100%">
+      </a>
+      <br><strong>Application Assistant</strong><br>
+      <sub>Cursor-aware iterators, reusable profile data, work history, links, and configurable keyboard workflows.</sub>
+    </td>
+    <td width="50%" valign="top">
+      <a href="visuals/Capabilities.png">
+        <img src="visuals/Capabilities.png" alt="JAW capability model, ratings, hierarchy, relationships, and learning gaps" width="100%">
+      </a>
+      <br><strong>Capability Model</strong><br>
+      <sub>Structured capabilities, 0–5 proficiency ratings, relationships, sets, hierarchy projections, learning gaps, and AI-assisted Smart Add.</sub>
+    </td>
+  </tr>
+  <tr>
+    <td width="50%" valign="top">
+      <a href="visuals/Document%20IDE.png">
+        <img src="visuals/Document%20IDE.png" alt="JAW source-driven Document Workbench and rule-based document routing" width="100%">
+      </a>
+      <br><strong>Document IDE</strong><br>
+      <sub>Reusable Jinja/LaTeX Templates, Sections, Functions, AI generation blocks, live preview, PDF generation, and rule-based routing.</sub>
+    </td>
+    <td width="50%" valign="top">
+      <a href="visuals/Documents.png">
+        <img src="visuals/Documents.png" alt="JAW tailored resume and cover-letter generation" width="100%">
+      </a>
+      <br><strong>Tailored Documents</strong><br>
+      <sub>Build job-aware resumes and cover letters from structured career evidence using local or hosted generative models.</sub>
+    </td>
+  </tr>
+</table>
+
+_Click any image to view it full size._
 
 ## Quick start
 
