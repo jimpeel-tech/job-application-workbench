@@ -5,6 +5,7 @@ from typing import Any, Iterable
 
 from .capture import extract_job_fields
 from .value_canonicalization import canonical_capture_value
+from .work_arrangement import analyze_work_arrangement
 
 _RESULT_FIELD_KEYS = (
     "company",
@@ -112,6 +113,7 @@ def _field_priority(field: str, context: str) -> int:
         "application_deadline",
     }:
         return {
+            "work_arrangement": 95,
             "job_metadata": 90,
             "job_description": 55,
             "combined": 30,
@@ -133,9 +135,30 @@ def resolve_parser_evidence(
     ties between candidates with the same top context priority; it never allows
     repeated low-authority inference to overrule an explicit high-authority fact.
     The synthetic whole-session extraction is fallback evidence and does not count
-    as independent corroboration.
+    as independent corroboration. Structured workplace evidence is resolved
+    separately and outranks legacy whole-text workplace guesses.
     """
     occurrences: dict[str, list[dict[str, Any]]] = {}
+
+    def add_value(
+        field: str,
+        value: str,
+        *,
+        context: str,
+        capture_index: int | None,
+    ) -> None:
+        value = str(value).strip()
+        if not value:
+            return
+        occurrences.setdefault(field, []).append(
+            {
+                "value": value,
+                "key": canonical_capture_value(field, value),
+                "priority": _field_priority(field, context),
+                "context": context or "contextless",
+                "capture_index": capture_index,
+            }
+        )
 
     def add_extraction(
         extraction: dict[str, Any],
@@ -150,18 +173,11 @@ def resolve_parser_evidence(
         for raw_field, raw_value in fields.items():
             if isinstance(raw_value, (list, dict)):
                 continue
-            value = str(raw_value).strip()
-            if not value:
-                continue
-            field = str(raw_field)
-            occurrences.setdefault(field, []).append(
-                {
-                    "value": value,
-                    "key": canonical_capture_value(field, value),
-                    "priority": _field_priority(field, context),
-                    "context": context or "contextless",
-                    "capture_index": capture_index,
-                }
+            add_value(
+                str(raw_field),
+                str(raw_value),
+                context=context,
+                capture_index=capture_index,
             )
 
     for capture_index, extraction in enumerate(extractions, start=1):
@@ -174,6 +190,21 @@ def resolve_parser_evidence(
             fallback_context="combined",
             capture_index=None,
         )
+        work_arrangement = analyze_work_arrangement(combined_text)
+        if work_arrangement.status:
+            add_value(
+                "remote_status",
+                work_arrangement.status,
+                context="work_arrangement",
+                capture_index=None,
+            )
+        if work_arrangement.location:
+            add_value(
+                "location",
+                work_arrangement.location,
+                context="work_arrangement",
+                capture_index=None,
+            )
 
     fields: dict[str, ParserFieldResolution] = {}
     scalar_values: dict[str, list[str]] = {}
