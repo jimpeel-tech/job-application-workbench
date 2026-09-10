@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 
 from jaw.spreadsheet_fixture_eval import (
+    _compare_scalar,
     evaluate_spreadsheet_corpus,
     evaluate_spreadsheet_fixture,
 )
@@ -108,6 +109,36 @@ def test_rich_remote_expectation_is_preserved_but_not_scored(tmp_path):
     assert not any(
         item["field"] == "remote_status" for item in result["field_results"]
     )
+
+
+def test_pay_period_can_be_omitted_from_archived_expectation():
+    result = _compare_scalar(
+        "pay",
+        "$146000–190000",
+        ["$146000–190000 per year"],
+    )
+
+    assert result.passed is True
+    assert result.reason == "safe_equivalent"
+
+
+def test_conflicting_pay_period_is_not_treated_as_equivalent():
+    result = _compare_scalar(
+        "pay",
+        "$60–98 per hour",
+        ["$60–98 per year"],
+    )
+
+    assert result.passed is False
+    assert result.reason == "value_mismatch"
+
+
+def test_location_safe_equivalences_do_not_require_identity_fuzzing():
+    us_result = _compare_scalar("location", "United States", ["Remote - US"])
+    punctuation_result = _compare_scalar("location", "Customer site", ["Customer- site"])
+
+    assert us_result.passed is True
+    assert punctuation_result.passed is True
 
 
 def test_corpus_reports_missing_capture_pair_without_crashing(tmp_path):
