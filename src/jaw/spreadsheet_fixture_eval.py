@@ -480,6 +480,14 @@ def _canonical_location_equivalence(value: str) -> str:
         "u.s.a": "united states",
         "u.s.a.": "united states",
         "united states of america": "united states",
+        "remote us": "united states",
+        "remote u.s": "united states",
+        "remote u.s.": "united states",
+        "remote usa": "united states",
+        "remote u.s.a": "united states",
+        "remote u.s.a.": "united states",
+        "remote united states": "united states",
+        "remote united states of america": "united states",
     }
     if text in country_aliases:
         return country_aliases[text]
