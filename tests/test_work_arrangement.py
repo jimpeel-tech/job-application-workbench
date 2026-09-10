@@ -179,3 +179,29 @@ def test_structured_work_arrangement_overrides_legacy_resolution():
     assert resolution.values["remote_status"] == ("Remote",)
     assert resolution.values["location"] == ("Austin, TX",)
     assert resolution.fields["remote_status"].priority == 95
+
+
+def test_compensation_location_language_is_not_on_site_evidence():
+    content = (
+        "Your base salary will be determined based on your location, experience, and the pay "
+        "of employees in similar positions. Provide remote support for network repairs."
+    )
+
+    analysis = analyze_work_arrangement(content)
+
+    assert analysis.status == ""
+    assert analysis.evidence == ()
+
+
+def test_flexible_header_survives_compensation_work_location_language():
+    content = (
+        "San Diego\nFlexible\nSeptember 04, 2026\n\n"
+        "Individual compensation will vary based on qualifications, skill level, "
+        "competencies, and work location."
+    )
+
+    analysis = analyze_work_arrangement(content)
+
+    assert analysis.status == "Flexible"
+    assert analysis.location == "San Diego"
+    assert analysis.conflict is False
