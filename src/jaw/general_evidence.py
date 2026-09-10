@@ -241,35 +241,101 @@ def extract_employment_type_evidence(content: str) -> GeneralFieldEvidence | Non
             rule="contract_length_to_hire",
         )
 
-    labeled = re.search(
-        r"\b(?:Employment\s+Type|Job\s+Type|Time\s+Type)\s*:?\s*(?:\n\s*)?"
-        r"(Full[- ]time|Part[- ]time|Temporary|Seasonal|Permanent)\b",
+    labeled_patterns = (
+        (
+            re.compile(
+                r"(?:^|\n)\s*(?:Employment\s+Type|Employment\s+Status|Job\s+Types?|"
+                r"Time\s+Type|Position\s+Type)\s*:?\s*(?:\n\s*)?"
+                r"(?P<value>[^\n|•]{2,90})",
+                re.IGNORECASE,
+            ),
+            "explicit_employment_type_label",
+        ),
+        (
+            re.compile(
+                r"(?:^|\n)\s*Type\s*:\s*(?P<value>[^\n|•]{2,90})",
+                re.IGNORECASE,
+            ),
+            "generic_type_label",
+        ),
+    )
+    for pattern, rule in labeled_patterns:
+        for match in pattern.finditer(content):
+            value = _normalize_employment_type(match.group("value"))
+            if value:
+                return GeneralFieldEvidence(
+                    field="employment_type",
+                    value=value,
+                    evidence=_context_line(content, match.start(), match.end()),
+                    confidence=0.99,
+                    rule=rule,
+                )
+
+    benefit_type = re.search(
+        r"\bBenefit\s+Type\b[^\n]{0,80}\bSalaried\b[^\n]{0,50}\bFull[- ]Time\b",
         content,
         re.IGNORECASE,
     )
-    if labeled:
+    if benefit_type:
         return GeneralFieldEvidence(
             field="employment_type",
-            value=_employment_label(labeled.group(1)),
-            evidence=_context_line(content, labeled.start(), labeled.end()),
-            confidence=0.99,
-            rule="explicit_employment_type_label",
+            value="Full-time salaried",
+            evidence=_context_line(content, benefit_type.start(), benefit_type.end()),
+            confidence=0.98,
+            rule="benefit_type_salaried_full_time",
         )
 
-    prose = re.search(
-        r"\b(?:this|the)\s+(?:position|role|job)\s+(?:will\s+be|is)\s+"
-        r"(full[- ]time|part[- ]time)\b",
+    prose_patterns = (
+        re.compile(
+            r"\b(?:this|the)\s+(?:position|role|job)\s+(?:will\s+be|is)\s+"
+            r"(?P<value>(?:permanent\s+)?(?:full[- ]time|part[- ]time)"
+            r"(?:\s*,?\s*(?:exempt|salaried|contract))?)\b",
+            re.IGNORECASE,
+        ),
+        re.compile(
+            r"\bthis\s+is\s+an?\s+"
+            r"(?P<value>(?:permanent\s+)?(?:full[- ]time|part[- ]time)"
+            r"(?:\s*,?\s*(?:exempt|salaried|contract))?)\s+"
+            r"(?:position|role|job)\b",
+            re.IGNORECASE,
+        ),
+        re.compile(
+            r"\bthis\s+"
+            r"(?P<value>(?:permanent\s+)?(?:full[- ]time|part[- ]time)"
+            r"(?:\s*,?\s*(?:exempt|salaried|contract))?)\s+"
+            r"(?:position|role|job)\b",
+            re.IGNORECASE,
+        ),
+    )
+    for pattern in prose_patterns:
+        match = pattern.search(content)
+        if match:
+            value = _normalize_employment_type(match.group("value"))
+            if value:
+                return GeneralFieldEvidence(
+                    field="employment_type",
+                    value=value,
+                    evidence=_context_line(content, match.start(), match.end()),
+                    confidence=0.98,
+                    rule="employment_type_prose",
+                )
+
+    compact = re.search(
+        r"(?:^|\n)[^\n]{0,100}(?:·|\|)\s*"
+        r"(?P<value>Full[- ]time|Part[- ]time|Permanent|Temporary|Seasonal|Contract)\b",
         content,
         re.IGNORECASE,
     )
-    if prose:
-        return GeneralFieldEvidence(
-            field="employment_type",
-            value=_employment_label(prose.group(1)),
-            evidence=_context_line(content, prose.start(), prose.end()),
-            confidence=0.98,
-            rule="employment_type_prose",
-        )
+    if compact:
+        value = _normalize_employment_type(compact.group("value"))
+        if value:
+            return GeneralFieldEvidence(
+                field="employment_type",
+                value=value,
+                evidence=_context_line(content, compact.start(), compact.end()),
+                confidence=0.96,
+                rule="compact_employment_metadata",
+            )
     return None
 
 
@@ -308,7 +374,11 @@ def extract_clearance_evidence(content: str) -> GeneralFieldEvidence | None:
             rule="explicit_clearance_requirement",
         )
 
-    obtain = re.search(r"\bmust\s+be\s+able\s+to\s+obtain\s+(?:a\s+)?security\s+clearance\b", content, re.I)
+    obtain = re.search(
+        r"\bmust\s+be\s+able\s+to\s+obtain\s+(?:a\s+)?security\s+clearance\b",
+        content,
+        re.IGNORECASE,
+    )
     if obtain:
         return GeneralFieldEvidence(
             field="clearance",
@@ -432,13 +502,50 @@ def extract_application_deadline_evidence(content: str) -> GeneralFieldEvidence 
     return None
 
 
-def _employment_label(value: str) -> str:
-    lowered = re.sub(r"\s+", "-", value.strip().casefold())
-    if lowered == "full-time":
+def _normalize_employment_type(value: str) -> str:
+    raw = " ".join(str(value).split()).strip(" \t:;,.\")
+    lowered = raw.casefold().replace("–", "-").replace("—", "-")
+    lowered = re.sub(r"\bfull[\s-]*time\b", "full-time", lowered)
+    lowered = re.sub(r"\bpart[\s-]*time\b", "part-time", lowered)
+    lowered = re.sub(r"\bcontract[\s-]*to[\s-]*hire\b", "contract to hire", lowered)
+    lowered = re.sub(r"\s+", " ", lowered).strip()
+
+    if "contract to hire" in lowered:
+        return "Contract to hire"
+    if re.search(r"\bregular employee\b", lowered):
+        return "Regular employee"
+    if "permanent" in lowered and "full-time" in lowered:
+        return "Permanent, full-time"
+    if "full-time" in lowered and "contract" in lowered:
+        if re.search(r"full-time\s*(?:,|/|\bor\b)\s*contract", lowered):
+            return "Full-time or contract"
+        return "Full-time contract"
+    if "hourly" in lowered and "contract" in lowered:
+        return "Hourly contract"
+    if "full-time" in lowered and "exempt" in lowered:
+        return "Full-time, exempt"
+    if "full-time" in lowered and "salaried" in lowered:
+        return "Full-time salaried"
+    if "part-time" in lowered and "contract" in lowered:
+        return "Part-time contract"
+    if "full-time" in lowered:
         return "Full-time"
-    if lowered == "part-time":
+    if "part-time" in lowered:
         return "Part-time"
-    return value.strip().title()
+    if re.search(r"\bpermanent\b", lowered):
+        return "Permanent"
+    if re.search(r"\btemporary\b", lowered):
+        return "Temporary"
+    if re.search(r"\bseasonal\b", lowered):
+        return "Seasonal"
+    if re.search(r"\bcontract\b", lowered):
+        return "Contract"
+    return ""
+
+
+def _employment_label(value: str) -> str:
+    normalized = _normalize_employment_type(value)
+    return normalized or value.strip().title()
 
 
 def _clean_company(value: str) -> str:
