@@ -15,8 +15,6 @@ class PayEvidence:
     rule: str
 
 
-_MONEY = r"(?:\$\s*)?(?P<amount>\d[\d,]*(?:\.\d+)?)(?P<scale>\s*[kKmM])?"
-_PERIOD = r"(?:/\s*|per\s+)?(?P<period>hour|hr|year|yr|annum|month|week|annually)?"
 _PAY_CONTEXT = re.compile(
     r"\b(?:base\s+salary|salary\s+range|pay\s+range|hiring\s+range|"
     r"compensation\s+range|expected\s+compensation|target\s+salary|wage|pay\s+and\s+benefits)\b",
@@ -101,10 +99,11 @@ def analyze_pay(content: str) -> PayEvidence | None:
         )
 
     range_pattern = re.compile(
-        r"(?:(?P<code1>USD|CAD)\s*)?\$?\s*(?P<low>\d[\d,]*(?:\.\d+)?)"
-        r"(?P<scale1>\s*[kKmM])?\s*(?:-|–|—|to)\s*"
-        r"(?:(?P<code2>USD|CAD)\s*)?\$?\s*(?P<high>\d[\d,]*(?:\.\d+)?)"
-        r"(?P<scale2>\s*[kKmM])?\s*"
+        r"(?:(?P<code1pre>USD|CAD)\s*)?\$?\s*(?P<low>\d[\d,]*(?:\.\d+)?)"
+        r"(?P<scale1>\s*[kKmM])?\s*(?P<code1post>USD|CAD)?\s*"
+        r"(?:-|–|—|to)\s*"
+        r"(?:(?P<code2pre>USD|CAD)\s*)?\$?\s*(?P<high>\d[\d,]*(?:\.\d+)?)"
+        r"(?P<scale2>\s*[kKmM])?\s*(?P<code2post>USD|CAD)?\s*"
         r"(?:/\s*|per\s+)?(?P<period>hour|hr|year|yr|annum|month|week|annually)?",
         re.IGNORECASE,
     )
@@ -112,11 +111,18 @@ def analyze_pay(content: str) -> PayEvidence | None:
         low = _amount(match.group("low"), match.group("scale1"))
         high = _amount(match.group("high"), match.group("scale2"))
         context = _window(text, match.start(), match.end())
+        prefix = " ".join(text[max(0, match.start() - 180):match.start()].split())
         period = _period(match.group("period"), context, high)
         if not _plausible(low, high, period):
             continue
         score = 5 + _context_score(context)
-        if "$" in match.group(0) or match.group("code1") or match.group("code2"):
+        codes = (
+            match.group("code1pre"),
+            match.group("code1post"),
+            match.group("code2pre"),
+            match.group("code2post"),
+        )
+        if "$" in match.group(0) or any(codes):
             score += 3
         if match.group("scale1") or match.group("scale2"):
             score += 2
@@ -124,10 +130,11 @@ def analyze_pay(content: str) -> PayEvidence | None:
             score += 3
         if _BAD_CONTEXT.search(context):
             score -= 20
-        if _SECONDARY_LOCATION.search(context):
+        if _SECONDARY_LOCATION.search(prefix):
             score -= 6
         if score < 4:
             continue
+        currency = next((code for code in codes if code), _currency(context)).upper()
         candidates.append(
             (
                 score,
@@ -135,7 +142,7 @@ def analyze_pay(content: str) -> PayEvidence | None:
                 PayEvidence(
                     pay_min=_number(low),
                     pay_max=_number(high),
-                    currency=(match.group("code1") or match.group("code2") or _currency(context)).upper(),
+                    currency=currency,
                     period=period,
                     evidence=_line(text, match.start(), match.end()),
                     confidence=min(0.99, 0.80 + score * 0.01),
@@ -156,7 +163,7 @@ def analyze_pay(content: str) -> PayEvidence | None:
         period = _period(match.group("period"), context, amount)
         if not _plausible(amount, amount, period) or _BAD_CONTEXT.search(context):
             continue
-        score = 6 + _context_score(context) + 3
+        score = 9 + _context_score(context)
         candidates.append(
             (
                 score,
