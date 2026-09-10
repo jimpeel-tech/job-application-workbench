@@ -5,7 +5,7 @@ from typing import Any
 
 from .capture import CaptureClassification, classify_capture
 
-_CLASSIFIER_VERSION = "context-rules-v2"
+_CLASSIFIER_VERSION = "context-rules-v3"
 
 _REQUIREMENT_HEADINGS = (
     "requirements",
@@ -59,6 +59,11 @@ _APPLICATION_FORM_PROMPT = re.compile(
     r"earliest start date|reason for leaving|reason for interest|professional experience with)\b",
     re.IGNORECASE,
 )
+_BULLET_LINE = re.compile(r"^\s*(?:[-*•▪●◦‣]|\d+[.)])\s+")
+_KEY_VALUE_LINE = re.compile(
+    r"^\s*[A-Za-z][A-Za-z /_-]{1,40}\s*(?::|\t|\s{2,})\s*\S"
+)
+_INLINE_SEPARATOR = re.compile(r"[•▪●◦‣·|]")
 
 
 def classifier_version() -> str:
@@ -66,19 +71,60 @@ def classifier_version() -> str:
 
 
 def capture_metrics(content: str, sequence: int | None = None) -> dict[str, Any]:
+    """Describe the raw selection before field extraction.
+
+    These metrics are intentionally cheap and deterministic. They preserve signals
+    about how browser-selected text arrived (short identity text, prose, bullets,
+    key/value rows, collapsed metadata badges, and capture order) so later parsing
+    and fixture review can reason about human capture behavior without changing the
+    original text.
+    """
     text = str(content)
     nonempty_lines = [line for line in text.splitlines() if line.strip()]
+    paragraphs = [
+        part for part in re.split(r"\n\s*\n", text.strip()) if part.strip()
+    ]
     words = re.findall(r"[A-Za-z0-9][A-Za-z0-9+#./_-]*", text)
     metadata_hits = _metadata_signal_count(text)
+    bullet_lines = sum(bool(_BULLET_LINE.match(line)) for line in nonempty_lines)
+    key_value_lines = sum(bool(_KEY_VALUE_LINE.match(line)) for line in nonempty_lines)
+    inline_separators = len(_INLINE_SEPARATOR.findall(text))
+    pipe_count = text.count("|")
+    tab_count = text.count("\t")
+    collapsed_metadata = _has_collapsed_metadata_boundaries(text)
+    size_class = _size_class(len(text), len(words))
+    shape = _capture_shape(
+        characters=len(text),
+        lines=len(nonempty_lines),
+        paragraphs=len(paragraphs),
+        words=len(words),
+        metadata_signals=metadata_hits,
+        bullet_lines=bullet_lines,
+        key_value_lines=key_value_lines,
+        pipe_count=pipe_count,
+        tab_count=tab_count,
+    )
+
     metrics: dict[str, Any] = {
         "characters": len(text),
         "words": len(words),
         "lines": len(nonempty_lines),
+        "paragraphs": len(paragraphs),
+        "bullet_lines": bullet_lines,
+        "inline_separators": inline_separators,
+        "pipe_count": pipe_count,
+        "tab_count": tab_count,
+        "key_value_lines": key_value_lines,
         "metadata_signals": metadata_hits,
         "single_line": len(nonempty_lines) <= 1,
+        "delimiter_heavy": inline_separators + tab_count >= 2,
+        "collapsed_metadata_suspected": collapsed_metadata,
+        "size_class": size_class,
+        "shape": shape,
     }
     if sequence is not None:
         metrics["sequence"] = int(sequence)
+        metrics["first_capture"] = int(sequence) == 1
     return metrics
 
 
@@ -199,3 +245,54 @@ def _metadata_signal_count(text: str) -> int:
         bool(_METADATA_ID.search(text)),
     )
     return sum(signals)
+
+
+def _has_collapsed_metadata_boundaries(text: str) -> bool:
+    """Detect adjacent known metadata tokens without assuming generic CamelCase."""
+    if "\n" in text:
+        return False
+    matches = list(_METADATA_TOKEN.finditer(text))
+    if len(matches) < 2:
+        return False
+    for previous, current in zip(matches, matches[1:]):
+        between = text[previous.end() : current.start()]
+        if between == "":
+            return True
+    return False
+
+
+def _size_class(characters: int, words: int) -> str:
+    if characters <= 120 and words <= 20:
+        return "short"
+    if characters <= 900 and words <= 150:
+        return "medium"
+    return "long"
+
+
+def _capture_shape(
+    *,
+    characters: int,
+    lines: int,
+    paragraphs: int,
+    words: int,
+    metadata_signals: int,
+    bullet_lines: int,
+    key_value_lines: int,
+    pipe_count: int,
+    tab_count: int,
+) -> str:
+    """Assign a broad structural prior; this is evidence, not final classification."""
+    if key_value_lines >= 2 or tab_count >= 2 or (pipe_count >= 2 and lines <= 8):
+        return "table_like"
+    if metadata_signals >= 2 and characters <= 400:
+        return "metadata_like"
+    if (
+        characters <= 120
+        and lines <= 3
+        and words <= 18
+        and metadata_signals <= 1
+    ):
+        return "identity_like"
+    if characters >= 220 or lines >= 4 or paragraphs >= 2 or bullet_lines >= 2:
+        return "description_like"
+    return "unknown"

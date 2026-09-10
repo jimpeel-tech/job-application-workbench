@@ -10,9 +10,9 @@ from typing import Any
 class FixtureStore:
     """Local developer snapshots captured from the normal Smart Capture session.
 
-    Snapshots preserve observations from the parser and Ollama, but intentionally
-    never create or approve expected corpus values. Human-reviewed corpus tooling
-    remains a separate concern.
+    Snapshots preserve raw captures and deterministic parser observations, but
+    intentionally never create or approve expected corpus values. Human-reviewed
+    golden fixtures remain a separate concern.
     """
 
     def __init__(self, workspace: Path) -> None:
@@ -36,18 +36,31 @@ class FixtureStore:
         parser_resolution: dict[str, Any] | None = None,
         merge_resolution: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
-        captures = [
-            {
-                "number": number,
-                "event_id": event.get("id"),
-                "content_type": str(event.get("content_type", "unclassified")),
-                "classification_status": str(event.get("classification_status", "")),
-                "content": str(event.get("content", "")).strip(),
-                "metadata": self._event_metadata(event),
-            }
-            for number, event in enumerate(events, start=1)
+        source_events = [
+            event
+            for event in events
             if str(event.get("content", "")).strip()
         ]
+        capture_count = len(source_events)
+        captures = []
+        for number, event in enumerate(source_events, start=1):
+            metadata = self._event_metadata(event)
+            captures.append(
+                {
+                    "number": number,
+                    "event_id": event.get("id"),
+                    "content_type": str(event.get("content_type", "unclassified")),
+                    "classification_status": str(event.get("classification_status", "")),
+                    "content": str(event.get("content", "")).strip(),
+                    "metadata": metadata,
+                    "session_position": {
+                        "sequence": number,
+                        "capture_count": capture_count,
+                        "is_first": number == 1,
+                        "is_last": number == capture_count,
+                    },
+                }
+            )
         if not captures:
             raise ValueError("Capture at least one selection before saving a fixture")
 
@@ -58,7 +71,7 @@ class FixtureStore:
         combined = "\n\n".join(item["content"] for item in captures).strip()
         manifest = {
             "format": "jaw-smart-capture-snapshot",
-            "version": 3,
+            "version": 4,
             "fixture_id": fixture_id,
             "status": "captured",
             "created_at": now.isoformat(timespec="seconds"),
