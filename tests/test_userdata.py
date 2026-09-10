@@ -144,7 +144,7 @@ def test_first_run_uses_seeded_demo_template(tmp_path: Path):
     expected_layer2 = {'P00': 'cycle_date_format', 'P01': 'cycle_name_format', 'P10': 'address', 'P11': 'city', 'P12': 'move_up_or_relay', 'P13': 'previous_work_exp', 'P20': 'state', 'P21': 'zip', 'P22': 'move_down_or_relay', 'P23': 'next_work_exp', 'P24': 'github', 'P30': 'facebook', 'P31': 'x', 'P32': 'first_name', 'P33': 'last_name'}
     assert data["keybinds"]["base"] == expected_base
     assert data["keybinds"]["layer2"] == expected_layer2
-    assert data["keybinds"]["layer3"] == {}
+    assert data["keybinds"]["layer3"] == template["keybinds"].get("layer3", {})
     assert DEFAULT_MATRIX_BASE == expected_base
     assert DEFAULT_MATRIX_LAYER2 == expected_layer2
     assert initial_keybinds()["base"] == expected_base
