@@ -31,7 +31,7 @@ _DEFAULT_SETTINGS: dict[str, Any] = {
     "field_order": list(SMART_CAPTURE_FIELD_KEYS),
     "visible_fields": list(SMART_CAPTURE_FIELD_KEYS),
     "show_empty_fields": False,
-    "focus_mode": True,
+    "focus_mode": False,
     "analysis_mode": "verify",
     "ollama_model": DEFAULT_OLLAMA_CAPTURE_MODEL,
     "fill_missing": True,
