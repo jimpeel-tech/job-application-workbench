@@ -100,18 +100,26 @@ TECTONIC_UNTRUSTED_MODE=1
 
 JAW does not invoke an external MiKTeX, TeX Live, `latex`, or `xelatex` executable.
 
-## Custom fonts
+## Fonts
 
-JAW does **not** bundle third-party font binaries.
+JAW bundles the open-source font families used by its built-in document templates:
 
-If a document template requires local `.ttf`, `.otf`, or `.ttc` files, place them in a directory you control and set `JAW_TECTONIC_SEARCH_PATH` before starting JAW:
+- Montserrat — SIL Open Font License 1.1
+- Open Sans — SIL Open Font License 1.1
+- Qwitcher Grypen — SIL Open Font License 1.1
+
+The corresponding license texts are distributed with JAW under the packaged `resources/fonts/licenses/` directory. During rendering, JAW stages these bundled fonts into the temporary Tectonic render sandbox so built-in templates can reference their exact filenames with `fontspec`.
+
+### Additional custom fonts
+
+If a document template requires another local `.ttf`, `.otf`, or `.ttc` file, place it in a directory you control and set `JAW_TECTONIC_SEARCH_PATH` before starting JAW:
 
 ```powershell
 $env:JAW_TECTONIC_SEARCH_PATH = "C:\Users\you\Fonts\jaw"
 jaw
 ```
 
-JAW stages supported font files from that directory into each temporary Tectonic render sandbox. Templates can then reference the exact staged filename with `fontspec`.
+JAW stages supported font files from that directory into each temporary Tectonic render sandbox alongside the bundled resources. Templates can then reference the exact staged filename with `fontspec`.
 
 Example:
 
@@ -121,7 +129,7 @@ Example:
 ]
 ```
 
-Only use fonts whose licenses permit your intended use and distribution.
+Only use additional fonts whose licenses permit your intended use and distribution.
 
 ## Troubleshooting
 
