@@ -4,6 +4,8 @@
 
 > **Project status:** JAW is preparing for its initial `v0.1.0` public alpha release. It is primarily tested on Windows and supports both source installs and automated standalone Windows executable builds.
 
+[![Buy Me a Coffee](https://img.shields.io/badge/Buy%20me%20a%20coffee-support-F6C915?logo=buy-me-a-coffee&logoColor=000000)](https://buymeacoffee.com/jimpeel)
+
 <p align="center">
   <a href="visuals/Capture.png">
     <img src="visuals/Capture.png" alt="JAW job capture, parsing, and AI-assisted analysis workflow" width="100%">
