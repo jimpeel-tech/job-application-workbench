@@ -79,7 +79,7 @@ def test_explicit_no_on_call_is_preserved():
     assert on_call.value == "Not required"
 
 
-def test_general_evidence_overrides_legacy_company_and_on_call_guesses():
+def test_general_evidence_overrides_legacy_company_and_suppresses_weak_on_call_guess():
     resolution = resolve_parser_evidence(
         [
             {
@@ -98,5 +98,15 @@ def test_general_evidence_overrides_legacy_company_and_on_call_guesses():
     )
 
     assert resolution.values["company"] == ("Addison Group",)
-    assert resolution.values["on_call"] == ("Required",)
+    assert resolution.values["on_call"] == ()
     assert resolution.fields["company"].priority == 105
+
+
+def test_general_evidence_preserves_explicit_on_call_requirement_in_resolution():
+    resolution = resolve_parser_evidence(
+        [],
+        "Platform Engineer\nThis role participates in an on-call rotation.",
+    )
+
+    assert resolution.values["on_call"] == ("Required",)
+    assert resolution.fields["on_call"].priority == 95
