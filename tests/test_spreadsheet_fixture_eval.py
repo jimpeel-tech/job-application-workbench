@@ -148,10 +148,16 @@ def test_location_safe_equivalences_do_not_require_identity_fuzzing():
     us_result = _compare_scalar("location", "United States", ["Remote - US"])
     punctuation_result = _compare_scalar("location", "Customer site", ["Customer- site"])
     nyc_result = _compare_scalar("location", "New York City", ["New York City, NY"])
+    hawaii_result = _compare_scalar(
+        "location",
+        "United States (excluding Hawaii)",
+        ["United States, excluding Hawaii"],
+    )
 
     assert us_result.passed is True
     assert punctuation_result.passed is True
     assert nyc_result.passed is True
+    assert hawaii_result.passed is True
 
 
 def test_corpus_reports_missing_capture_pair_without_crashing(tmp_path):
