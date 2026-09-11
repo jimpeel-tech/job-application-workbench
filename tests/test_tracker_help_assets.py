@@ -8,7 +8,6 @@ import pytest
 
 from jaw.web.assets import static_asset_for
 
-
 NODE = shutil.which("node")
 
 

@@ -6,7 +6,6 @@ from pathlib import Path
 import jaw
 from jaw.application.template_release_compat import current_jaw_version
 
-
 ROOT = Path(__file__).resolve().parents[1]
 EXPECTED_VERSION = "0.1.1"
 
