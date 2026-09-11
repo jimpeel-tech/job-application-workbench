@@ -14,12 +14,13 @@ class JobIdEvidence:
 
 
 _LABELED_ID = re.compile(
-    r"(?:^|\n)\s*(?:Job\s+Code|Ref\.?\s*(?:code|ID)|Job\s+ID|Requisition\s+ID)\s*:?\s*"
-    r"(?:\n\s*)?(?P<value>[A-Z0-9][A-Z0-9._/-]{2,40})\b",
+    r"(?:^|\n)[ \t]*(?:Job\s+Code|Ref\.?\s*(?:code|ID)|Job\s+ID|Requisition\s+ID)"
+    r"[ \t]*:?[ \t]*(?:\n[ \t]*)?"
+    r"(?P<value>(?=[A-Z0-9._/-]*\d)[A-Z0-9][A-Z0-9._/-]{2,40})\b",
     re.IGNORECASE,
 )
 _ATS_COLLAPSED_ID = re.compile(
-    r"(?:Job\s+Id|Ref\s+ID)\s*:?\s*(?:\n\s*)?"
+    r"(?:Job\s+Id|Ref\s+ID)[ \t]*:?[ \t]*(?:\n[ \t]*)?"
     r"(?P<value>(?:[A-Z]{1,4}-?)?\d{4,12})"
     r"(?=Posted\s+Date|\s|$)",
     re.IGNORECASE,
