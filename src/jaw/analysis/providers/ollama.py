@@ -87,7 +87,9 @@ class OllamaAnalysisProvider:
         except json.JSONDecodeError as error:
             raise RuntimeError("Ollama returned invalid response JSON") from error
 
-        models = payload.get("models", []) if isinstance(payload, dict) else []
+        if not isinstance(payload, dict):
+            raise RuntimeError("Ollama returned an invalid response object")
+        models = payload.get("models", [])
         return [
             str(item.get("name") or item.get("model") or "").strip()
             for item in models
@@ -127,9 +129,11 @@ class OllamaAnalysisProvider:
         except json.JSONDecodeError as error:
             raise RuntimeError("Ollama returned invalid response JSON") from error
 
-        if isinstance(payload, dict) and payload.get("error"):
+        if not isinstance(payload, dict):
+            raise RuntimeError("Ollama returned an invalid response object")
+        if payload.get("error"):
             raise RuntimeError(f"Ollama response error: {payload['error']}")
-        message = payload.get("message", {}) if isinstance(payload, dict) else {}
+        message = payload.get("message", {})
         content = str(message.get("content", "")) if isinstance(message, dict) else ""
         if not content:
             raise RuntimeError("Ollama response contained no output text")
