@@ -86,6 +86,8 @@ def analyze_explicit_work_arrangement(content: str) -> ExplicitWorkArrangement:
             return ExplicitWorkArrangement("Remote", "", "title_remote_suffix")
         if re.search(r"(?:^|\s[-–—|]\s)remote\s*$", line, re.IGNORECASE):
             return ExplicitWorkArrangement("Remote", "", "title_remote_suffix")
+        if re.search(r"(?:^|\s)#LI-REMOTE\b", line, re.IGNORECASE):
+            return ExplicitWorkArrangement("Remote", "", "li_remote_tag")
         if re.search(
             r"\bremote(?:\s+(?:EST|CST|MST|PST|ET|CT|MT|PT)\s+hours?)?"
             r"(?:\s*[-–—]\s*ID\s*:?\s*[A-Z0-9._/-]+)?\s*$",
@@ -101,17 +103,23 @@ def analyze_explicit_work_arrangement(content: str) -> ExplicitWorkArrangement:
             return ExplicitWorkArrangement("Remote", "", "joined_us_remote_header")
         if "remote first" in lowered and "remote always" in lowered:
             return ExplicitWorkArrangement("Remote", "", "remote_first_badge")
-        if re.search(r"(?:^|\s)#LI-REMOTE\b", line, re.IGNORECASE):
-            return ExplicitWorkArrangement("Remote", "", "li_remote_tag")
 
     remote_or_hybrid = re.search(
         r"\bflexible\s+on\s+remote\s+working\s+from\s+home\b"
-        r"[^.\n]{0,220}\bhybrid\s+option\b",
+        r"[^\n]{0,320}\bhybrid\s+option\b",
         text,
         re.IGNORECASE,
     )
     if remote_or_hybrid:
         return ExplicitWorkArrangement("Remote or hybrid", "", "remote_or_hybrid_option")
+
+    virtual_first = re.search(
+        r"\bvirtual[- ]first\b[^.\n]{0,60}\b(?:company|culture|team|work\s+culture)\b",
+        text,
+        re.IGNORECASE,
+    )
+    if virtual_first:
+        return ExplicitWorkArrangement("Remote", "", "virtual_first_culture")
 
     live_and_work = re.search(
         r"\b(?:employees?|team\s+members?|candidates?)\s+"
