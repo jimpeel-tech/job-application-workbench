@@ -122,6 +122,17 @@ def test_pay_period_can_be_omitted_from_archived_expectation():
     assert result.reason == "safe_equivalent"
 
 
+def test_pay_currency_and_period_can_be_unspecified_in_archived_expectation():
+    result = _compare_scalar(
+        "pay",
+        "175000–200000",
+        ["$175000–200000 per year"],
+    )
+
+    assert result.passed is True
+    assert result.reason == "safe_equivalent"
+
+
 def test_conflicting_pay_period_is_not_treated_as_equivalent():
     result = _compare_scalar(
         "pay",
