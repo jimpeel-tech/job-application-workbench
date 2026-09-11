@@ -31,6 +31,11 @@ _REMOTE_SCOPE_US = re.compile(
     r"(?:U\.?S\.?A?\.?|United States(?: of America)?)\b",
     re.IGNORECASE,
 )
+_REMOTE_COUNTRY_SCOPE = re.compile(
+    r"\bremote\s*\(\s*(?:US|U\.S\.?|USA|U\.S\.A\.?|United States)"
+    r"(?:\s*/\s*Canada)?\s*\)",
+    re.IGNORECASE,
+)
 
 
 def analyze_explicit_work_arrangement(content: str) -> ExplicitWorkArrangement:
@@ -75,6 +80,8 @@ def analyze_explicit_work_arrangement(content: str) -> ExplicitWorkArrangement:
             return ExplicitWorkArrangement("On-site", "", "standalone_on_site_badge")
         if re.fullmatch(r"home[- ]based(?:,\s*.+)?", line, re.IGNORECASE):
             return ExplicitWorkArrangement("Remote", _home_based_location(line), "standalone_home_based")
+        if _REMOTE_COUNTRY_SCOPE.search(line):
+            return ExplicitWorkArrangement("Remote", "", "remote_country_scope")
         if re.search(r"\(\s*remote\s*\)\s*$", line, re.IGNORECASE):
             return ExplicitWorkArrangement("Remote", "", "title_remote_suffix")
         if re.search(r"(?:^|\s[-–—|]\s)remote\s*$", line, re.IGNORECASE):
