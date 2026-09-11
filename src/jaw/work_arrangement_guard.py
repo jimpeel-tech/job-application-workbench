@@ -10,33 +10,52 @@ _REMOTE_WORK_BENEFIT = re.compile(
     r"\b(?:stipends?|allowances?|reimbursements?|budgets?|benefits?)\b",
     re.IGNORECASE,
 )
+_ONSITE_INTERVIEW = re.compile(
+    r"\b(?:on[- ]?site|onsite|in[- ]person)\s+interview\b|"
+    r"\binterview\b[^.\n]{0,100}\b(?:on[- ]?site|onsite|in[- ]person)\b",
+    re.IGNORECASE,
+)
 
 
 def suppress_work_arrangement(analysis: Any) -> bool:
-    """Suppress a Remote result when its only evidence is a remote-work benefit.
+    """Suppress arrangement results that come only from non-workplace context.
 
-    This intentionally does not suppress mixed evidence. A genuine role/workplace
-    statement elsewhere in the posting should still classify the job as Remote.
+    Remote-work benefits and onsite interview logistics can mention arrangement
+    terms without describing where the employee actually performs the job. Mixed
+    evidence is never suppressed; a genuine workplace statement still wins.
     """
-    if str(getattr(analysis, "status", "")) != "Remote":
-        return False
-
+    status = str(getattr(analysis, "status", ""))
     evidence = tuple(getattr(analysis, "evidence", ()) or ())
     if not evidence:
         return False
 
-    remote_items = [
-        item
-        for item in evidence
-        if str(getattr(item, "arrangement", "")) == "remote"
-    ]
-    if len(remote_items) != len(evidence):
-        return False
+    if status == "Remote":
+        remote_items = [
+            item
+            for item in evidence
+            if str(getattr(item, "arrangement", "")) == "remote"
+        ]
+        if len(remote_items) != len(evidence):
+            return False
+        return all(
+            _REMOTE_WORK_BENEFIT.search(str(getattr(item, "evidence", "")))
+            for item in remote_items
+        )
 
-    return all(
-        _REMOTE_WORK_BENEFIT.search(str(getattr(item, "evidence", "")))
-        for item in remote_items
-    )
+    if status == "On-site":
+        onsite_items = [
+            item
+            for item in evidence
+            if str(getattr(item, "arrangement", "")) == "on-site"
+        ]
+        if len(onsite_items) != len(evidence):
+            return False
+        return all(
+            _ONSITE_INTERVIEW.search(str(getattr(item, "evidence", "")))
+            for item in onsite_items
+        )
+
+    return False
 
 
 __all__ = ["suppress_work_arrangement"]
