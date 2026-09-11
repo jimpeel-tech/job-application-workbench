@@ -3,6 +3,8 @@ from __future__ import annotations
 import json
 
 from jaw.spreadsheet_fixture_eval import (
+    _accepted_remote_values,
+    _compare_remote,
     _compare_scalar,
     evaluate_spreadsheet_corpus,
     evaluate_spreadsheet_fixture,
@@ -109,6 +111,15 @@ def test_rich_remote_expectation_is_preserved_but_not_scored(tmp_path):
     assert not any(
         item["field"] == "remote_status" for item in result["field_results"]
     )
+
+
+def test_composite_remote_expectation_accepts_exact_and_simplified_values():
+    accepted = _accepted_remote_values("Remote or hybrid")
+
+    assert accepted is not None
+    assert _compare_remote("Remote or hybrid", accepted, ["Remote or hybrid"]).passed is True
+    assert _compare_remote("Remote or hybrid", accepted, ["Remote"]).passed is True
+    assert _compare_remote("Remote or hybrid", accepted, ["Hybrid"]).passed is True
 
 
 def test_pay_period_can_be_omitted_from_archived_expectation():
