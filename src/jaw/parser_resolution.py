@@ -7,6 +7,7 @@ from .capture import extract_job_fields
 from .explicit_location import analyze_explicit_location
 from .explicit_work_arrangement import analyze_explicit_work_arrangement
 from .general_evidence import extract_general_evidence
+from .job_id_evidence import analyze_job_id
 from .pay_evidence import analyze_pay
 from .value_canonicalization import canonical_capture_value
 from .work_arrangement import analyze_work_arrangement
@@ -14,6 +15,7 @@ from .work_arrangement import analyze_work_arrangement
 _RESULT_FIELD_KEYS = (
     "company",
     "title",
+    "job_id",
     "pay",
     "remote_status",
     "location",
@@ -99,6 +101,17 @@ def _field_priority(field: str, context: str) -> int:
             "job_description": 50,
             "combined": 30,
             "job_metadata": 20,
+            "requirements": 5,
+            "responsibilities": 5,
+        }.get(context, 40)
+    if field == "job_id":
+        return {
+            "job_id_evidence": 105,
+            "job_metadata": 100,
+            "job_description": 55,
+            "combined": 30,
+            "job_title": 20,
+            "company": 5,
             "requirements": 5,
             "responsibilities": 5,
         }.get(context, 40)
@@ -208,6 +221,14 @@ def resolve_parser_evidence(
                 item.field,
                 item.value,
                 context="general_evidence",
+                capture_index=None,
+            )
+        job_id = analyze_job_id(combined_text)
+        if job_id.value:
+            add_value(
+                "job_id",
+                job_id.value,
+                context="job_id_evidence",
                 capture_index=None,
             )
         pay = analyze_pay(combined_text)
