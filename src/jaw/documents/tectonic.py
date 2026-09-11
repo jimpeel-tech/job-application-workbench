@@ -10,6 +10,7 @@ import tempfile
 import time
 from pathlib import Path
 
+from ..paths import user_fonts_path
 from .contracts import (
     DocumentRenderError,
     DocumentRenderRequest,
@@ -51,7 +52,12 @@ def find_tectonic(configured_path: str | Path | None = None) -> Path | None:
 def find_tectonic_search_path(
     configured_path: str | Path | None = None,
 ) -> Path | None:
-    """Find the approved local font directory staged into render sandboxes."""
+    """Return the legacy primary font search directory.
+
+    This remains available for callers that expect a single directory. Rendering
+    itself uses :func:`find_tectonic_search_paths` so packaged and user fonts are
+    staged together.
+    """
 
     configured = configured_path or os.environ.get("JAW_TECTONIC_SEARCH_PATH")
     if configured:
@@ -59,6 +65,36 @@ def find_tectonic_search_path(
         candidate = Path(expanded).expanduser()
         return candidate.resolve() if candidate.is_dir() else None
     return _DEFAULT_SEARCH_PATH.resolve() if _DEFAULT_SEARCH_PATH.is_dir() else None
+
+
+def find_tectonic_search_paths(
+    configured_path: str | Path | None = None,
+) -> tuple[Path, ...]:
+    """Return existing font directories in deterministic staging precedence.
+
+    Packaged fonts take precedence so user files cannot accidentally replace a
+    filename required by a built-in template. JAW's writable user font directory
+    comes next, followed by an optional externally configured directory.
+    """
+
+    paths: list[Path] = []
+
+    def add(candidate: Path) -> None:
+        if not candidate.is_dir():
+            return
+        resolved = candidate.resolve()
+        if resolved not in paths:
+            paths.append(resolved)
+
+    add(_DEFAULT_SEARCH_PATH)
+    add(user_fonts_path())
+
+    configured = configured_path or os.environ.get("JAW_TECTONIC_SEARCH_PATH")
+    if configured:
+        expanded = os.path.expandvars(str(configured))
+        add(Path(expanded).expanduser())
+
+    return tuple(paths)
 
 
 class TectonicRenderer:
@@ -83,7 +119,13 @@ class TectonicRenderer:
 
     @property
     def search_path(self) -> Path | None:
+        """Return the legacy primary search path for compatibility."""
         return find_tectonic_search_path(self._configured_search_path)
+
+    @property
+    def search_paths(self) -> tuple[Path, ...]:
+        """Return every font directory staged into the render sandbox."""
+        return find_tectonic_search_paths(self._configured_search_path)
 
     @property
     def available(self) -> bool:
@@ -187,12 +229,16 @@ class TectonicRenderer:
             )
 
     def _stage_local_fonts(self, working_directory: Path) -> None:
-        search_path = self.search_path
-        if search_path is None:
-            return
-        for source in search_path.iterdir():
-            if source.is_file() and source.suffix.lower() in _FONT_SUFFIXES:
-                shutil.copy2(source, working_directory / source.name)
+        # Ensure the writable user-font location exists even in a fresh install.
+        user_fonts_path().mkdir(parents=True, exist_ok=True)
+        for search_path in self.search_paths:
+            for source in search_path.iterdir():
+                if not source.is_file() or source.suffix.lower() not in _FONT_SUFFIXES:
+                    continue
+                destination = working_directory / source.name
+                if destination.exists():
+                    continue
+                shutil.copy2(source, destination)
 
     def _require_executable(self) -> Path:
         executable = self.executable
