@@ -8,6 +8,7 @@ from .explicit_location import analyze_explicit_location
 from .explicit_work_arrangement import analyze_explicit_work_arrangement
 from .general_evidence import extract_general_evidence
 from .job_id_evidence import analyze_job_id
+from .location_candidate import sanitize_location_candidate
 from .pay_evidence import analyze_pay
 from .value_canonicalization import canonical_capture_value
 from .work_arrangement import analyze_work_arrangement
@@ -248,6 +249,11 @@ def resolve_parser_evidence(
                 )
         work_arrangement = analyze_work_arrangement(combined_text)
         arrangement_suppressed = suppress_work_arrangement(work_arrangement)
+        work_location = (
+            ""
+            if arrangement_suppressed
+            else sanitize_location_candidate(work_arrangement.location)
+        )
         if work_arrangement.status and not arrangement_suppressed:
             add_value(
                 "remote_status",
@@ -255,15 +261,18 @@ def resolve_parser_evidence(
                 context="work_arrangement",
                 capture_index=None,
             )
-        if work_arrangement.location and not arrangement_suppressed:
+        if work_location:
             add_value(
                 "location",
-                work_arrangement.location,
+                work_location,
                 context="work_arrangement",
                 capture_index=None,
             )
 
         explicit_work_arrangement = analyze_explicit_work_arrangement(combined_text)
+        explicit_work_location = sanitize_location_candidate(
+            explicit_work_arrangement.location
+        )
         if not work_arrangement.status and explicit_work_arrangement.status:
             add_value(
                 "remote_status",
@@ -271,20 +280,21 @@ def resolve_parser_evidence(
                 context="explicit_work_arrangement",
                 capture_index=None,
             )
-        if not work_arrangement.location and explicit_work_arrangement.location:
+        if not work_location and explicit_work_location:
             add_value(
                 "location",
-                explicit_work_arrangement.location,
+                explicit_work_location,
                 context="explicit_work_arrangement",
                 capture_index=None,
             )
 
-        if not work_arrangement.location and not explicit_work_arrangement.location:
+        if not work_location and not explicit_work_location:
             explicit_location = analyze_explicit_location(combined_text)
-            if explicit_location.value:
+            clean_explicit_location = sanitize_location_candidate(explicit_location.value)
+            if clean_explicit_location:
                 add_value(
                     "location",
-                    explicit_location.value,
+                    clean_explicit_location,
                     context="explicit_location",
                     capture_index=None,
                 )
