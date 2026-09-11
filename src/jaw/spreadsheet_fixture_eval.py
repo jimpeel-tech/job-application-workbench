@@ -443,7 +443,9 @@ def _pay_equivalent_with_optional_period(expected: str, actual: str) -> bool:
     actual_parts = _pay_key_parts(actual_key)
     if not expected_parts or not actual_parts:
         return False
-    if expected_parts["currency"] != actual_parts["currency"]:
+    expected_currency = expected_parts["currency"]
+    actual_currency = actual_parts["currency"]
+    if expected_currency and expected_currency != actual_currency:
         return False
     if expected_parts["amounts"] != actual_parts["amounts"]:
         return False
