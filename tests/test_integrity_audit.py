@@ -24,12 +24,26 @@ def test_initialized_database_passes_integrity_audit(tmp_path: Path) -> None:
     assert result["integrity_check"] == ["ok"]
     assert result["schema_version"] == result["expected_schema_version"]
     assert result["missing_tables"] == []
+    assert result["missing_columns"] == []
     assert result["legacy_tables"] == []
     assert result["foreign_key_violations"] == []
     assert result["json_violations"] == []
     assert result["user_violations"] == []
     assert result["workbench_violations"] == []
     assert integrity_is_clean(result) is True
+
+
+def test_partial_schema_is_reported_without_crashing(tmp_path: Path) -> None:
+    path = tmp_path / "partial.db"
+    with sqlite3.connect(path) as connection:
+        connection.execute("CREATE TABLE jobs (id INTEGER PRIMARY KEY)")
+        connection.execute("PRAGMA user_version = 7")
+
+    result = audit(path)
+
+    assert "application_events" in result["missing_tables"]
+    assert "jobs.strong_matches" in result["missing_columns"]
+    assert integrity_is_clean(result) is False
 
 
 def test_invalid_user_json_fails_integrity_audit(tmp_path: Path) -> None:
