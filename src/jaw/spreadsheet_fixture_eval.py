@@ -417,10 +417,10 @@ def _accepted_remote_values(value: str) -> set[str] | None:
         "on-site": {"on-site"},
         "onsite": {"on-site"},
         "in-person": {"on-site"},
-        "hybrid/remote": {"hybrid", "remote"},
-        "remote/hybrid": {"hybrid", "remote"},
-        "remote or hybrid": {"hybrid", "remote"},
-        "hybrid or remote": {"hybrid", "remote"},
+        "hybrid/remote": {"hybrid", "remote", "hybrid/remote", "remote/hybrid", "hybrid or remote", "remote or hybrid"},
+        "remote/hybrid": {"hybrid", "remote", "hybrid/remote", "remote/hybrid", "hybrid or remote", "remote or hybrid"},
+        "remote or hybrid": {"hybrid", "remote", "hybrid/remote", "remote/hybrid", "hybrid or remote", "remote or hybrid"},
+        "hybrid or remote": {"hybrid", "remote", "hybrid/remote", "remote/hybrid", "hybrid or remote", "remote or hybrid"},
         "flexible": {"flexible"},
     }
     if lowered in simple:
