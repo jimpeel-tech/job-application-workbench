@@ -28,7 +28,7 @@ You do not need to configure every JAW feature before using it. A practical firs
 6. Try **Smart Capture** on a job description and review the captured fields.
 7. Run **Analysis** to save/analyze the job and inspect it in **Job Tracker**.
 8. Configure **Tectonic** if you want PDF preview/generation from Documents.
-9. Configure **Ollama** or OpenAI only if you want optional generative workflows.
+9. Configure **Ollama** or **OpenAI** only if you want optional generative workflows.
 
 JAW's global hotkeys are disabled on startup by default, so installing or launching JAW should not immediately take over application shortcuts.
 
@@ -43,9 +43,9 @@ Ollama is optional and is currently useful for:
 - AI generation blocks in Documents when Ollama is the selected generative provider;
 - Outlook classification/matching when Outlook sync is explicitly enabled.
 
-OpenAI is also optional for supported generative workflows. Plain Smart Capture parsing, local job analysis, Job Tracker, profile/keybind workflows, and ordinary Jinja-based document composition do not require an AI provider.
+OpenAI is also optional for supported generative workflows. When selected, it can provide generative Job Description Analysis and Documents AI generation blocks. Plain Smart Capture parsing, local job analysis, Job Tracker, profile/keybind workflows, and ordinary Jinja-based document composition do not require an AI provider.
 
-See [Ollama Setup](ollama.md) for the current model and host configuration.
+See [OpenAI Setup](openai.md) for API-key, billing, model, privacy, and connection-test guidance, or [Ollama Setup](ollama.md) for local-model installation and host configuration.
 
 ## PDF generation is optional
 
@@ -114,6 +114,7 @@ In Job Tracker, the **?** help button explains document generation/routing and t
 ## Next steps
 
 - [Installation](installation.md)
+- [OpenAI Setup](openai.md)
 - [Ollama Setup](ollama.md)
 - [Tectonic Setup](tectonic.md)
 - [Document Workbench](document-workbench.md)
