@@ -89,7 +89,15 @@ def canonical_capture_value(field: str, value: str) -> str:
             return pay
     if normalized_field == "location":
         return _canonical_location(text)
+    if normalized_field == "company":
+        return _canonical_company(text)
     return text.casefold()
+
+
+def _canonical_company(value: str) -> str:
+    # Terminal punctuation is presentation, not employer identity. Preserve
+    # internal punctuation such as the periods in "U.S.".
+    return value.rstrip(".").casefold()
 
 
 def _canonical_location(value: str) -> str:
