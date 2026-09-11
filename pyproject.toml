@@ -44,6 +44,7 @@ select = ["F", "I"]
 [project.scripts]
 jaw = "jaw.desktop.smart_capture_window:main"
 jaw-document-audit = "jaw.document_db_audit:main"
+jaw-integrity-audit = "jaw.integrity_audit:main"
 
 [build-system]
 requires = ["setuptools>=69", "wheel"]
