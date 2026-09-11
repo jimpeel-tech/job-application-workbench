@@ -41,6 +41,14 @@ def test_single_standalone_number_and_repeated_year_are_not_job_ids():
     assert year.value == ""
 
 
+def test_single_standalone_number_near_date_is_not_job_id():
+    evidence = analyze_job_id(
+        "Principal Architect\nEngineering\nMcLean, Virginia\nNo\nNo\n6287\n6/12/2026\nYes"
+    )
+
+    assert evidence.value == ""
+
+
 def test_explicit_job_id_evidence_flows_through_parser_resolution():
     resolution = resolve_parser_evidence(
         [],
