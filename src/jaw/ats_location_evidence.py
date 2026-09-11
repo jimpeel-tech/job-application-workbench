@@ -93,6 +93,18 @@ _US_FULL = re.compile(
 _CANADA_FULL = re.compile(
     rf"\b(?P<city>{_CITY}),\s*(?P<region>(?i:{_PROVINCES})),\s*(?i:Canada)\b"
 )
+_US_STATE_COUNTRY = re.compile(
+    rf"\b(?P<region>(?i:{_STATE_NAMES})),\s*(?i:United States(?: of America)?)\b"
+)
+_US_CITY_COUNTRY = re.compile(
+    rf"\b(?P<city>{_CITY}),\s*(?i:United States(?: of America)?)\b"
+)
+_COMPENSATION_STATE = re.compile(
+    rf"\bFor\s+(?P<region>(?i:{_STATE_NAMES}))\s+Only\b"
+)
+_REMOTE_US_SEGMENT = re.compile(
+    r"(?im)^.*\bRemote\b[^\n]*;\s*(?P<country>United States)\s*(?=;|$)"
+)
 _BODY_MARKER = re.compile(
     r"(?mi)^\s*(?:Job Description|The Opportunity|Our Mission|About the Role|"
     r"About the Team|Job Summary|Responsibilities)\s*$"
@@ -107,8 +119,10 @@ def analyze_ats_locations(content: str) -> tuple[AtsLocationEvidence, ...]:
 
     header = _header_region(text)
     matches: list[tuple[int, AtsLocationEvidence]] = []
+    occupied: list[tuple[int, int]] = []
 
     for match in _US_FULL.finditer(header):
+        occupied.append((match.start(), match.end()))
         state = _STATE_NAME_TO_CODE[match.group("region").casefold()]
         city = _clean_city(match.group("city"))
         matches.append(
@@ -122,6 +136,7 @@ def analyze_ats_locations(content: str) -> tuple[AtsLocationEvidence, ...]:
         )
 
     for match in _CANADA_FULL.finditer(header):
+        occupied.append((match.start(), match.end()))
         city = _clean_city(match.group("city"))
         if city.startswith("America "):
             prefix = header[max(0, match.start() - 40) : match.start()]
@@ -134,6 +149,49 @@ def analyze_ats_locations(content: str) -> tuple[AtsLocationEvidence, ...]:
                 AtsLocationEvidence(
                     value=f"{city}, {province}, Canada",
                     rule="ats_canada_city_province_country",
+                ),
+            )
+        )
+
+    for match in _US_STATE_COUNTRY.finditer(header):
+        if _overlaps(match.start(), match.end(), occupied):
+            continue
+        region = " ".join(word.capitalize() for word in match.group("region").split())
+        matches.append(
+            (
+                match.start(),
+                AtsLocationEvidence(
+                    value=f"{region}, United States",
+                    rule="ats_us_state_country",
+                ),
+            )
+        )
+
+    compensation_state = _COMPENSATION_STATE.search(text)
+    if compensation_state:
+        state = _STATE_NAME_TO_CODE[compensation_state.group("region").casefold()]
+        for match in _US_CITY_COUNTRY.finditer(header):
+            if _overlaps(match.start(), match.end(), occupied):
+                continue
+            city = _clean_city(match.group("city"))
+            matches.append(
+                (
+                    match.start(),
+                    AtsLocationEvidence(
+                        value=f"{city}, {state}",
+                        rule="ats_city_country_with_compensation_state",
+                    ),
+                )
+            )
+
+    remote_us = _REMOTE_US_SEGMENT.search(header)
+    if remote_us:
+        matches.append(
+            (
+                remote_us.start("country"),
+                AtsLocationEvidence(
+                    value="United States",
+                    rule="ats_remote_us_multilocation_header",
                 ),
             )
         )
@@ -159,7 +217,12 @@ def _header_region(text: str) -> str:
 def _clean_city(value: str) -> str:
     city = " ".join(str(value).split())
     city = re.sub(r"^(?:Job\s+)?Location\s+", "", city)
+    city = re.sub(r"^[^|]{0,80}\|\s*", "", city)
     return city.strip()
+
+
+def _overlaps(start: int, end: int, spans: list[tuple[int, int]]) -> bool:
+    return any(start < span_end and end > span_start for span_start, span_end in spans)
 
 
 __all__ = ["AtsLocationEvidence", "analyze_ats_locations"]
