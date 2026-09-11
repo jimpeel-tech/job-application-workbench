@@ -2,7 +2,7 @@
 
 **JAW** is a Windows-first, local-first desktop application for reducing repetitive work during job applications. It combines reusable application data, keyboard-driven paste workflows, job capture and analysis, application tracking, capability matching, and document generation in one local workspace.
 
-> **Project status:** JAW `v0.1.0` is the initial public alpha release. It is primarily tested on Windows and supports both source installs and automated standalone Windows executable builds.
+> **Project status:** JAW `0.1.1` is the current source version and remains alpha software. The download links below always resolve to the latest published GitHub Release.
 
 ## Download
 
@@ -10,7 +10,7 @@
 
 **Windows:** [Download the latest `JAW.exe`](https://github.com/jimpeel-tech/job-application-workbench/releases/latest/download/JAW.exe). The standalone executable does not require Python to be installed.
 
-[View all releases](https://github.com/jimpeel-tech/job-application-workbench/releases) · [SHA-256 checksum](https://github.com/jimpeel-tech/job-application-workbench/releases/latest/download/JAW.exe.sha256)
+[View all releases](https://github.com/jimpeel-tech/job-application-workbench/releases) · [Changelog](CHANGELOG.md) · [SHA-256 checksum](https://github.com/jimpeel-tech/job-application-workbench/releases/latest/download/JAW.exe.sha256)
 
 [![Buy Me a Coffee](https://img.shields.io/badge/Buy%20me%20a%20coffee-support-F6C915?logo=buy-me-a-coffee&logoColor=000000)](https://buymeacoffee.com/jimpeel)
 
@@ -92,7 +92,7 @@ _Click any image to view it full size._
 2. Run `JAW.exe`.
 3. Open **Manage User**, create your own user, and switch away from the bundled fictional **Ol Sarge** demo profile before entering real application data.
 
-The standalone executable is the simplest way to try JAW on Windows and does not require a Python installation.
+The standalone executable is the simplest way to try JAW on Windows and does not require a Python installation. Ollama and Tectonic remain optional external programs and are not embedded in `JAW.exe`.
 
 ### Install from source
 
@@ -188,7 +188,7 @@ Document
 
 Templates are normally LaTeX + Jinja. Sections hold document-facing content and can use JAW generation features; Functions provide reusable/extracted logic.
 
-The supported Documents runtime roots are `user`, `job_ref`, `work_exp`, `cap`, and `system`, with helpers such as `csv`, `describe`, `dump`, and `latex_raw`. See [Documents Runtime Objects](docs/documents-runtime.md) for the exact shapes and examples.
+The supported Documents runtime roots are `user`, `job_ref`, `work_exp`, `cap`, and `system`, with helpers such as `csv`, `describe`, `dump`, and `latex_raw`. JAW `0.1.1` supports both Template API 1 and Template API 2; the current runtime contract is documented in [Documents Runtime Objects](docs/documents-runtime.md).
 
 PDF Preview/Generate uses Tectonic. JAW bundles the open-source Montserrat, Open Sans, and Qwitcher Grypen font families used by its built-in templates, together with their license texts. User fonts can be placed in JAW's writable `fonts` directory, with `JAW_TECTONIC_SEARCH_PATH` available for one additional external font directory.
 
