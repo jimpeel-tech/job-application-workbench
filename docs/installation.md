@@ -6,6 +6,7 @@ JAW is a Windows-first desktop application. You can use a packaged `JAW.exe` or 
 
 - Windows 10 or Windows 11
 - Optional: [Ollama](ollama.md) for local generative AI workflows
+- Optional: [OpenAI](openai.md) for hosted generative AI workflows
 - Optional: [Tectonic](tectonic.md) for Document PDF preview/generation
 - Optional: Microsoft Outlook configuration for [Outlook sync](outlook-sync.md)
 - Python 3.11+ and Git only when installing from source or building JAW yourself
@@ -60,7 +61,7 @@ A fresh JAW data store is populated with a fictional demo user named **Ol Sarge*
 
 Open **Manage User** in the upper-right corner, create your own user, and switch to it before entering real application data.
 
-New users default to **Local** Job Description Analysis, so no AI service is required to begin capturing and analyzing jobs. Tectonic is needed only when you want Documents to compile PDF previews/output, and Ollama/OpenAI are optional for generative workflows.
+New users default to **Local** Job Description Analysis, so no AI service is required to begin capturing and analyzing jobs. Tectonic is needed only when you want Documents to compile PDF previews/output, and Ollama/OpenAI are optional for generative workflows. See [OpenAI Setup](openai.md) if you want hosted generation or [Ollama Setup](ollama.md) if you want local generation.
 
 See [First Run](first-run.md) for the recommended setup order and a first end-to-end workflow.
 
@@ -122,6 +123,7 @@ JAW includes an optional unpacked Chrome extension that reuses the existing loca
 ## Next steps
 
 - [First Run](first-run.md)
+- [Configure OpenAI](openai.md)
 - [Configure Ollama](ollama.md)
 - [Configure Tectonic](tectonic.md)
 - [Document Workbench](document-workbench.md)
