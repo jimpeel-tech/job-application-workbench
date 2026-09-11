@@ -9,7 +9,7 @@ from .capture import extract_job_fields
 from .capture_context import classify_capture_context, normalize_capture_for_parser
 from .parser_resolution import resolve_parser_evidence
 from .value_canonicalization import canonical_capture_value
-from .work_arrangement import analyze_work_arrangement
+from .work_arrangement_enrichment import analyze_enriched_work_arrangement
 
 _EXTRACTABLE_CONTEXTS = {
     "job_title",
@@ -176,7 +176,7 @@ def evaluate_fixture(fixture_file: Path) -> dict[str, Any]:
     ]
 
     work_expected = expected.get("work_arrangement", {})
-    work_actual = analyze_work_arrangement(combined)
+    work_actual = analyze_enriched_work_arrangement(combined)
     work_results = _compare_work_arrangement(work_expected, work_actual.as_dict())
 
     return {
