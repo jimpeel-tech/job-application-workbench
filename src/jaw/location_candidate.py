@@ -22,7 +22,13 @@ _WITHIN_US = re.compile(
     rf"\bwithin\s+(?:the\s+)?{_US_TEXT}\b",
     re.IGNORECASE,
 )
-_LI_TAG = re.compile(r"(?:\s*#LI-[A-Za-z0-9_-]+)+\s*$", re.IGNORECASE)
+# Some upstream location cleanup removes the arrangement suffix from tags such
+# as #LI-Remote, leaving a bare trailing #LI. Both forms are tracking metadata,
+# not geography.
+_LI_TAG = re.compile(
+    r"(?:\s*#LI(?:-[A-Za-z0-9_-]+)?)+\s*$",
+    re.IGNORECASE,
+)
 
 
 def sanitize_location_candidate(value: str) -> str:
