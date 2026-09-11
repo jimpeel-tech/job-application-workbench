@@ -1,5 +1,5 @@
-from jaw.pay_evidence import analyze_pay
 from jaw.parser_resolution import resolve_parser_evidence
+from jaw.pay_evidence import analyze_pay
 
 
 def test_k_suffix_salary_range_is_normalized():
