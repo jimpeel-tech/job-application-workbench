@@ -16,6 +16,8 @@ JAW's default local job-analysis path does not require Ollama, OpenAI, or anothe
 
 For release builds, download `JAW.exe` from the matching GitHub Release and run it directly. Python and Git are not required on the target machine.
 
+The executable contains JAW and its packaged runtime assets, but it does **not** bundle Ollama or Tectonic. Install those separately only if you want the workflows that use them. In particular, Tectonic is required before Documents can Preview or Generate PDFs.
+
 Current alpha executables are not code-signed, so Windows SmartScreen may show an **Unknown publisher** warning after download.
 
 You can also create a build from the repository through GitHub Actions or locally. See [Building JAW for Windows](building.md).
