@@ -229,8 +229,13 @@ class TectonicRenderer:
             )
 
     def _stage_local_fonts(self, working_directory: Path) -> None:
-        # Ensure the writable user-font location exists even in a fresh install.
-        user_fonts_path().mkdir(parents=True, exist_ok=True)
+        # The user-font directory is optional. A fresh or constrained install
+        # should still render documents that rely only on packaged fonts.
+        try:
+            user_fonts_path().mkdir(parents=True, exist_ok=True)
+        except OSError:
+            pass
+
         for search_path in self.search_paths:
             for source in search_path.iterdir():
                 if not source.is_file() or source.suffix.lower() not in _FONT_SUFFIXES:
@@ -238,7 +243,18 @@ class TectonicRenderer:
                 destination = working_directory / source.name
                 if destination.exists():
                     continue
-                shutil.copy2(source, destination)
+                try:
+                    shutil.copy2(source, destination)
+                except OSError as error:
+                    diagnostic = RenderDiagnostic(
+                        "error",
+                        f"Could not stage font {source.name}: {error}",
+                        "tectonic.fonts",
+                    )
+                    raise DocumentRenderError(
+                        diagnostic.message,
+                        diagnostics=(diagnostic,),
+                    ) from error
 
     def _require_executable(self) -> Path:
         executable = self.executable
