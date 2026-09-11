@@ -98,8 +98,16 @@ def analyze_explicit_work_arrangement(content: str) -> ExplicitWorkArrangement:
         (r"\bremote\s+work\s+(?:is\s+)?(?:allowed|available|offered|supported)\b", "Remote", "remote_work_allowed"),
         (r"\bwork(?:ing)?\s+remotely\b", "Remote", "working_remotely"),
         (r"\bhome[- ]based\b", "Remote", "home_based_prose"),
-        (r"\bremote[- ]first\s+(?:company|culture|team|work\s+culture)\b", "Remote", "remote_first_culture"),
-        (r"\bvirtual[- ]first\s+(?:company|culture|team|work\s+culture)\b", "Remote", "virtual_first_culture"),
+        (
+            r"\bremote[- ]first\b[^.\n]{0,60}\b(?:company|culture|team|work\s+culture)\b",
+            "Remote",
+            "remote_first_culture",
+        ),
+        (
+            r"\bvirtual[- ]first\b[^.\n]{0,60}\b(?:company|culture|team|work\s+culture)\b",
+            "Remote",
+            "virtual_first_culture",
+        ),
         (r"\bin[- ]office\s+role\b", "On-site", "in_office_role"),
         (r"\bteam\s+works?\s+in[- ]person\b", "On-site", "team_works_in_person"),
     )
