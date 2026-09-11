@@ -41,6 +41,34 @@ def test_remote_workforce_and_remote_first_are_detected():
     assert remote_first.status == "Remote"
 
 
+def test_remote_first_and_virtual_first_cultures_are_detected():
+    remote_first = analyze_explicit_work_arrangement(
+        "We have built a remote-first, highly inclusive culture that welcomes people."
+    )
+    virtual_first = analyze_explicit_work_arrangement(
+        "As a virtual first company, team members can live and work anywhere in the United States."
+    )
+
+    assert remote_first.status == "Remote"
+    assert remote_first.rule == "remote_first_culture"
+    assert virtual_first.status == "Remote"
+    assert virtual_first.rule == "virtual_first_culture"
+
+
+def test_job_location_remote_and_li_remote_tag_are_detected():
+    job_location = analyze_explicit_work_arrangement(
+        "Job Code: 37602\nJob Location: Remote\nJob Schedule: 9/80"
+    )
+    li_remote = analyze_explicit_work_arrangement(
+        "Competitive Equity Package\n#LI-NH1 #LI-REMOTE"
+    )
+
+    assert job_location.status == "Remote"
+    assert job_location.rule == "work_location_remote"
+    assert li_remote.status == "Remote"
+    assert li_remote.rule == "li_remote_tag"
+
+
 def test_customer_site_work_location_is_on_site():
     analysis = analyze_explicit_work_arrangement("Work Location: Customer- site")
 
