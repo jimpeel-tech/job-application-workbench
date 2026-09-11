@@ -26,6 +26,14 @@ The Actions artifact contains the executable and checksum, but it is not the nor
 
 A pushed `v*` tag runs the same workflow and publishes `JAW.exe` plus `JAW.exe.sha256` to the matching GitHub Release. Do not create a release tag until the release candidate has passed the release gate.
 
+## Version metadata
+
+`pyproject.toml` is the authoritative package/distribution version. `src/jaw/__init__.py` exposes the same value as `jaw.__version__` and is kept synchronized by release preparation/tests.
+
+Template-release compatibility prefers the source checkout's `pyproject.toml` version while developing. Packaged builds fall back to installed distribution metadata, and `tools/build_windows.py` passes `--copy-metadata jaw` to PyInstaller so the same version is available inside both onefile and onedir builds.
+
+For `0.1.1`, JAW also supports Template API 1 and Template API 2. The official template repository can therefore publish an API 2 release without breaking access to the immutable API 1 `0.1.0` release.
+
 ## Build locally
 
 From PowerShell in the repository root:
