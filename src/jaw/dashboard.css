@@ -221,8 +221,9 @@ input,select,.btn{background:#292d34;color:var(--text);border:1px solid var(--li
 
 
 /* Capability Add menu ----------------------------------------------------- */
-.cap-add-wrap{position:relative}
-.cap-menu-caret{font-size:10px;margin-left:3px;opacity:.85}
+.cap-add-wrap{position:relative;flex:0 0 auto}
+.cap-add-wrap>#capAddEntity{display:inline-flex;align-items:center;justify-content:center;gap:3px;white-space:nowrap;padding:6px 9px;font-size:12px}
+.cap-menu-caret{font-size:10px;margin-left:0;opacity:.85}
 .cap-add-menu{position:absolute;z-index:80;top:calc(100% + 6px);right:0;min-width:180px;padding:5px;background:#202329;border:1px solid var(--line);border-radius:7px;box-shadow:0 12px 30px rgba(0,0,0,.35)}
 .cap-add-menu[hidden]{display:none}
 .cap-add-menu button{display:block;width:100%;padding:8px 10px;border:0;border-radius:4px;background:transparent;color:var(--text);font:inherit;font-size:12px;text-align:left;cursor:pointer}
