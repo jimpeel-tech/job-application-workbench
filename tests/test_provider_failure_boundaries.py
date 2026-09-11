@@ -54,6 +54,20 @@ def test_openai_invalid_http_json_is_normalized(
         provider.analyze(_request())
 
 
+def test_openai_non_object_response_is_normalized(
+    monkeypatch: pytest.MonkeyPatch,
+):
+    monkeypatch.setenv("OPENAI_API_KEY", "test-key")
+    monkeypatch.setattr(
+        "urllib.request.urlopen",
+        lambda *_args, **_kwargs: FakeResponse(b"[]"),
+    )
+    provider = OpenAIAnalysisProvider("gpt-test")
+
+    with pytest.raises(RuntimeError, match="OpenAI returned an invalid response object"):
+        provider.analyze(_request())
+
+
 def test_ollama_invalid_http_json_is_normalized(
     monkeypatch: pytest.MonkeyPatch,
 ):
@@ -64,4 +78,17 @@ def test_ollama_invalid_http_json_is_normalized(
     provider = OllamaAnalysisProvider("qwen3:14b")
 
     with pytest.raises(RuntimeError, match="Ollama returned invalid response JSON"):
+        provider.analyze(_request())
+
+
+def test_ollama_non_object_response_is_normalized(
+    monkeypatch: pytest.MonkeyPatch,
+):
+    monkeypatch.setattr(
+        "urllib.request.urlopen",
+        lambda *_args, **_kwargs: FakeResponse(b"[]"),
+    )
+    provider = OllamaAnalysisProvider("qwen3:14b")
+
+    with pytest.raises(RuntimeError, match="Ollama returned an invalid response object"):
         provider.analyze(_request())
