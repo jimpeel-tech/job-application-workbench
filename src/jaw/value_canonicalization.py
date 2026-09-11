@@ -4,7 +4,7 @@ import re
 from decimal import Decimal, InvalidOperation
 
 _AMOUNT_RE = re.compile(
-    r"(?<![A-Za-z0-9])(?:[$€£]|US\$|USD|EUR|GBP)?\s*"
+    r"(?<![A-Za-z0-9])(?:[$€£]|US\$|USD|CAD|EUR|GBP)?\s*"
     r"(?P<number>\d{1,3}(?:,\d{3})+(?:\.\d+)?|\d+(?:\.\d+)?)"
     r"\s*(?P<suffix>[kKmM])?(?![A-Za-z])"
 )
@@ -145,6 +145,8 @@ def _decimal_text(value: Decimal) -> str:
 
 def _currency(value: str) -> str:
     folded = value.casefold()
+    if re.search(r"\b(?:cad|canadian dollars?)\b", folded):
+        return "CAD"
     if "$" in value or re.search(r"\b(?:usd|us dollars?)\b", folded):
         return "USD"
     if "€" in value or re.search(r"\beur\b", folded):
