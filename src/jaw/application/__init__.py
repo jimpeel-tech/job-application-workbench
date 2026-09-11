@@ -5,12 +5,17 @@ from .capture_service import (
     CaptureService,
     CaptureValidationError,
 )
-from .job_analysis_service import AnalysisOutcome, JobAnalysisService
+from .job_analysis_service import (
+    AnalysisOutcome,
+    JobAnalysisFailure,
+    JobAnalysisService,
+)
 
 __all__ = [
     "AnalysisOutcome",
     "CaptureAcceptance",
     "CaptureService",
     "CaptureValidationError",
+    "JobAnalysisFailure",
     "JobAnalysisService",
 ]
