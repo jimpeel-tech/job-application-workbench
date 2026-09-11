@@ -110,7 +110,7 @@ def analyze_ats_locations(content: str) -> tuple[AtsLocationEvidence, ...]:
 
     for match in _US_FULL.finditer(header):
         state = _STATE_NAME_TO_CODE[match.group("region").casefold()]
-        city = " ".join(match.group("city").split())
+        city = _clean_city(match.group("city"))
         matches.append(
             (
                 match.start(),
@@ -122,7 +122,7 @@ def analyze_ats_locations(content: str) -> tuple[AtsLocationEvidence, ...]:
         )
 
     for match in _CANADA_FULL.finditer(header):
-        city = " ".join(match.group("city").split())
+        city = _clean_city(match.group("city"))
         province = " ".join(word.capitalize() for word in match.group("region").split())
         matches.append(
             (
@@ -150,6 +150,12 @@ def _header_region(text: str) -> str:
     if marker:
         candidate = candidate[: marker.start()]
     return candidate
+
+
+def _clean_city(value: str) -> str:
+    city = " ".join(str(value).split())
+    city = re.sub(r"^(?:Job\s+)?Location\s+", "", city)
+    return city.strip()
 
 
 __all__ = ["AtsLocationEvidence", "analyze_ats_locations"]
