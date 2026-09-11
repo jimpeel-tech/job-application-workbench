@@ -474,6 +474,9 @@ def _canonical_location_equivalence(value: str) -> str:
     text = re.sub(r"(?<=\w)\s*-\s*(?=\w)", " ", text)
     text = re.sub(r"\s+", " ", text).strip(" .,")
 
+    if text in {"nyc", "new york city", "new york city, ny"}:
+        return "new york city, ny"
+
     country_aliases = {
         "us": "united states",
         "u.s": "united states",
