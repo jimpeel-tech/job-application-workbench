@@ -277,6 +277,107 @@ def extract_employment_type_evidence(content: str) -> GeneralFieldEvidence | Non
             rule="contract_length_to_hire",
         )
 
+    full_time_exempt_header = re.search(
+        r"(?:^|\n)\s*Full[\s-]*Time(?:\s+Regular)?\s*\n\s*"
+        r"(?:Staff\s*[-–—]\s*)?Exempt\b",
+        content,
+        re.IGNORECASE,
+    )
+    if full_time_exempt_header:
+        return GeneralFieldEvidence(
+            field="employment_type",
+            value="Full-time, exempt",
+            evidence=_context_window(
+                content,
+                full_time_exempt_header.start(),
+                full_time_exempt_header.end(),
+            ),
+            confidence=0.995,
+            rule="full_time_exempt_metadata",
+        )
+
+    weekly_hours = re.search(
+        r"\b(?:you(?:['’]ll|\s+will)\s+be\s+)?working\s+40\s+hours?\s+"
+        r"(?:a|per)\s+week\b",
+        content,
+        re.IGNORECASE,
+    )
+    if weekly_hours:
+        return GeneralFieldEvidence(
+            field="employment_type",
+            value="Full-time, 40 hours per week",
+            evidence=_context_line(content, weekly_hours.start(), weekly_hours.end()),
+            confidence=0.99,
+            rule="explicit_40_hour_workweek",
+        )
+
+    scheduled_weekly_hours = re.search(
+        r"(?:^|\n)\s*Scheduled\s+Weekly\s+Hours\s*:\s*(?:\n\s*)?40\b",
+        content,
+        re.IGNORECASE,
+    )
+    if scheduled_weekly_hours:
+        return GeneralFieldEvidence(
+            field="employment_type",
+            value="Full-time",
+            evidence=_context_window(
+                content,
+                scheduled_weekly_hours.start(),
+                scheduled_weekly_hours.end(),
+            ),
+            confidence=0.99,
+            rule="scheduled_weekly_hours_full_time",
+        )
+
+    employment_basis = re.search(
+        r"\bbased\s+on\s+(?P<value>full[\s-]*time|part[\s-]*time)\s+employment\b",
+        content,
+        re.IGNORECASE,
+    )
+    if employment_basis:
+        value = _normalize_employment_type(employment_basis.group("value"))
+        if value:
+            return GeneralFieldEvidence(
+                field="employment_type",
+                value=value,
+                evidence=_context_line(content, employment_basis.start(), employment_basis.end()),
+                confidence=0.99,
+                rule="explicit_employment_basis",
+            )
+
+    based_workload = re.search(
+        r"\bbased\s+(?P<value>full[\s-]*time|part[\s-]*time)\s+in\b",
+        content,
+        re.IGNORECASE,
+    )
+    if based_workload:
+        value = _normalize_employment_type(based_workload.group("value"))
+        if value:
+            return GeneralFieldEvidence(
+                field="employment_type",
+                value=value,
+                evidence=_context_line(content, based_workload.start(), based_workload.end()),
+                confidence=0.99,
+                rule="based_workload_prose",
+            )
+
+    standalone_workload = re.search(
+        r"(?:^|\n)\s*(?P<value>Full[\s-]*time|Part[\s-]*time)\b"
+        r"(?:\s*,\s*[^\n]{2,80})?\s*(?:\n|$)",
+        content,
+        re.IGNORECASE,
+    )
+    if standalone_workload:
+        value = _normalize_employment_type(standalone_workload.group("value"))
+        if value:
+            return GeneralFieldEvidence(
+                field="employment_type",
+                value=value,
+                evidence=_context_line(content, standalone_workload.start(), standalone_workload.end()),
+                confidence=0.985,
+                rule="standalone_workload_metadata",
+            )
+
     # The current scalar employment_type field primarily represents workload
     # classification (full-time/part-time/contract). When a posting also exposes
     # an HR relationship such as "Regular Employee", prefer an explicit statement
@@ -302,6 +403,12 @@ def extract_employment_type_evidence(content: str) -> GeneralFieldEvidence | Non
             r"(?:position|role|job)\b",
             re.IGNORECASE,
         ),
+        re.compile(
+            r"\bthis\s+is\s+an?\s+"
+            r"(?P<value>permanent|temporary|seasonal|contract)\s+"
+            r"(?:position|role|job)\b",
+            re.IGNORECASE,
+        ),
     )
     for pattern in prose_patterns:
         match = pattern.search(content)
@@ -320,7 +427,7 @@ def extract_employment_type_evidence(content: str) -> GeneralFieldEvidence | Non
         (
             re.compile(
                 r"(?:^|\n)\s*(?:Employment\s+Type|Employment\s+Status|Job\s+Types?|"
-                r"Time\s+Type|Position\s+Type)\s*:?\s*(?:\n\s*)?"
+                r"Time\s+Type|Position\s+Type|Contract\s+Type)\s*:?\s*(?:\n\s*)?"
                 r"(?P<value>[^\n|•]{2,90})",
                 re.IGNORECASE,
             ),
