@@ -243,7 +243,7 @@ def test_runtime_exposes_derived_full_name_system_and_work_exp(tmp_path: Path) -
     assert runtime["system"]["current_date"] == today.strftime("%B %d, %Y").replace(" 0", " ")
     assert runtime["system"]["current_year"] == str(today.year)
     assert runtime["work_exp"] == [
-        {"company": "Example Corp", "title": "Engineer"}
+        {"company": "Example Corp", "title": "Engineer", "highlights": []}
     ]
     assert runtime["csv"](["AWS", "OCI"]) == "AWS, OCI"
 
@@ -284,7 +284,9 @@ Generate two bullets using {{ work_exp }}.
 
     assert len(text_generator.requests) == 1
     assert text_generator.requests[0].context == {
-        "work_exp": [{"company": "Example Corp", "title": "Engineer"}]
+        "work_exp": [
+            {"company": "Example Corp", "title": "Engineer", "highlights": []}
+        ]
     }
     section_value = _section_request_value(repository, document["id"], pdf_renderer.requests[0])
     assert "Built a reliable platform" in section_value.content
@@ -334,7 +336,9 @@ Generate two resume bullets from {{ jobs }}.
     assert text_generator.requests[0].provider == "ollama"
     assert text_generator.requests[0].model == "qwen3:14b"
     assert text_generator.requests[0].context == {
-        "jobs": [{"company": "Example Corp", "title": "Engineer"}]
+        "jobs": [
+            {"company": "Example Corp", "title": "Engineer", "highlights": []}
+        ]
     }
     section_value = _section_request_value(repository, document["id"], pdf_renderer.requests[0])
     assert "Built a reliable platform" in section_value.content
