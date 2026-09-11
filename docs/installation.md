@@ -20,6 +20,14 @@ The executable contains JAW and its packaged runtime assets, but it does **not**
 
 Current alpha executables are not code-signed, so Windows SmartScreen may show an **Unknown publisher** warning after download.
 
+If Windows SmartScreen shows **Windows protected your PC**:
+
+1. Click **More info**.
+2. Confirm the app is `JAW.exe`.
+3. Click **Run anyway**.
+
+JAW alpha builds are currently unsigned, so Windows may display **Publisher: Unknown publisher**. Download JAW only from the official GitHub Releases page and verify the published SHA-256 checksum if desired.
+
 You can also create a build from the repository through GitHub Actions or locally. See [Building JAW for Windows](building.md).
 
 ## Install from the repository
