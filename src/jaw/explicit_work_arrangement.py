@@ -86,10 +86,51 @@ def analyze_explicit_work_arrangement(content: str) -> ExplicitWorkArrangement:
             return ExplicitWorkArrangement("Remote", "", "title_remote_suffix")
         if re.search(r"(?:^|\s[-–—|]\s)remote\s*$", line, re.IGNORECASE):
             return ExplicitWorkArrangement("Remote", "", "title_remote_suffix")
+        if re.search(
+            r"\bremote(?:\s+(?:EST|CST|MST|PST|ET|CT|MT|PT)\s+hours?)?"
+            r"(?:\s*[-–—]\s*ID\s*:?\s*[A-Z0-9._/-]+)?\s*$",
+            line,
+            re.IGNORECASE,
+        ) and re.search(r"[-–—]\s*remote\b", line, re.IGNORECASE):
+            return ExplicitWorkArrangement("Remote", "", "title_remote_schedule_suffix")
+        if re.match(
+            r"^(?:US|U\.S\.?|USA|U\.S\.A\.?|United States)[-–—]?RemotePosted\b",
+            line,
+            re.IGNORECASE,
+        ):
+            return ExplicitWorkArrangement("Remote", "", "joined_us_remote_header")
         if "remote first" in lowered and "remote always" in lowered:
             return ExplicitWorkArrangement("Remote", "", "remote_first_badge")
         if re.search(r"(?:^|\s)#LI-REMOTE\b", line, re.IGNORECASE):
             return ExplicitWorkArrangement("Remote", "", "li_remote_tag")
+
+    remote_or_hybrid = re.search(
+        r"\bflexible\s+on\s+remote\s+working\s+from\s+home\b"
+        r"[^.\n]{0,220}\bhybrid\s+option\b",
+        text,
+        re.IGNORECASE,
+    )
+    if remote_or_hybrid:
+        return ExplicitWorkArrangement("Remote or hybrid", "", "remote_or_hybrid_option")
+
+    live_and_work = re.search(
+        r"\b(?:employees?|team\s+members?|candidates?)\s+"
+        r"(?:can|may)\s+live\s+and\s+work\s+anywhere\s+in\s+(?:the\s+)?"
+        r"(?:U\.?S\.?A?\.?|United States(?: of America)?)\b",
+        text,
+        re.IGNORECASE,
+    )
+    if live_and_work:
+        return ExplicitWorkArrangement("Remote", "", "live_and_work_anywhere_us")
+
+    hybrid_policy = re.search(
+        r"\bhybrid\s+working\s+environment\b"
+        r"[^.\n]{0,180}\b(?:for\s+all\s+employees|most\s+roles)\b",
+        text,
+        re.IGNORECASE,
+    )
+    if hybrid_policy:
+        return ExplicitWorkArrangement("Hybrid", "", "hybrid_working_environment_policy")
 
     prose_patterns = (
         (r"\b(?:100%|fully)\s+remote\b", "Remote", "explicit_remote_prose"),
