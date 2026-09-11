@@ -50,7 +50,7 @@ class DeterministicAnalysisProvider:
                 concerns.append(
                     f"{capability.name} is mentioned in the job; "
                     f"candidate rating is {capability.rating}/5 "
-                    f"({guidance['label']} â€” {guidance['description']})."
+                    f"({guidance['label']} — {guidance['description']})."
                 )
                 continue
 
