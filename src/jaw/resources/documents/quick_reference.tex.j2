@@ -66,12 +66,19 @@ system.current\_year & {{ system.current_year | latex }} \\
 {% endfor %}
 \end{itemize}
 
-\textbf{User-managed set: platform\_sre}
-\begin{itemize}[leftmargin=18pt,itemsep=1pt,topsep=2pt]
-{% for capability in cap.sets.platform_sre %}
+\textbf{User-managed capability sets}\par
+{% if cap.sets %}
+{% for set_name, capabilities in cap.sets.items() %}
+\Code{cap.sets.{{ set_name | latex }}}
+\begin{itemize}[leftmargin=18pt,itemsep=1pt,topsep=1pt]
+{% for capability in capabilities %}
   \item {{ capability.name | latex }}
 {% endfor %}
 \end{itemize}
+{% endfor %}
+{% else %}
+No user-managed capability sets are currently enabled for Documents.
+{% endif %}
 
 \Section{Jinja essentials}
 \begin{tabular}{p{1.30in} p{6.10in}}
