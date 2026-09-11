@@ -55,6 +55,15 @@ def test_top_street_address_normalizes_full_state_name():
     assert evidence.value == "Englewood Cliffs, NJ"
 
 
+def test_top_country_arrangement_badge_extracts_country_only():
+    evidence = analyze_explicit_location(
+        "ByteSearch\nSenior Platform Engineer\nUSA | Remote\n$180K-$230K"
+    )
+
+    assert evidence.value == "United States"
+    assert evidence.rule == "top_location_metadata"
+
+
 def test_office_city_can_infer_state_from_explicit_company_location():
     evidence = analyze_explicit_location(
         "Founded in 2020 and headquartered in Redwood City, California.\n"
@@ -72,6 +81,35 @@ def test_based_full_time_in_nyc_normalizes_city():
     )
 
     assert evidence.value == "New York City, NY"
+
+
+def test_us_residence_requirement_extracts_country():
+    evidence = analyze_explicit_location(
+        "Must reside in the U.S.; we are unable to provide visa sponsorship at this time"
+    )
+
+    assert evidence.value == "United States"
+    assert evidence.rule == "us_residence_requirement"
+
+
+def test_us_live_work_scope_preserves_hawaii_exclusion():
+    evidence = analyze_explicit_location(
+        "As a virtual first company, team members can live and work anywhere in the "
+        "United States, with the exception of Hawaii."
+    )
+
+    assert evidence.value == "United States, excluding Hawaii"
+    assert evidence.rule == "us_live_work_exclusion"
+
+
+def test_research_institution_location_extracts_physical_site():
+    evidence = analyze_explicit_location(
+        "This premier research institution, located near Knoxville in Oak Ridge, TN, "
+        "addresses national needs. This position can be remote, but requires onsite visits."
+    )
+
+    assert evidence.value == "Oak Ridge, TN"
+    assert evidence.rule == "explicit_site_location"
 
 
 def test_company_headquarters_alone_is_not_job_location():
