@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from typing import Any, Iterable
 
 from .capture import extract_job_fields
+from .explicit_work_arrangement import analyze_explicit_work_arrangement
 from .general_evidence import extract_general_evidence
 from .pay_evidence import analyze_pay
 from .value_canonicalization import canonical_capture_value
@@ -117,6 +118,7 @@ def _field_priority(field: str, context: str) -> int:
     }:
         return {
             "pay_evidence": 100,
+            "explicit_work_arrangement": 96,
             "work_arrangement": 95,
             "general_evidence": 95,
             "job_metadata": 90,
@@ -233,6 +235,22 @@ def resolve_parser_evidence(
                 "location",
                 work_arrangement.location,
                 context="work_arrangement",
+                capture_index=None,
+            )
+
+        explicit_work_arrangement = analyze_explicit_work_arrangement(combined_text)
+        if not work_arrangement.status and explicit_work_arrangement.status:
+            add_value(
+                "remote_status",
+                explicit_work_arrangement.status,
+                context="explicit_work_arrangement",
+                capture_index=None,
+            )
+        if not work_arrangement.location and explicit_work_arrangement.location:
+            add_value(
+                "location",
+                explicit_work_arrangement.location,
+                context="explicit_work_arrangement",
                 capture_index=None,
             )
 
