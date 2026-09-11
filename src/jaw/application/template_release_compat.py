@@ -13,7 +13,7 @@ from typing import Any
 
 RELEASE_REGISTRY_FORMAT_VERSION = 1
 TEMPLATE_PACKAGE_FORMAT_VERSION = 1
-SUPPORTED_TEMPLATE_APIS = frozenset({1})
+SUPPORTED_TEMPLATE_APIS = frozenset({1, 2})
 
 _VERSION = re.compile(r"^(\d+)\.(\d+)\.(\d+)$")
 _VERSION_PREFIX = re.compile(r"^(\d+)\.(\d+)\.(\d+)")
