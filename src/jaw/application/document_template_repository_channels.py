@@ -10,6 +10,7 @@ from __future__ import annotations
 import json
 import shutil
 import tempfile
+from importlib.resources import files
 from pathlib import Path
 from typing import Any
 
@@ -22,11 +23,18 @@ from .document_template_repository import (
 )
 
 _INSTALL_METADATA = ".jaw-install.json"
+_LOCAL_DEFAULTS_METADATA = ".jaw-local-defaults.json"
+_LOCAL_DEFAULTS_VERSION = 1
+_QUICK_REFERENCE_ID = "quick-reference"
 _DEV_BRANCH = "dev"
 
 
 class TemplateRepository(_BaseTemplateRepository):
-    """Add release/dev channel metadata while preserving the canonical package model."""
+    """Add release/dev channels plus one-time Local template defaults."""
+
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        self._ensure_directories()
 
     def catalog(self) -> dict[str, Any]:
         value = super().catalog()
@@ -73,6 +81,77 @@ class TemplateRepository(_BaseTemplateRepository):
         if channel_key == "dev":
             return self._download_dev()
         raise ValueError("Template repository channel must be release or dev")
+
+    def _ensure_directories(self) -> None:
+        super()._ensure_directories()
+        self._seed_local_defaults()
+
+    def _seed_local_defaults(self) -> None:
+        metadata_path = self.root / _LOCAL_DEFAULTS_METADATA
+        metadata = self._read_optional_json(metadata_path)
+        if int(metadata.get("version") or 0) >= _LOCAL_DEFAULTS_VERSION:
+            return
+
+        target = self.local_root / _QUICK_REFERENCE_ID
+        if not target.exists():
+            source = (
+                files("jaw")
+                .joinpath("resources")
+                .joinpath("documents")
+                .joinpath("quick_reference.tex.j2")
+                .read_text(encoding="utf-8")
+            )
+            with tempfile.TemporaryDirectory(
+                prefix=".jaw-local-defaults-",
+                dir=self.root,
+            ) as temporary:
+                package = Path(temporary) / _QUICK_REFERENCE_ID
+                package.mkdir()
+                manifest = {
+                    "format_version": 1,
+                    "id": _QUICK_REFERENCE_ID,
+                    "name": "Quick Reference",
+                    "description": (
+                        "JAW Documents runtime schema and Jinja/LaTeX quick reference."
+                    ),
+                    "output_pattern": "{{ user.full_name }} - JAW Quick Reference.pdf",
+                    "template": {
+                        "name": "Quick Reference",
+                        "file": "template.jinja",
+                    },
+                    "sections": [],
+                }
+                (package / "template.json").write_text(
+                    json.dumps(manifest, indent=2) + "\n",
+                    encoding="utf-8",
+                )
+                (package / "template.jinja").write_text(source, encoding="utf-8")
+                self._load_package(package, "local")
+                try:
+                    package.rename(target)
+                except FileExistsError:
+                    pass
+
+        self._write_local_defaults_metadata(metadata_path)
+
+    @staticmethod
+    def _read_optional_json(path: Path) -> dict[str, Any]:
+        if not path.is_file():
+            return {}
+        try:
+            value = json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, TypeError, ValueError, json.JSONDecodeError):
+            return {}
+        return dict(value) if isinstance(value, dict) else {}
+
+    @staticmethod
+    def _write_local_defaults_metadata(path: Path) -> None:
+        temporary = path.with_suffix(path.suffix + ".tmp")
+        temporary.write_text(
+            json.dumps({"version": _LOCAL_DEFAULTS_VERSION}, indent=2) + "\n",
+            encoding="utf-8",
+        )
+        temporary.replace(path)
 
     def _download_dev(self) -> dict[str, Any]:
         self._ensure_directories()
