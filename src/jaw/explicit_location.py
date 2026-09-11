@@ -99,6 +99,25 @@ _US_LIVE_WORK = re.compile(
     rf"{_US_TEXT}\b(?P<tail>[^.\n]{{0,120}})",
     re.IGNORECASE,
 )
+_US_HIRING_SCOPE = re.compile(
+    rf"\b(?:currently\s+)?(?:hire|hiring)\s+in\s+(?:most|all)\s+{_US_TEXT}\s+states\b"
+    r"(?P<tail>[^.\n]{0,120})",
+    re.IGNORECASE,
+)
+_US_BASED_SCOPE = re.compile(
+    rf"\b(?:must\s+be|be)\s+based\s+in\s+(?:the\s+)?{_US_TEXT}\b"
+    r"(?P<tail>[^.\n]{0,120})",
+    re.IGNORECASE,
+)
+_REMOTE_US_CANADA = re.compile(
+    r"\bremote\s*\(\s*(?:US|U\.S\.?|USA|U\.S\.A\.?|United States)\s*/\s*Canada\s*\)",
+    re.IGNORECASE,
+)
+_US_TIMEZONE_REMOTE = re.compile(
+    r"\b(?:100%\s+)?remote\s*[-–—]\s*(?:USA|US|U\.S\.?)\s+"
+    r"Central\s*(?:&|and|or)\s*(?:EST|Eastern(?:\s+Time)?)\b",
+    re.IGNORECASE,
+)
 
 
 def analyze_explicit_location(content: str) -> ExplicitLocation:
@@ -125,6 +144,15 @@ def analyze_explicit_location(content: str) -> ExplicitLocation:
         value = _metadata_location(line)
         if value:
             return ExplicitLocation(value, "top_location_metadata")
+
+    for line in lines[:10]:
+        if _REMOTE_US_CANADA.search(line):
+            return ExplicitLocation("United States or Canada", "remote_us_canada_scope")
+        if _US_TIMEZONE_REMOTE.search(line):
+            return ExplicitLocation(
+                "United States, Central or Eastern Time",
+                "remote_us_timezone_scope",
+            )
 
     role_patterns = (
         re.compile(
@@ -179,6 +207,20 @@ def analyze_explicit_location(content: str) -> ExplicitLocation:
         if re.search(r"\b(?:except(?:ion)?\s+(?:of\s+)?|excluding\s+)hawaii\b", tail):
             return ExplicitLocation("United States, excluding Hawaii", "us_live_work_exclusion")
         return ExplicitLocation("United States", "us_live_work_scope")
+
+    hiring_scope = _US_HIRING_SCOPE.search(text)
+    if hiring_scope:
+        tail = " ".join((hiring_scope.group("tail") or "").split()).casefold()
+        if re.search(r"\b(?:except(?:ion)?\s+(?:of\s+)?|excluding\s+)hawaii\b", tail):
+            return ExplicitLocation("United States, excluding Hawaii", "us_hiring_exclusion")
+        return ExplicitLocation("United States", "us_hiring_scope")
+
+    based_scope = _US_BASED_SCOPE.search(text)
+    if based_scope:
+        tail = " ".join((based_scope.group("tail") or "").split()).casefold()
+        if re.search(r"\b(?:not\s+hiring\s+in|except(?:ion)?\s+(?:of\s+)?|excluding\s+)hawaii\b", tail):
+            return ExplicitLocation("United States, excluding Hawaii", "us_based_exclusion")
+        return ExplicitLocation("United States", "us_based_scope")
 
     if _US_RESIDENCE.search(text):
         return ExplicitLocation("United States", "us_residence_requirement")
