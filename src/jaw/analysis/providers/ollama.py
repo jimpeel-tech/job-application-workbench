@@ -84,6 +84,8 @@ class OllamaAnalysisProvider:
         except (urllib.error.URLError, TimeoutError) as error:
             reason = getattr(error, "reason", error)
             raise RuntimeError(f"Could not reach Ollama: {reason}") from error
+        except json.JSONDecodeError as error:
+            raise RuntimeError("Ollama returned invalid response JSON") from error
 
         models = payload.get("models", []) if isinstance(payload, dict) else []
         return [
@@ -122,6 +124,8 @@ class OllamaAnalysisProvider:
         except (urllib.error.URLError, TimeoutError) as error:
             reason = getattr(error, "reason", error)
             raise RuntimeError(f"Could not reach Ollama: {reason}") from error
+        except json.JSONDecodeError as error:
+            raise RuntimeError("Ollama returned invalid response JSON") from error
 
         if isinstance(payload, dict) and payload.get("error"):
             raise RuntimeError(f"Ollama response error: {payload['error']}")
