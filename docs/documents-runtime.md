@@ -26,6 +26,10 @@ A simple Template can use them directly:
 
 JAW uses strict Jinja evaluation. A missing variable or invalid expression fails visibly instead of silently producing an empty value.
 
+### Template API compatibility
+
+JAW `0.1.1` supports official Template API 1 and Template API 2 packages. Template API 2 is the current runtime contract documented on this page. The contract change relevant to existing template authors is that `work_exp[*].highlights` is now consistently a `list[str]` at the Documents boundary. JAW continues accepting the immutable official `0.1.0` Template API 1 release so existing bundled examples remain selectable during the transition.
+
 ## `user`
 
 `user` contains the active user's profile mapping. Common fields include:
