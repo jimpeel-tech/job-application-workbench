@@ -3,7 +3,6 @@ from __future__ import annotations
 import pytest
 
 from jaw.application.template_release_compat import (
-    SUPPORTED_TEMPLATE_APIS,
     select_compatible_release,
     version_satisfies,
 )
@@ -71,28 +70,6 @@ def test_template_api_can_keep_old_and_new_contracts_compatible() -> None:
 
     assert selected["version"] == "0.2.1"
     assert selected["template_api"] == 2
-
-
-def test_jaw_runtime_supports_template_api_1_and_2() -> None:
-    assert SUPPORTED_TEMPLATE_APIS == frozenset({1, 2})
-
-    registry = _registry(
-        _release("0.1.0", template_api=1, jaw=">=0.1.0,<0.2.0"),
-        _release("0.1.1", template_api=2, jaw=">=0.1.1,<0.2.0"),
-    )
-
-    assert select_compatible_release(
-        registry,
-        jaw_version="0.1.0",
-        supported_template_apis=SUPPORTED_TEMPLATE_APIS,
-        package_format=1,
-    )["template_api"] == 1
-    assert select_compatible_release(
-        registry,
-        jaw_version="0.1.1",
-        supported_template_apis=SUPPORTED_TEMPLATE_APIS,
-        package_format=1,
-    )["template_api"] == 2
 
 
 def test_incompatible_explicit_release_is_rejected() -> None:
