@@ -15,6 +15,10 @@ from .job_id_evidence import analyze_job_id
 from .location_candidate import sanitize_location_candidate
 from .pay_currency import resolve_pay_currency
 from .pay_evidence import analyze_pay
+from .posting_metadata_evidence import (
+    extract_posting_metadata_evidence,
+    is_location_like_company_candidate,
+)
 from .value_canonicalization import canonical_capture_value
 from .work_arrangement_enrichment import analyze_enriched_work_arrangement
 from .work_arrangement_guard import suppress_work_arrangement
@@ -104,6 +108,7 @@ def _field_priority(field: str, context: str) -> int:
         }.get(context, 40)
     if field == "company":
         return {
+            "posting_metadata": 106,
             "general_evidence": 105,
             "company": 100,
             "job_description": 50,
@@ -142,6 +147,7 @@ def _field_priority(field: str, context: str) -> int:
             "pay_evidence": 100,
             "explicit_clearance": 100,
             "ats_location": 97,
+            "posting_metadata": 96,
             "explicit_work_arrangement": 96,
             "work_arrangement": 95,
             "general_evidence": 95,
@@ -182,6 +188,14 @@ def resolve_parser_evidence(
     ) -> None:
         value = str(value).strip()
         if not value:
+            return
+        if field == "job_id" and not any(character.isdigit() for character in value):
+            return
+        if (
+            field == "company"
+            and context != "posting_metadata"
+            and is_location_like_company_candidate(value)
+        ):
             return
         occurrences.setdefault(field, []).append(
             {
@@ -231,6 +245,13 @@ def resolve_parser_evidence(
                 item.field,
                 item.value,
                 context="general_evidence",
+                capture_index=None,
+            )
+        for item in extract_posting_metadata_evidence(combined_text):
+            add_value(
+                item.field,
+                item.value,
+                context="posting_metadata",
                 capture_index=None,
             )
 
