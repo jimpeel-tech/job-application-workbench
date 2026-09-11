@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from typing import Any, Iterable
 
 from .capture import extract_job_fields
+from .explicit_location import analyze_explicit_location
 from .explicit_work_arrangement import analyze_explicit_work_arrangement
 from .general_evidence import extract_general_evidence
 from .pay_evidence import analyze_pay
@@ -121,6 +122,7 @@ def _field_priority(field: str, context: str) -> int:
             "explicit_work_arrangement": 96,
             "work_arrangement": 95,
             "general_evidence": 95,
+            "explicit_location": 94,
             "job_metadata": 90,
             "job_description": 55,
             "combined": 30,
@@ -253,6 +255,16 @@ def resolve_parser_evidence(
                 context="explicit_work_arrangement",
                 capture_index=None,
             )
+
+        if not work_arrangement.location and not explicit_work_arrangement.location:
+            explicit_location = analyze_explicit_location(combined_text)
+            if explicit_location.value:
+                add_value(
+                    "location",
+                    explicit_location.value,
+                    context="explicit_location",
+                    capture_index=None,
+                )
 
     fields: dict[str, ParserFieldResolution] = {}
     scalar_values: dict[str, list[str]] = {}
