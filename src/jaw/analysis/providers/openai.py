@@ -82,10 +82,13 @@ class OpenAIAnalysisProvider:
                 payload = json.load(response)
         except urllib.error.HTTPError as error:
             raise RuntimeError(self._http_error_message(error)) from error
-        except urllib.error.URLError as error:
-            raise RuntimeError(f"Could not reach OpenAI: {error.reason}") from error
+        except (urllib.error.URLError, TimeoutError) as error:
+            reason = getattr(error, "reason", error)
+            raise RuntimeError(f"Could not reach OpenAI: {reason}") from error
+        except json.JSONDecodeError as error:
+            raise RuntimeError("OpenAI returned invalid response JSON") from error
 
-        return "Connected to OpenAI Â· " f"{payload.get('id', self.model)}"
+        return f"Connected to OpenAI · {payload.get('id', self.model)}"
 
     def analyze(
         self,
@@ -108,8 +111,11 @@ class OpenAIAnalysisProvider:
                 payload = json.load(response)
         except urllib.error.HTTPError as error:
             raise RuntimeError(self._http_error_message(error)) from error
-        except urllib.error.URLError as error:
-            raise RuntimeError(f"Could not reach OpenAI: {error.reason}") from error
+        except (urllib.error.URLError, TimeoutError) as error:
+            reason = getattr(error, "reason", error)
+            raise RuntimeError(f"Could not reach OpenAI: {reason}") from error
+        except json.JSONDecodeError as error:
+            raise RuntimeError("OpenAI returned invalid response JSON") from error
 
         text = self._response_text(payload)
         try:
