@@ -20,10 +20,23 @@ _WEEKDAY_HYBRID_POLICY = re.compile(
     r"\bFridays?\b[^.\n]{0,120}\bremote\s+work\b",
     re.IGNORECASE,
 )
+_REMOTE_TERRITORY = re.compile(
+    r"\bThis\s+is\s+a\s+remote\s+position\s*;?\s*however,?\s*"
+    r"candidates?\s+must\s+be\s+based\s+in\s+"
+    r"(?P<locations>[^.\n]{2,140}?)"
+    r"(?=\s+to\s+(?:effectively\s+)?support\b|[.;\n])",
+    re.IGNORECASE,
+)
+_REMOTE_US_MULTI = re.compile(
+    r"(?mi)^\s*Remote\s*-\s*(?:US|USA)\s*;\s*United\s+States\s*;[^\n]+$"
+)
 _METADATA_LABEL_LEAK = re.compile(
     r"\b(?:Work\s+Arrangement|Employment\s+Type|Compensation|Benefits|Job\s+Summary)\b",
     re.IGNORECASE,
 )
+_STATE_ALIASES = {
+    "louisianna": "Louisiana",
+}
 
 
 def analyze_enriched_work_arrangement(content: str) -> WorkArrangementAnalysis:
@@ -71,6 +84,57 @@ def analyze_enriched_work_arrangement(content: str) -> WorkArrangementAnalysis:
             )
         )
 
+    territory = _REMOTE_TERRITORY.search(text)
+    if territory:
+        # In an explicitly remote role, a state list following "must be based in"
+        # describes the geography in which remote work is eligible. Replace the
+        # core analyzer's collapsed residence candidate with per-state evidence.
+        evidence = [
+            item
+            for item in evidence
+            if item.location_relation != "residence_requirement"
+        ]
+        clause = " ".join(territory.group(0).split())[:360]
+        for location in _split_territory_locations(territory.group("locations")):
+            evidence.append(
+                WorkArrangementEvidence(
+                    arrangement="remote",
+                    value="Remote",
+                    evidence=clause,
+                    location=location,
+                    location_relation="remote_eligibility",
+                    confidence=0.995,
+                    rule="explicit_remote_territory",
+                )
+            )
+
+    multi = _REMOTE_US_MULTI.search(text)
+    if multi:
+        # The core metadata rule treats the entire semicolon-delimited header as
+        # one location. Keep Remote status, but replace that collapsed geography
+        # with a clean country-level eligibility fact. ATS location extraction
+        # retains the individual posting locations separately.
+        evidence = [
+            item
+            for item in evidence
+            if not (
+                item.arrangement == "remote"
+                and item.location
+                and ";" in item.location
+            )
+        ]
+        evidence.append(
+            WorkArrangementEvidence(
+                arrangement="remote",
+                value="Remote",
+                evidence=" ".join(multi.group(0).split())[:360],
+                location="United States",
+                location_relation="remote_eligibility",
+                confidence=0.995,
+                rule="remote_us_multilocation_header",
+            )
+        )
+
     evidence = _dedupe(evidence)
     status, conflict = _resolve(evidence)
     return WorkArrangementAnalysis(
@@ -99,6 +163,19 @@ def _label(arrangement: str) -> str:
         "field-based": "Field-based",
         "flexible": "Flexible",
     }.get(arrangement, arrangement)
+
+
+def _split_territory_locations(value: str) -> tuple[str, ...]:
+    raw = re.sub(r"\s+or\s+", ",", str(value), flags=re.IGNORECASE)
+    parts = [" ".join(part.split()).strip(" ,;.") for part in raw.split(",")]
+    result: list[str] = []
+    for part in parts:
+        if not part:
+            continue
+        normalized = _STATE_ALIASES.get(part.casefold(), part.title())
+        if normalized.casefold() not in {item.casefold() for item in result}:
+            result.append(normalized)
+    return tuple(result)
 
 
 def _dedupe(items: list[WorkArrangementEvidence]) -> list[WorkArrangementEvidence]:
@@ -141,6 +218,12 @@ def _resolve(evidence: list[WorkArrangementEvidence]) -> tuple[str, bool]:
 
 
 def _primary_location(evidence: list[WorkArrangementEvidence]) -> str:
+    # A semicolon-delimited remote header can encode scope plus several posting
+    # locations. There is no truthful single primary location in that shape;
+    # leave the scalar empty so the ATS layer can retain all explicit locations.
+    if any(item.rule == "remote_us_multilocation_header" for item in evidence):
+        return ""
+
     candidates = [item for item in evidence if item.location and item.location_relation != "unknown"]
     if not candidates:
         return ""
@@ -154,6 +237,16 @@ def _primary_location(evidence: list[WorkArrangementEvidence]) -> str:
         key=lambda item: (priority.get(item.location_relation, 0), item.confidence),
         reverse=True,
     )
+
+    highest = priority.get(candidates[0].location_relation, 0)
+    peers = [
+        item
+        for item in candidates
+        if priority.get(item.location_relation, 0) == highest
+    ]
+    distinct = {item.location.casefold() for item in peers}
+    if len(distinct) > 1:
+        return ""
     return candidates[0].location
 
 
