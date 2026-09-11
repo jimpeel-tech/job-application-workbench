@@ -5,6 +5,7 @@ from typing import Any, Iterable
 
 from .capture import extract_job_fields
 from .explicit_location import analyze_explicit_location
+from .explicit_on_call import analyze_explicit_on_call
 from .explicit_work_arrangement import analyze_explicit_work_arrangement
 from .general_evidence import extract_general_evidence
 from .job_id_evidence import analyze_job_id
@@ -225,6 +226,14 @@ def resolve_parser_evidence(
                 context="general_evidence",
                 capture_index=None,
             )
+        explicit_on_call = analyze_explicit_on_call(combined_text)
+        if explicit_on_call.value:
+            add_value(
+                "on_call",
+                explicit_on_call.value,
+                context="general_evidence",
+                capture_index=None,
+            )
         job_id = analyze_job_id(combined_text)
         if job_id.value:
             add_value(
@@ -302,7 +311,7 @@ def resolve_parser_evidence(
     fields: dict[str, ParserFieldResolution] = {}
     scalar_values: dict[str, list[str]] = {}
     for field, field_occurrences in occurrences.items():
-        resolution = _resolve_field(field_occurrences)
+        resolution = _resolve_field(field, field_occurrences)
         fields[field] = resolution
         scalar_values[field] = list(resolution.values)
 
@@ -330,7 +339,7 @@ def resolve_parser_values(
     return resolve_parser_evidence(extractions, combined_text).values
 
 
-def _resolve_field(occurrences: list[dict[str, Any]]) -> ParserFieldResolution:
+def _resolve_field(field: str, occurrences: list[dict[str, Any]]) -> ParserFieldResolution:
     grouped: dict[str, list[dict[str, Any]]] = {}
     for occurrence in occurrences:
         grouped.setdefault(str(occurrence["key"]), []).append(occurrence)
@@ -357,6 +366,7 @@ def _resolve_field(occurrences: list[dict[str, Any]]) -> ParserFieldResolution:
                 "support_count": support_count,
                 "occurrence_count": len(group),
                 "contexts": contexts,
+                "first_capture_index": min(independent) if independent else None,
             }
         )
 
@@ -364,6 +374,20 @@ def _resolve_field(occurrences: list[dict[str, Any]]) -> ParserFieldResolution:
     top = [item for item in summaries if int(item["priority"]) == top_priority]
     best_support = max(int(item["support_count"]) for item in top)
     winners = [item for item in top if int(item["support_count"]) == best_support]
+
+    # Capture order is only a prior. Use it for titles solely when stronger
+    # evidence is otherwise tied, because a posting header normally precedes
+    # title-like descriptive prose in the body.
+    if field == "title" and len(winners) > 1:
+        captured = [item for item in winners if item["first_capture_index"] is not None]
+        if captured:
+            earliest = min(int(item["first_capture_index"]) for item in captured)
+            winners = [
+                item
+                for item in captured
+                if int(item["first_capture_index"]) == earliest
+            ]
+
     winner_values = tuple(str(item["value"]) for item in winners)
     winner_contexts = tuple(
         dict.fromkeys(context for item in winners for context in item["contexts"])
