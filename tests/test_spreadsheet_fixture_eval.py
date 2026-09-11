@@ -147,9 +147,11 @@ def test_conflicting_pay_period_is_not_treated_as_equivalent():
 def test_location_safe_equivalences_do_not_require_identity_fuzzing():
     us_result = _compare_scalar("location", "United States", ["Remote - US"])
     punctuation_result = _compare_scalar("location", "Customer site", ["Customer- site"])
+    nyc_result = _compare_scalar("location", "New York City", ["New York City, NY"])
 
     assert us_result.passed is True
     assert punctuation_result.passed is True
+    assert nyc_result.passed is True
 
 
 def test_corpus_reports_missing_capture_pair_without_crashing(tmp_path):
