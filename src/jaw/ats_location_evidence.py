@@ -123,6 +123,10 @@ def analyze_ats_locations(content: str) -> tuple[AtsLocationEvidence, ...]:
 
     for match in _CANADA_FULL.finditer(header):
         city = _clean_city(match.group("city"))
+        if city.startswith("America "):
+            prefix = header[max(0, match.start() - 40) : match.start()]
+            if re.search(r"United\s+States\s+of\s*$", prefix, re.IGNORECASE):
+                city = city[len("America ") :].strip()
         province = " ".join(word.capitalize() for word in match.group("region").split())
         matches.append(
             (
