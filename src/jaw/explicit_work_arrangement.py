@@ -22,7 +22,7 @@ _TECHNICAL_HYBRID = re.compile(
     re.IGNORECASE,
 )
 _LOCATION_ROW = re.compile(
-    r"^\s*(?:work\s+)?location\s*:\s*(?P<body>.+?)\s*$",
+    r"^\s*(?:(?:job|work)\s+)?location\s*:\s*(?P<body>.+?)\s*$",
     re.IGNORECASE,
 )
 _REMOTE_SCOPE_US = re.compile(
@@ -88,6 +88,8 @@ def analyze_explicit_work_arrangement(content: str) -> ExplicitWorkArrangement:
             return ExplicitWorkArrangement("Remote", "", "title_remote_suffix")
         if "remote first" in lowered and "remote always" in lowered:
             return ExplicitWorkArrangement("Remote", "", "remote_first_badge")
+        if re.search(r"(?:^|\s)#LI-REMOTE\b", line, re.IGNORECASE):
+            return ExplicitWorkArrangement("Remote", "", "li_remote_tag")
 
     prose_patterns = (
         (r"\b(?:100%|fully)\s+remote\b", "Remote", "explicit_remote_prose"),
@@ -96,6 +98,8 @@ def analyze_explicit_work_arrangement(content: str) -> ExplicitWorkArrangement:
         (r"\bremote\s+work\s+(?:is\s+)?(?:allowed|available|offered|supported)\b", "Remote", "remote_work_allowed"),
         (r"\bwork(?:ing)?\s+remotely\b", "Remote", "working_remotely"),
         (r"\bhome[- ]based\b", "Remote", "home_based_prose"),
+        (r"\bremote[- ]first\s+(?:company|culture|team|work\s+culture)\b", "Remote", "remote_first_culture"),
+        (r"\bvirtual[- ]first\s+(?:company|culture|team|work\s+culture)\b", "Remote", "virtual_first_culture"),
         (r"\bin[- ]office\s+role\b", "On-site", "in_office_role"),
         (r"\bteam\s+works?\s+in[- ]person\b", "On-site", "team_works_in_person"),
     )
