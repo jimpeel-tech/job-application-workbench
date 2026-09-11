@@ -237,16 +237,6 @@ def _primary_location(evidence: list[WorkArrangementEvidence]) -> str:
         key=lambda item: (priority.get(item.location_relation, 0), item.confidence),
         reverse=True,
     )
-
-    highest = priority.get(candidates[0].location_relation, 0)
-    peers = [
-        item
-        for item in candidates
-        if priority.get(item.location_relation, 0) == highest
-    ]
-    distinct = {item.location.casefold() for item in peers}
-    if len(distinct) > 1:
-        return ""
     return candidates[0].location
 
 
