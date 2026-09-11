@@ -114,17 +114,17 @@ def analyze_explicit_location(content: str) -> ExplicitLocation:
 
     role_patterns = (
         re.compile(
-            rf"\b(?:position|role|job)\b[^.\n]{{0,70}}\b(?:based\s+out\s+of|based\s+in|"
-            rf"located\s+in|located\s+at|on[- ]?site\s+(?:role\s+)?at)\s+"
-            rf"(?P<location>[^.;\n]{{2,100}})",
+            r"\b(?:position|role|job)\b[^.\n]{0,70}\b(?:based\s+out\s+of|based\s+in|"
+            r"located\s+in|located\s+at|on[- ]?site\s+(?:role\s+)?at)\s+"
+            r"(?P<location>[^.;\n]{2,100})",
             re.IGNORECASE,
         ),
         re.compile(
-            rf"\bbased\s+full[- ]time\s+in\s+(?P<location>[^.;\n]{{2,80}})",
+            r"\bbased\s+full[- ]time\s+in\s+(?P<location>[^.;\n]{2,80})",
             re.IGNORECASE,
         ),
         re.compile(
-            rf"\bremote\s+work\s+in\s+(?P<location>[^.;\n]{{2,80}}?)(?:\s+only\b|[.;\n])",
+            r"\bremote\s+work\s+in\s+(?P<location>[^.;\n]{2,80}?)(?:\s+only\b|[.;\n])",
             re.IGNORECASE,
         ),
     )
