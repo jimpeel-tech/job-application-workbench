@@ -2,6 +2,18 @@
 
 Tectonic is optional unless you want JAW to render PDF documents. JAW uses Tectonic as its LaTeX engine and invokes it in untrusted mode inside a temporary render sandbox.
 
+## When Tectonic is required
+
+Tectonic is used by **Documents** whenever JAW compiles a PDF:
+
+- **Preview** renders the current working buffers through Tectonic and opens the PDF preview without writing the normal output file.
+- **Generate** runs the same render pipeline and also writes the PDF to the configured output directory.
+- Job Tracker document generation also uses the same Documents/Tectonic render path.
+
+Tectonic is **not** required for Smart Capture, Job Description Analysis, Job Tracker, Capabilities, the Application Assistant, or authoring/editing Document resources before you preview/generate them.
+
+Tectonic is independent of Ollama/OpenAI: Tectonic compiles LaTeX to PDF; AI providers are used only by optional generative workflows.
+
 ## 1. Install Tectonic
 
 Tectonic is distributed as a standalone executable. JAW searches for it in this order:
@@ -47,6 +59,8 @@ If you instead installed Tectonic on `PATH`, use:
 ```powershell
 tectonic --version
 ```
+
+After JAW starts, a quick functional test is to open **Documents**, choose **Example Data** as the Generation Context, and run **Preview** on a valid Document. That verifies both Tectonic discovery and JAW's PDF render path.
 
 ## Custom executable location
 
@@ -209,3 +223,7 @@ The template must reference the actual staged filename.
 ### First render needs network access
 
 Tectonic may need to download TeX support files that are not yet cached. Retry with network access available. Later renders can reuse Tectonic's local cache.
+
+### Preview works but Generate cannot replace the PDF
+
+The target PDF may be open in another application. Close the file and run **Generate** again. Preview can still succeed because it does not need to overwrite the normal output file.

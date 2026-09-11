@@ -90,6 +90,7 @@ _Click any image to view it full size._
 
 1. [Download the latest `JAW.exe`](https://github.com/jimpeel-tech/job-application-workbench/releases/latest/download/JAW.exe).
 2. Run `JAW.exe`.
+3. Open **Manage User**, create your own user, and switch away from the bundled fictional **Ol Sarge** demo profile before entering real application data.
 
 The standalone executable is the simplest way to try JAW on Windows and does not require a Python installation.
 
@@ -120,28 +121,29 @@ A normal installed copy stores writable state under:
 ```text
 %LOCALAPPDATA%\JAW\
 ├── config.toml
-└── data\
-    └── jaw.db
+├── data\
+│   └── jaw.db
+└── fonts\
 ```
 
 JAW creates and normalizes its runtime configuration automatically. Set `JAW_HOME` if you want to use a different writable data directory.
 
-See [Installation](docs/installation.md) for executable/source installation and development details. See [Building JAW for Windows](docs/building.md) to build `JAW.exe` locally or through GitHub Actions.
+See [Installation](docs/installation.md) for executable/source installation and development details, then [First Run](docs/first-run.md) for the demo seed and recommended setup order. See [Building JAW for Windows](docs/building.md) to build `JAW.exe` locally or through GitHub Actions.
 
 ## Optional components
 
 | Component | Purpose | Required? |
 | --- | --- | --- |
-| [Ollama](docs/ollama.md) | Local generative-AI verification and analysis | No |
-| [Tectonic](docs/tectonic.md) | PDF document rendering | Only for PDF generation |
+| [Ollama](docs/ollama.md) | Optional local generative verification, analysis, document generation, and Outlook classification | No |
+| [Tectonic](docs/tectonic.md) | PDF preview and document rendering | Only for PDF rendering |
 | [Outlook sync](docs/outlook-sync.md) | Reconcile job-related Outlook mail with Job Tracker | No; requires local Ollama when enabled |
 | [Chrome extension](chrome-extension/README.md) | Reuse the current JAW dashboard tab | No |
 
-JAW's default Ollama model is `qwen3:14b`. Ollama is not required for the deterministic local parser.
+JAW's default Ollama model is `qwen3:14b`. Ollama is not required for Smart Capture's deterministic parsing or the default Local Job Description Analysis path.
 
 ## Basic workflow
 
-1. Start JAW.
+1. Start JAW and create your own user from **Manage User**. A fresh data store includes the fictional **Ol Sarge** user and sample jobs only so the interface is populated on first launch.
 2. Open the local **User Data** pages and add the profile, work-experience, Q&A, and capability data you want to reuse.
 3. Use the desktop actions while filling an application form.
 4. Use **Smart Capture** on selected job-description text.
@@ -167,7 +169,7 @@ Global hotkeys are disabled on startup by default and can be enabled from JAW wh
 A new JAW profile starts in local analysis mode.
 
 - **Local analyzer** performs deterministic extraction and capability matching without sending the job description to a generative-AI provider.
-- **Ollama** connects to the configured Ollama host. With the default localhost configuration, inference traffic stays on the computer running JAW.
+- **Ollama** is optional for generative workflows. It connects to the configured Ollama host; with the default localhost configuration, inference traffic stays on the computer running JAW.
 - **OpenAI** is optional. When selected, JAW reads the API key from `OPENAI_API_KEY`; the key is not intended to be stored in JAW's SQLite database or runtime configuration.
 - **Outlook sync** is disabled by default. When enabled, its email classification/matching path uses local Ollama rather than OpenAI.
 
@@ -186,9 +188,11 @@ Document
 
 Templates are normally LaTeX + Jinja. Sections hold document-facing content and can use JAW generation features; Functions provide reusable/extracted logic.
 
-PDF rendering uses Tectonic. JAW bundles the open-source Montserrat, Open Sans, and Qwitcher Grypen font families used by its built-in templates, together with their license texts. Additional custom fonts can be supplied with `JAW_TECTONIC_SEARCH_PATH`.
+The supported Documents runtime roots are `user`, `job_ref`, `work_exp`, `cap`, and `system`, with helpers such as `csv`, `describe`, `dump`, and `latex_raw`. See [Documents Runtime Objects](docs/documents-runtime.md) for the exact shapes and examples.
 
-See [Document Workbench](docs/document-workbench.md) and [Tectonic Setup](docs/tectonic.md).
+PDF Preview/Generate uses Tectonic. JAW bundles the open-source Montserrat, Open Sans, and Qwitcher Grypen font families used by its built-in templates, together with their license texts. User fonts can be placed in JAW's writable `fonts` directory, with `JAW_TECTONIC_SEARCH_PATH` available for one additional external font directory.
+
+See [Document Workbench](docs/document-workbench.md), [Documents Runtime Objects](docs/documents-runtime.md), and [Tectonic Setup](docs/tectonic.md).
 
 ## Outlook sync
 
@@ -215,15 +219,17 @@ python -m pytest -q
 python -m ruff check src tests
 ```
 
-CI runs the test suite and Ruff on Windows, builds a wheel, verifies required runtime assets, and smoke-tests JAW from the installed wheel rather than relying only on an editable checkout. A separate **Build Windows executable** workflow packages `JAW.exe`; manual runs publish an Actions artifact and `v*` tags attach the executable to the GitHub Release.
+The **Test** GitHub Actions workflow runs the test suite and Ruff on Windows, builds a wheel, verifies required runtime assets, and smoke-tests JAW from the installed wheel rather than relying only on an editable checkout. A separate **Build Windows executable** workflow packages `JAW.exe`; manual runs publish an Actions artifact and `v*` tags attach the executable to the GitHub Release.
 
 ## Documentation
 
 - [Installation](docs/installation.md)
+- [First Run](docs/first-run.md)
 - [Building JAW for Windows](docs/building.md)
 - [Ollama Setup](docs/ollama.md)
 - [Tectonic Setup](docs/tectonic.md)
 - [Document Workbench](docs/document-workbench.md)
+- [Documents Runtime Objects](docs/documents-runtime.md)
 - [Outlook Sync](docs/outlook-sync.md)
 
 Contributor architecture notes:

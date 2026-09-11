@@ -5,10 +5,12 @@ JAW is a Windows-first desktop application. You can use a packaged `JAW.exe` or 
 ## Requirements
 
 - Windows 10 or Windows 11
-- Optional: [Ollama](ollama.md) for local generative AI
-- Optional: [Tectonic](tectonic.md) for PDF document rendering
+- Optional: [Ollama](ollama.md) for local generative AI workflows
+- Optional: [Tectonic](tectonic.md) for Document PDF preview/generation
 - Optional: Microsoft Outlook configuration for [Outlook sync](outlook-sync.md)
 - Python 3.11+ and Git only when installing from source or building JAW yourself
+
+JAW's default local job-analysis path does not require Ollama, OpenAI, or another AI provider.
 
 ## Install the Windows executable
 
@@ -42,18 +44,29 @@ jaw
 
 The installed `jaw` command launches the Job Application Workbench desktop window and starts JAW's local dashboard as needed.
 
-## First-run data
+## First run
+
+A fresh JAW data store is populated with a fictional demo user named **Ol Sarge** plus sample work history, capabilities, settings, and example jobs. The sample data is there so the interface is useful immediately; it is not intended to become your permanent profile.
+
+Open **Manage User** in the upper-right corner, create your own user, and switch to it before entering real application data.
+
+New users default to **Local** Job Description Analysis, so no AI service is required to begin capturing and analyzing jobs. Tectonic is needed only when you want Documents to compile PDF previews/output, and Ollama/OpenAI are optional for generative workflows.
+
+See [First Run](first-run.md) for the recommended setup order and a first end-to-end workflow.
+
+## Writable application data
 
 A normal installed copy stores writable application state under:
 
 ```text
 %LOCALAPPDATA%\JAW\
 ├── config.toml
-└── data\
-    └── jaw.db
+├── data\
+│   └── jaw.db
+└── fonts\
 ```
 
-JAW creates and normalizes `config.toml` automatically. Profile data, jobs, capabilities, keybinds, document resources, and other user data are stored in the local SQLite database.
+JAW creates and normalizes `config.toml` automatically. Profile data, jobs, capabilities, keybinds, document resources, and other user data are stored in the local SQLite database. The `fonts` directory is the writable location for user-provided document fonts and may be created only when needed.
 
 To place JAW's writable state somewhere else, set `JAW_HOME` before starting the application:
 
@@ -86,7 +99,7 @@ python -m pytest -q
 python -m ruff check src tests
 ```
 
-An editable checkout deliberately uses the repository root as JAW's application home, so development data is written to the checkout's ignored `config.toml` and `data/` paths. A normal installed copy uses `%LOCALAPPDATA%\JAW` instead.
+An editable checkout deliberately uses the repository root as JAW's application home, so development data is written to the checkout's ignored `config.toml`, `data/`, and `fonts/` paths. A normal installed copy uses `%LOCALAPPDATA%\JAW` instead.
 
 ## Build an executable
 
@@ -98,7 +111,10 @@ JAW includes an optional unpacked Chrome extension that reuses the existing loca
 
 ## Next steps
 
-- [Build JAW for Windows](building.md)
+- [First Run](first-run.md)
 - [Configure Ollama](ollama.md)
 - [Configure Tectonic](tectonic.md)
+- [Document Workbench](document-workbench.md)
+- [Documents Runtime Objects](documents-runtime.md)
 - [Configure Outlook sync](outlook-sync.md)
+- [Build JAW for Windows](building.md)
