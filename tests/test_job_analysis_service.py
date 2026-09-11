@@ -1,12 +1,14 @@
 import pytest
 
-from jaw.application import JobAnalysisService
+from jaw.application import JobAnalysisFailure, JobAnalysisService
 
 
 class RecordingRepository:
-    def __init__(self) -> None:
+    def __init__(self, *, failure_record_error: Exception | None = None) -> None:
         self.created: list[tuple[str, int]] = []
         self.updated: list[tuple[int, dict, str]] = []
+        self.failures: list[tuple[int, str]] = []
+        self.failure_record_error = failure_record_error
 
     def create_job(self, raw_description: str, user_id: int = 0) -> int:
         self.created.append((raw_description, user_id))
@@ -14,6 +16,11 @@ class RecordingRepository:
 
     def update_analysis(self, job_id: int, result: dict, model: str) -> None:
         self.updated.append((job_id, result, model))
+
+    def record_analysis_failure(self, job_id: int, message: str) -> None:
+        if self.failure_record_error is not None:
+            raise self.failure_record_error
+        self.failures.append((job_id, message))
 
 
 class StubAnalyzer:
@@ -41,17 +48,35 @@ def test_job_analysis_service_preserves_create_analyze_update_order():
     assert repository.updated == [
         (42, {"summary": "Analyzed Example posting"}, "local")
     ]
+    assert repository.failures == []
 
 
-def test_job_remains_captured_when_analysis_fails():
+def test_job_remains_captured_and_failure_carries_job_id():
     repository = RecordingRepository()
     service = JobAnalysisService(
         repository,
         StubAnalyzer(failure=RuntimeError("provider unavailable")),
     )
 
-    with pytest.raises(RuntimeError, match="provider unavailable"):
+    with pytest.raises(JobAnalysisFailure, match="provider unavailable") as captured:
         service.analyze_new_job("Example posting", user_id=7)
 
+    assert captured.value.job_id == 42
     assert repository.created == [("Example posting", 7)]
     assert repository.updated == []
+    assert repository.failures == [(42, "provider unavailable")]
+
+
+def test_failure_recording_error_does_not_mask_analysis_error():
+    repository = RecordingRepository(
+        failure_record_error=RuntimeError("failure telemetry unavailable")
+    )
+    service = JobAnalysisService(
+        repository,
+        StubAnalyzer(failure=RuntimeError("provider unavailable")),
+    )
+
+    with pytest.raises(JobAnalysisFailure, match="provider unavailable") as captured:
+        service.analyze_new_job("Example posting", user_id=7)
+
+    assert captured.value.job_id == 42
