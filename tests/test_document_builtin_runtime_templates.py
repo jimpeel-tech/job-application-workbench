@@ -56,6 +56,7 @@ def test_builtin_runtime_templates_render_with_example_context() -> None:
     assert "Example User" in quick_reference
     assert "Example Title" in quick_reference
     assert "Example Skill 1" in quick_reference
+    assert "Example work-history evidence 1." in quick_reference
     assert "Example User" in sandbox
     assert "Example Company" in sandbox
     assert "Example Skill 1" in sandbox
