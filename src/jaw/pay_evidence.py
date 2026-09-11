@@ -244,7 +244,8 @@ def analyze_pay(content: str) -> PayEvidence | None:
             )
         )
 
-    # Explicit-period singles and strongly signaled annual amounts.
+    # Explicit-period singles and strongly signaled annual amounts. Do not allow
+    # a single endpoint from an already-detected range to outscore the range.
     single = re.compile(
         r"(?P<upto>\bup\s+to\s+)?\$\s*(?P<amount>\d[\d,]*(?:\.\d+)?)"
         r"(?P<scale>\s*[kKmM])?\s*(?:/\s*|per\s+)?"
@@ -252,6 +253,12 @@ def analyze_pay(content: str) -> PayEvidence | None:
         re.IGNORECASE,
     )
     for match in single.finditer(text):
+        if any(
+            candidate.pay.pay_min != candidate.pay.pay_max
+            and candidate.start <= match.start() < candidate.end
+            for candidate in candidates
+        ):
+            continue
         amount = _amount(match.group("amount"), match.group("scale"))
         context = _window(text, match.start(), match.end())
         line = _line(text, match.start(), match.end())
@@ -294,6 +301,21 @@ def analyze_pay(content: str) -> PayEvidence | None:
     envelope = _structured_envelope(text, candidates)
     if envelope is not None:
         return envelope
+
+    # Some postings explicitly introduce a second range that applies only to
+    # special locations. In that shape, the primary range is the range before
+    # the "different range applicable" marker, regardless of the later range's
+    # local context score.
+    secondary_marker = re.search(
+        r"\bdifferent\s+range\s+applicable\b",
+        text,
+        re.IGNORECASE,
+    )
+    if secondary_marker:
+        primary = [candidate for candidate in candidates if candidate.start < secondary_marker.start()]
+        if primary:
+            return max(primary, key=lambda item: (item.score, -item.start)).pay
+
     return max(candidates, key=lambda item: (item.score, -item.start)).pay
 
 
