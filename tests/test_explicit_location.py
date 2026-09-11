@@ -64,6 +64,25 @@ def test_top_country_arrangement_badge_extracts_country_only():
     assert evidence.rule == "top_location_metadata"
 
 
+def test_remote_us_canada_scope_extracts_both_countries():
+    evidence = analyze_explicit_location(
+        "Leading CNCF Start Up Hiring for Senior SRE | Up to $200k + Equity | Remote (US/Canada)"
+    )
+
+    assert evidence.value == "United States or Canada"
+    assert evidence.rule == "remote_us_canada_scope"
+
+
+def test_remote_us_timezone_title_extracts_geographic_constraint():
+    evidence = analyze_explicit_location(
+        "Senior Site Reliability Engineer, Platform & Cloud FinOps "
+        "(100% Remote - USA Central & EST)"
+    )
+
+    assert evidence.value == "United States, Central or Eastern Time"
+    assert evidence.rule == "remote_us_timezone_scope"
+
+
 def test_office_city_can_infer_state_from_explicit_company_location():
     evidence = analyze_explicit_location(
         "Founded in 2020 and headquartered in Redwood City, California.\n"
@@ -100,6 +119,26 @@ def test_us_live_work_scope_preserves_hawaii_exclusion():
 
     assert evidence.value == "United States, excluding Hawaii"
     assert evidence.rule == "us_live_work_exclusion"
+
+
+def test_us_hiring_scope_preserves_hawaii_exclusion():
+    evidence = analyze_explicit_location(
+        "Rula is a remote-first company. We currently hire in most U.S. states, "
+        "with the exception of Hawaii."
+    )
+
+    assert evidence.value == "United States, excluding Hawaii"
+    assert evidence.rule == "us_hiring_exclusion"
+
+
+def test_us_based_scope_preserves_not_hiring_in_hawaii():
+    evidence = analyze_explicit_location(
+        "100% remote work environment (must be based in United States, "
+        "currently not hiring in Hawaii)"
+    )
+
+    assert evidence.value == "United States, excluding Hawaii"
+    assert evidence.rule == "us_based_exclusion"
 
 
 def test_research_institution_location_extracts_physical_site():
