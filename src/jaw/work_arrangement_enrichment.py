@@ -20,13 +20,25 @@ _WEEKDAY_HYBRID_POLICY = re.compile(
     r"\bFridays?\b[^.\n]{0,120}\bremote\s+work\b",
     re.IGNORECASE,
 )
+_METADATA_LABEL_LEAK = re.compile(
+    r"\b(?:Work\s+Arrangement|Employment\s+Type|Compensation|Benefits|Job\s+Summary)\b",
+    re.IGNORECASE,
+)
 
 
 def analyze_enriched_work_arrangement(content: str) -> WorkArrangementAnalysis:
     """Add narrow high-confidence workplace evidence on top of the core analyzer."""
     text = str(content).replace("\r\n", "\n").replace("\r", "\n")
     base = analyze_work_arrangement(text)
-    evidence = list(base.evidence)
+    evidence = [
+        item
+        for item in base.evidence
+        if not (
+            item.rule == "location_row_arrangement"
+            and item.location
+            and _METADATA_LABEL_LEAK.search(item.location)
+        )
+    ]
 
     posting_locations = analyze_ats_locations(text)
     posting_location = posting_locations[0].value if posting_locations else ""
