@@ -4,7 +4,6 @@ import pytest
 
 from jaw.documents import DocumentRenderRequest, TectonicRenderer, find_tectonic
 
-
 pytestmark = pytest.mark.skipif(
     find_tectonic() is None,
     reason="Tectonic is not installed for the real document smoke test",
