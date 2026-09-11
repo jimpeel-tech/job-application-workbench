@@ -87,13 +87,11 @@ _PROVINCES = "|".join(
     sorted((re.escape(name) for name in _CANADIAN_PROVINCES), key=len, reverse=True)
 )
 _US_FULL = re.compile(
-    rf"\b(?P<city>{_CITY}),\s*(?P<region>{_STATE_NAMES}),\s*"
-    r"United States(?: of America)?\b",
-    re.IGNORECASE,
+    rf"\b(?P<city>{_CITY}),\s*(?P<region>(?i:{_STATE_NAMES})),\s*"
+    r"(?i:United States(?: of America)?)\b"
 )
 _CANADA_FULL = re.compile(
-    rf"\b(?P<city>{_CITY}),\s*(?P<region>{_PROVINCES}),\s*Canada\b",
-    re.IGNORECASE,
+    rf"\b(?P<city>{_CITY}),\s*(?P<region>(?i:{_PROVINCES})),\s*(?i:Canada)\b"
 )
 _BODY_MARKER = re.compile(
     r"(?mi)^\s*(?:Job Description|The Opportunity|Our Mission|About the Role|"
