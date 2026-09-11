@@ -16,7 +16,7 @@ def test_location_header_onsite_city_state_name_extracts_geography():
         "Location\nThis is an onsite role at Portland, Oregon.\nAbout the job"
     )
 
-    assert evidence.value == "Portland, OR"
+    assert evidence.value == "Portland, Oregon"
 
 
 def test_job_type_location_section_extracts_city_state():
