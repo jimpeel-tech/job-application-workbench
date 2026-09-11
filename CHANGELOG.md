@@ -2,7 +2,39 @@
 
 All notable public changes to JAW will be documented in this file.
 
-JAW follows semantic versioning. The initial public release is `0.1.0` and should be treated as alpha software: workflows and persisted data formats may still change before `1.0.0`.
+JAW follows semantic versioning. The project is still alpha software: workflows and persisted data formats may continue to change before `1.0.0`.
+
+## 0.1.1 — Unreleased
+
+### Defaults and analysis
+
+- New users now default to deterministic **Local** Job Description Analysis, so the core capture/analyze workflow does not require Ollama or another AI provider.
+- Hardened analysis-provider failure handling so optional AI failures do not silently replace deterministic results or leave ambiguous workflow state.
+- Improved deterministic Smart Capture extraction and state handling, including regression coverage for provider failures and concurrent capture/update paths.
+
+### Data integrity and capabilities
+
+- Added the `jaw-integrity-audit` command for checking SQLite integrity, required schema, foreign keys, JSON state, user-state invariants, and Document Workbench semantic integrity.
+- Preserved capability matching/rating semantics while tightening first-run and release regression coverage.
+
+### Documents
+
+- Standardized the Documents runtime contract across Automatic, Selected Job, Example Data, and no-job contexts.
+- `work_exp[*].highlights` is now consistently exposed to Documents as `list[str]` while the user's stored Highlights text remains unchanged.
+- Hardened Template, Section, Function, output-filename, and provider error boundaries with clearer Workbench failures.
+- Preview remains available when PDF output-directory creation or file replacement fails after a successful render.
+- Added writable user-font discovery for installed builds at `%LOCALAPPDATA%\JAW\fonts`, source checkouts at `<repository>\fonts`, and `JAW_HOME\fonts` overrides.
+- Tectonic now stages bundled fonts, JAW user fonts, and the optional `JAW_TECTONIC_SEARCH_PATH` together with deterministic filename precedence.
+- Added Job Tracker help for Documents routing and the Documents `Ctrl+P` command workflow.
+- JAW `0.1.1` supports both Template API 1 and Template API 2 so the immutable `0.1.0` official template release remains compatible while the current runtime contract can move forward.
+
+### Documentation and release preparation
+
+- Refreshed installation and first-run guidance for the fictional **Ol Sarge** seed profile, local-first defaults, writable application data, and optional components.
+- Documented Ollama's current optional role in Smart Capture verification, generative analysis, Documents generation blocks, and Outlook classification.
+- Expanded Tectonic setup, executable discovery, untrusted rendering, user-font locations, and troubleshooting guidance.
+- Expanded Document Workbench/runtime documentation for Generation Context, JAW Objects, capability sets, Highlights lists, helpers, generation blocks, routing, preview, and output behavior.
+- Synchronized package/runtime version metadata for `0.1.1`.
 
 ## 0.1.0 — Initial public release
 
