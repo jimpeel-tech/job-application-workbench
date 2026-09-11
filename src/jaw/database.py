@@ -80,21 +80,7 @@ class JobDatabase:
         self.job_repository.update_analysis(job_id, result, model)
 
     def record_analysis_failure(self, job_id: int, message: str) -> None:
-        details = " ".join(str(message).split()).strip()[:1000]
-        with self.connect() as connection:
-            cursor = connection.execute(
-                "UPDATE jobs SET updated_at=CURRENT_TIMESTAMP WHERE id=?",
-                (job_id,),
-            )
-            if not cursor.rowcount:
-                return
-            connection.execute(
-                """
-                INSERT INTO application_events(job_id,event_type,details,source)
-                VALUES (?,?,?,?)
-                """,
-                (job_id, "AnalysisFailed", details, "analysis"),
-            )
+        self.job_repository.record_analysis_failure(job_id, message)
 
     def set_status(
         self,
