@@ -137,11 +137,11 @@ class OpenAIAnalysisProvider:
         if payload.get("output_text"):
             return str(payload["output_text"])
 
-        for output in payload.get("output", []):
+        for output in payload.get("output") or []:
             if not isinstance(output, dict) or output.get("type") != "message":
                 continue
 
-            for content in output.get("content", []):
+            for content in output.get("content") or []:
                 if not isinstance(content, dict):
                     continue
                 content_type = content.get("type")
