@@ -135,11 +135,12 @@ See [Installation](docs/installation.md) for executable/source installation and 
 | Component | Purpose | Required? |
 | --- | --- | --- |
 | [Ollama](docs/ollama.md) | Optional local generative verification, analysis, document generation, and Outlook classification | No |
+| [OpenAI](docs/openai.md) | Optional hosted generative job analysis and document generation | No |
 | [Tectonic](docs/tectonic.md) | PDF preview and document rendering | Only for PDF rendering |
 | [Outlook sync](docs/outlook-sync.md) | Reconcile job-related Outlook mail with Job Tracker | No; requires local Ollama when enabled |
 | [Chrome extension](chrome-extension/README.md) | Reuse the current JAW dashboard tab | No |
 
-JAW's default Ollama model is `qwen3:14b`. Ollama is not required for Smart Capture's deterministic parsing or the default Local Job Description Analysis path.
+JAW's default Ollama model is `qwen3:14b`. Ollama is not required for Smart Capture's deterministic parsing or the default Local Job Description Analysis path. See [OpenAI Setup](docs/openai.md) if you want to use the hosted provider.
 
 ## Basic workflow
 
@@ -170,7 +171,7 @@ A new JAW profile starts in local analysis mode.
 
 - **Local analyzer** performs deterministic extraction and capability matching without sending the job description to a generative-AI provider.
 - **Ollama** is optional for generative workflows. It connects to the configured Ollama host; with the default localhost configuration, inference traffic stays on the computer running JAW.
-- **OpenAI** is optional. When selected, JAW reads the API key from `OPENAI_API_KEY`; the key is not intended to be stored in JAW's SQLite database or runtime configuration.
+- **OpenAI** is optional. When selected, JAW reads the API key from `OPENAI_API_KEY`; the key is not intended to be stored in JAW's SQLite database or runtime configuration. See [OpenAI Setup](docs/openai.md) for API-key, billing, model, privacy, and connection-test guidance.
 - **Outlook sync** is disabled by default. When enabled, its email classification/matching path uses local Ollama rather than OpenAI.
 
 If `OLLAMA_HOST` points to another machine, content sent for Ollama inference is transmitted to that host.
@@ -226,6 +227,7 @@ The **Test** GitHub Actions workflow runs the test suite and Ruff on Windows, bu
 - [Installation](docs/installation.md)
 - [First Run](docs/first-run.md)
 - [Building JAW for Windows](docs/building.md)
+- [OpenAI Setup](docs/openai.md)
 - [Ollama Setup](docs/ollama.md)
 - [Tectonic Setup](docs/tectonic.md)
 - [Document Workbench](docs/document-workbench.md)
