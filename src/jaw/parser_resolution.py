@@ -11,6 +11,7 @@ from .job_id_evidence import analyze_job_id
 from .pay_evidence import analyze_pay
 from .value_canonicalization import canonical_capture_value
 from .work_arrangement import analyze_work_arrangement
+from .work_arrangement_guard import suppress_work_arrangement
 
 _RESULT_FIELD_KEYS = (
     "company",
@@ -246,14 +247,15 @@ def resolve_parser_evidence(
                     capture_index=None,
                 )
         work_arrangement = analyze_work_arrangement(combined_text)
-        if work_arrangement.status:
+        arrangement_suppressed = suppress_work_arrangement(work_arrangement)
+        if work_arrangement.status and not arrangement_suppressed:
             add_value(
                 "remote_status",
                 work_arrangement.status,
                 context="work_arrangement",
                 capture_index=None,
             )
-        if work_arrangement.location:
+        if work_arrangement.location and not arrangement_suppressed:
             add_value(
                 "location",
                 work_arrangement.location,
