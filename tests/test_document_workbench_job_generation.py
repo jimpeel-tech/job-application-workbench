@@ -180,7 +180,12 @@ def test_tracker_job_context_uses_current_generation_schema():
     assert context.job_ref["company"] == "GovCIO"
     assert context.job_ref["title"] == "DevSecOps Lead"
     assert context.work_exp == (
-        {"company": "Example", "title": "Engineer", "enabled": True},
+        {
+            "company": "Example",
+            "title": "Engineer",
+            "enabled": True,
+            "highlights": [],
+        },
     )
     assert context.cap == {"all": [], "sets": {}}
     assert context.as_mapping()["job_ref"]["title"] == "DevSecOps Lead"

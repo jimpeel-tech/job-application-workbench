@@ -82,10 +82,15 @@ class OpenAIAnalysisProvider:
                 payload = json.load(response)
         except urllib.error.HTTPError as error:
             raise RuntimeError(self._http_error_message(error)) from error
-        except urllib.error.URLError as error:
-            raise RuntimeError(f"Could not reach OpenAI: {error.reason}") from error
+        except (urllib.error.URLError, TimeoutError) as error:
+            reason = getattr(error, "reason", error)
+            raise RuntimeError(f"Could not reach OpenAI: {reason}") from error
+        except json.JSONDecodeError as error:
+            raise RuntimeError("OpenAI returned invalid response JSON") from error
 
-        return "Connected to OpenAI Â· " f"{payload.get('id', self.model)}"
+        if not isinstance(payload, dict):
+            raise RuntimeError("OpenAI returned an invalid response object")
+        return f"Connected to OpenAI · {payload.get('id', self.model)}"
 
     def analyze(
         self,
@@ -108,14 +113,21 @@ class OpenAIAnalysisProvider:
                 payload = json.load(response)
         except urllib.error.HTTPError as error:
             raise RuntimeError(self._http_error_message(error)) from error
-        except urllib.error.URLError as error:
-            raise RuntimeError(f"Could not reach OpenAI: {error.reason}") from error
+        except (urllib.error.URLError, TimeoutError) as error:
+            reason = getattr(error, "reason", error)
+            raise RuntimeError(f"Could not reach OpenAI: {reason}") from error
+        except json.JSONDecodeError as error:
+            raise RuntimeError("OpenAI returned invalid response JSON") from error
 
+        if not isinstance(payload, dict):
+            raise RuntimeError("OpenAI returned an invalid response object")
         text = self._response_text(payload)
         try:
             result = json.loads(text)
         except json.JSONDecodeError as error:
             raise RuntimeError("OpenAI returned invalid structured JSON") from error
+        if not isinstance(result, dict):
+            raise RuntimeError("OpenAI structured response must be a JSON object")
 
         model = str(payload.get("model") or self.model)
         return normalize_result(result), model
@@ -125,11 +137,13 @@ class OpenAIAnalysisProvider:
         if payload.get("output_text"):
             return str(payload["output_text"])
 
-        for output in payload.get("output", []):
-            if output.get("type") != "message":
+        for output in payload.get("output") or []:
+            if not isinstance(output, dict) or output.get("type") != "message":
                 continue
 
-            for content in output.get("content", []):
+            for content in output.get("content") or []:
+                if not isinstance(content, dict):
+                    continue
                 content_type = content.get("type")
                 if content_type == "output_text":
                     return str(content.get("text", ""))

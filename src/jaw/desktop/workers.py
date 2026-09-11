@@ -3,7 +3,11 @@ from __future__ import annotations
 from PySide6.QtCore import QThread, Signal
 
 from ..analysis.capture_verifier import OllamaCaptureVerifier
-from ..application.job_analysis_service import AnalysisEngine, JobAnalysisService
+from ..application.job_analysis_service import (
+    AnalysisEngine,
+    JobAnalysisFailure,
+    JobAnalysisService,
+)
 
 
 class BriefWorker(QThread):
@@ -22,16 +26,16 @@ class BriefWorker(QThread):
         self.user_id = user_id
 
     def run(self) -> None:
-        job_id = 0
         try:
             outcome = self.service.analyze_new_job(
                 self.description,
                 self.user_id,
             )
-            job_id = outcome.job_id
             self.completed.emit(outcome.job_id, outcome.model)
+        except JobAnalysisFailure as error:
+            self.failed.emit(error.job_id, str(error))
         except Exception as error:
-            self.failed.emit(job_id, str(error))
+            self.failed.emit(0, str(error))
 
 
 class CaptureVerificationWorker(QThread):

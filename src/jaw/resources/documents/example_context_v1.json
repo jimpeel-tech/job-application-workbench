@@ -41,14 +41,18 @@
       "title": "Example Role 1",
       "start": "2000",
       "end": "2004",
-      "highlights": "Example work-history evidence 1."
+      "highlights": [
+        "Example work-history evidence 1."
+      ]
     },
     {
       "company": "Example Employer 2",
       "title": "Example Role 2",
       "start": "1996",
       "end": "2000",
-      "highlights": "Example work-history evidence 2."
+      "highlights": [
+        "Example work-history evidence 2."
+      ]
     }
   ],
   "cap": {

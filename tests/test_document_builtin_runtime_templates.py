@@ -1,13 +1,14 @@
+import json
 from importlib.resources import files
 
 from jinja2 import meta
 
 from jaw.documents import render_latex_template
 from jaw.documents.context import ExampleContextProvider
+from jaw.documents.expression_context import build_cap_projection
 from jaw.documents.latex import latex_environment
 from jaw.documents.workbench_symbols import referenced_symbols
 
-_TEMPLATE_NAMES = ("quick_reference.tex.j2", "sandbox.tex.j2")
 _RETIRED_ROOTS = {
     "candidate_name",
     "position_name",
@@ -17,38 +18,42 @@ _RETIRED_ROOTS = {
 }
 
 
-def _source(name: str) -> str:
+def _source() -> str:
     return (
         files("jaw")
         .joinpath("resources")
         .joinpath("documents")
-        .joinpath(name)
+        .joinpath("quick_reference.tex.j2")
         .read_text(encoding="utf-8")
     )
 
 
-def test_builtin_runtime_templates_use_only_documents_v2_roots() -> None:
+def _default_user_state() -> dict:
+    return json.loads(
+        files("jaw")
+        .joinpath("resources")
+        .joinpath("default-user-v1.0.json")
+        .read_text(encoding="utf-8")
+    )
+
+
+def test_quick_reference_uses_only_documents_v2_roots() -> None:
     environment = latex_environment(autoescape_text=True)
-    for name in _TEMPLATE_NAMES:
-        source = _source(name)
-        assert "job_ref" in source
-        assert "work_exp" in source
-        assert "cap" in source
-        undeclared = meta.find_undeclared_variables(environment.parse(source))
-        assert not (_RETIRED_ROOTS & undeclared)
-        assert referenced_symbols(source) == []
+    source = _source()
+
+    assert "job_ref" in source
+    assert "work_exp" in source
+    assert "cap" in source
+    undeclared = meta.find_undeclared_variables(environment.parse(source))
+    assert not (_RETIRED_ROOTS & undeclared)
+    assert referenced_symbols(source) == []
 
 
-def test_builtin_runtime_templates_render_with_example_context() -> None:
+def test_quick_reference_renders_with_example_context() -> None:
     context = ExampleContextProvider(1).load().template_context()
 
     quick_reference = render_latex_template(
-        _source("quick_reference.tex.j2"),
-        context,
-        autoescape_text=True,
-    )
-    sandbox = render_latex_template(
-        _source("sandbox.tex.j2"),
+        _source(),
         context,
         autoescape_text=True,
     )
@@ -56,6 +61,19 @@ def test_builtin_runtime_templates_render_with_example_context() -> None:
     assert "Example User" in quick_reference
     assert "Example Title" in quick_reference
     assert "Example Skill 1" in quick_reference
-    assert "Example User" in sandbox
-    assert "Example Company" in sandbox
-    assert "Example Skill 1" in sandbox
+    assert "Example work-history evidence 1." in quick_reference
+
+
+def test_quick_reference_renders_with_default_profile_without_capability_sets() -> None:
+    context = ExampleContextProvider(1).load().template_context()
+    context["cap"] = build_cap_projection(_default_user_state())
+
+    assert context["cap"]["sets"] == {}
+
+    quick_reference = render_latex_template(
+        _source(),
+        context,
+        autoescape_text=True,
+    )
+
+    assert "No user-managed capability sets are currently enabled for Documents." in quick_reference

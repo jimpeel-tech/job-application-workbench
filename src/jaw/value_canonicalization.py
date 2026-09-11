@@ -4,7 +4,7 @@ import re
 from decimal import Decimal, InvalidOperation
 
 _AMOUNT_RE = re.compile(
-    r"(?<![A-Za-z0-9])(?:[$€£]|US\$|USD|EUR|GBP)?\s*"
+    r"(?<![A-Za-z0-9])(?:[$€£]|US\$|USD|CAD|EUR|GBP)?\s*"
     r"(?P<number>\d{1,3}(?:,\d{3})+(?:\.\d+)?|\d+(?:\.\d+)?)"
     r"\s*(?P<suffix>[kKmM])?(?![A-Za-z])"
 )
@@ -17,17 +17,99 @@ _PERIOD_PATTERNS = (
     ("hour", re.compile(r"(?:/|per\s+)?(?:hour|hr|hourly)\b", re.I)),
 )
 
+_STATE_NAME_TO_CODE = {
+    "alabama": "AL",
+    "alaska": "AK",
+    "arizona": "AZ",
+    "arkansas": "AR",
+    "california": "CA",
+    "colorado": "CO",
+    "connecticut": "CT",
+    "delaware": "DE",
+    "florida": "FL",
+    "georgia": "GA",
+    "hawaii": "HI",
+    "idaho": "ID",
+    "illinois": "IL",
+    "indiana": "IN",
+    "iowa": "IA",
+    "kansas": "KS",
+    "kentucky": "KY",
+    "louisiana": "LA",
+    "maine": "ME",
+    "maryland": "MD",
+    "massachusetts": "MA",
+    "michigan": "MI",
+    "minnesota": "MN",
+    "mississippi": "MS",
+    "missouri": "MO",
+    "montana": "MT",
+    "nebraska": "NE",
+    "nevada": "NV",
+    "new hampshire": "NH",
+    "new jersey": "NJ",
+    "new mexico": "NM",
+    "new york": "NY",
+    "north carolina": "NC",
+    "north dakota": "ND",
+    "ohio": "OH",
+    "oklahoma": "OK",
+    "oregon": "OR",
+    "pennsylvania": "PA",
+    "rhode island": "RI",
+    "south carolina": "SC",
+    "south dakota": "SD",
+    "tennessee": "TN",
+    "texas": "TX",
+    "utah": "UT",
+    "vermont": "VT",
+    "virginia": "VA",
+    "washington": "WA",
+    "west virginia": "WV",
+    "wisconsin": "WI",
+    "wyoming": "WY",
+    "district of columbia": "DC",
+}
+_STATE_NAME_PATTERN = re.compile(
+    r",\s*(" + "|".join(re.escape(name) for name in _STATE_NAME_TO_CODE) + r")\b",
+    re.IGNORECASE,
+)
+_ZIP_SUFFIX = re.compile(r"\s+\d{5}(?:-\d{4})?(?=\s*(?:,|$))")
+
 
 def canonical_capture_value(field: str, value: str) -> str:
     """Return a stable comparison key without changing the displayed value."""
     text = " ".join(str(value).split()).strip()
     if not text:
         return ""
-    if str(field).strip().casefold() == "pay":
+    normalized_field = str(field).strip().casefold()
+    if normalized_field == "pay":
         pay = _canonical_pay(text)
         if pay:
             return pay
+    if normalized_field == "location":
+        return _canonical_location(text)
+    if normalized_field == "company":
+        return _canonical_company(text)
     return text.casefold()
+
+
+def _canonical_company(value: str) -> str:
+    # Terminal punctuation is presentation, not employer identity. Preserve
+    # internal punctuation such as the periods in "U.S.".
+    return value.rstrip(".").casefold()
+
+
+def _canonical_location(value: str) -> str:
+    text = _ZIP_SUFFIX.sub("", value)
+
+    def replace_state(match: re.Match[str]) -> str:
+        code = _STATE_NAME_TO_CODE[match.group(1).casefold()]
+        return f", {code}"
+
+    text = _STATE_NAME_PATTERN.sub(replace_state, text)
+    text = re.sub(r"\s*,\s*", ", ", text)
+    return " ".join(text.split()).strip().casefold()
 
 
 def _canonical_pay(value: str) -> str:
@@ -71,6 +153,8 @@ def _decimal_text(value: Decimal) -> str:
 
 def _currency(value: str) -> str:
     folded = value.casefold()
+    if re.search(r"\b(?:cad|canadian dollars?)\b", folded):
+        return "CAD"
     if "$" in value or re.search(r"\b(?:usd|us dollars?)\b", folded):
         return "USD"
     if "€" in value or re.search(r"\beur\b", folded):

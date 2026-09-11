@@ -327,8 +327,8 @@
     "active_set_id": "__all__",
     "view_preferences": {
       "hierarchy": {
-        "section_granularity": 5,
-        "entity_granularity": 5,
+        "section_granularity": 3,
+        "entity_granularity": 3,
         "l1_section_target": 6,
         "l1_section_min": 4,
         "l1_section_max": 8,

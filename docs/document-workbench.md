@@ -272,13 +272,20 @@ job_ref.summary
 
 ### `work_exp`
 
-`work_exp` is a list of enabled work-experience records, so normal Jinja list operations apply:
+`work_exp` is a list of enabled work-experience records. Common fields include `company`, `title`, `start`, `end`, and `highlights`.
+
+At the Documents runtime boundary, `item.highlights` is always a `list[str]`. JAW preserves the user's stored Highlights text unchanged; the runtime projection splits it by line, trims surrounding whitespace, drops empty lines, and removes an optional leading punctuation/symbol list marker. One non-empty source line becomes one highlight.
 
 ```jinja
 {% for item in work_exp %}
 {{ item.title }} at {{ item.company }}
+{% for highlight in item.highlights %}
+- {{ highlight }}
+{% endfor %}
 {% endfor %}
 ```
+
+This same structured list is supplied to Functions and AI generation when `work_exp` is referenced as evidence.
 
 ### `cap`
 
@@ -301,11 +308,12 @@ Workbench exposes small runtime helpers:
 ```jinja
 {{ describe() }}
 {{ describe(job_ref) }}
+{{ describe(work_exp) }}
 {{ dump(job_ref) }}
 ```
 
 - `describe()` shows the supported runtime roots and helpers.
-- `describe(value)` describes the shape of a known value.
+- `describe(value)` describes the shape of a known value. For populated `work_exp`, Highlights is reported as `highlights: list[str]`.
 - `dump(value)` prints JSON-friendly runtime data.
 - `csv(items)` joins a sequence as comma-separated text.
 

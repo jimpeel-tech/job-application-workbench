@@ -16,6 +16,14 @@ def test_first_run_seed_defaults_to_local_analysis(tmp_path: Path):
     assert data["analysis_settings"]["mode"] == "local"
 
 
+def test_first_run_seed_defaults_capability_granularity_to_balanced(tmp_path: Path):
+    store = UserDataStore(tmp_path / "data" / "jaw.db")
+    hierarchy = store.read()["capability_model"]["view_preferences"]["hierarchy"]
+
+    assert hierarchy["section_granularity"] == 3
+    assert hierarchy["entity_granularity"] == 3
+
+
 def test_new_blank_user_defaults_to_local_analysis(tmp_path: Path):
     store = UserDataStore(tmp_path / "data" / "jaw.db")
 

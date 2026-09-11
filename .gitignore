@@ -29,6 +29,7 @@ z_tmp/
 # Personal JAW data; publish examples/templates instead.
 config.toml
 data/
+fonts/
 JAWTemplateRepo/
 *.db
 *.sqlite

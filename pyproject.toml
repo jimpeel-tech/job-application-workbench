@@ -1,6 +1,6 @@
 [project]
 name = "jaw"
-version = "0.1.0"
+version = "0.1.1"
 description = "Job Application Workbench"
 readme = "README.md"
 license = {file = "LICENSE"}
@@ -44,6 +44,7 @@ select = ["F", "I"]
 [project.scripts]
 jaw = "jaw.desktop.smart_capture_window:main"
 jaw-document-audit = "jaw.document_db_audit:main"
+jaw-integrity-audit = "jaw.integrity_audit:main"
 
 [build-system]
 requires = ["setuptools>=69", "wheel"]

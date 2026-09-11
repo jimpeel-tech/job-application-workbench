@@ -3,12 +3,30 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any, Iterable
 
+from .ats_location_evidence import analyze_ats_locations
 from .capture import extract_job_fields
+from .explicit_clearance import analyze_explicit_clearance
+from .explicit_location import analyze_explicit_location
+from .explicit_on_call import analyze_explicit_on_call
+from .explicit_title import analyze_explicit_title
+from .explicit_work_arrangement import analyze_explicit_work_arrangement
+from .general_evidence import extract_general_evidence
+from .job_id_evidence import analyze_job_id
+from .location_candidate import sanitize_location_candidate
+from .pay_currency import resolve_pay_currency
+from .pay_evidence import analyze_pay
+from .posting_metadata_evidence import (
+    extract_posting_metadata_evidence,
+    is_location_like_company_candidate,
+)
 from .value_canonicalization import canonical_capture_value
+from .work_arrangement_enrichment import analyze_enriched_work_arrangement
+from .work_arrangement_guard import suppress_work_arrangement
 
 _RESULT_FIELD_KEYS = (
     "company",
     "title",
+    "job_id",
     "pay",
     "remote_status",
     "location",
@@ -80,6 +98,7 @@ def _field_priority(field: str, context: str) -> int:
     context = str(context or "").strip().lower()
     if field == "title":
         return {
+            "explicit_title": 106,
             "job_title": 100,
             "job_description": 50,
             "combined": 30,
@@ -89,10 +108,23 @@ def _field_priority(field: str, context: str) -> int:
         }.get(context, 40)
     if field == "company":
         return {
+            "posting_metadata": 106,
+            "general_evidence": 105,
             "company": 100,
             "job_description": 50,
             "combined": 30,
             "job_metadata": 20,
+            "requirements": 5,
+            "responsibilities": 5,
+        }.get(context, 40)
+    if field == "job_id":
+        return {
+            "job_id_evidence": 105,
+            "job_metadata": 100,
+            "job_description": 55,
+            "combined": 30,
+            "job_title": 20,
+            "company": 5,
             "requirements": 5,
             "responsibilities": 5,
         }.get(context, 40)
@@ -112,6 +144,14 @@ def _field_priority(field: str, context: str) -> int:
         "application_deadline",
     }:
         return {
+            "pay_evidence": 100,
+            "explicit_clearance": 100,
+            "ats_location": 97,
+            "posting_metadata": 96,
+            "explicit_work_arrangement": 96,
+            "work_arrangement": 95,
+            "general_evidence": 95,
+            "explicit_location": 94,
             "job_metadata": 90,
             "job_description": 55,
             "combined": 30,
@@ -133,9 +173,39 @@ def resolve_parser_evidence(
     ties between candidates with the same top context priority; it never allows
     repeated low-authority inference to overrule an explicit high-authority fact.
     The synthetic whole-session extraction is fallback evidence and does not count
-    as independent corroboration.
+    as independent corroboration. Structured workplace and general evidence are
+    resolved separately and outrank legacy whole-text guesses.
     """
     occurrences: dict[str, list[dict[str, Any]]] = {}
+    has_combined_text = bool(combined_text.strip())
+
+    def add_value(
+        field: str,
+        value: str,
+        *,
+        context: str,
+        capture_index: int | None,
+    ) -> None:
+        value = str(value).strip()
+        if not value:
+            return
+        if field == "job_id" and not any(character.isdigit() for character in value):
+            return
+        if (
+            field == "company"
+            and context != "posting_metadata"
+            and is_location_like_company_candidate(value)
+        ):
+            return
+        occurrences.setdefault(field, []).append(
+            {
+                "value": value,
+                "key": canonical_capture_value(field, value),
+                "priority": _field_priority(field, context),
+                "context": context or "contextless",
+                "capture_index": capture_index,
+            }
+        )
 
     def add_extraction(
         extraction: dict[str, Any],
@@ -150,35 +220,158 @@ def resolve_parser_evidence(
         for raw_field, raw_value in fields.items():
             if isinstance(raw_value, (list, dict)):
                 continue
-            value = str(raw_value).strip()
-            if not value:
-                continue
             field = str(raw_field)
-            occurrences.setdefault(field, []).append(
-                {
-                    "value": value,
-                    "key": canonical_capture_value(field, value),
-                    "priority": _field_priority(field, context),
-                    "context": context or "contextless",
-                    "capture_index": capture_index,
-                }
+            if has_combined_text and field == "on_call":
+                continue
+            add_value(
+                field,
+                str(raw_value),
+                context=context,
+                capture_index=capture_index,
             )
 
     for capture_index, extraction in enumerate(extractions, start=1):
         if isinstance(extraction, dict):
             add_extraction(extraction, capture_index=capture_index)
 
-    if combined_text.strip():
+    if has_combined_text:
         add_extraction(
             extract_job_fields(combined_text),
             fallback_context="combined",
             capture_index=None,
         )
+        for item in extract_general_evidence(combined_text):
+            add_value(
+                item.field,
+                item.value,
+                context="general_evidence",
+                capture_index=None,
+            )
+        for item in extract_posting_metadata_evidence(combined_text):
+            add_value(
+                item.field,
+                item.value,
+                context="posting_metadata",
+                capture_index=None,
+            )
+
+        explicit_title = analyze_explicit_title(combined_text)
+        if explicit_title.value:
+            add_value(
+                "title",
+                explicit_title.value,
+                context="explicit_title",
+                capture_index=None,
+            )
+
+        explicit_clearance = analyze_explicit_clearance(combined_text)
+        if explicit_clearance.value:
+            add_value(
+                "clearance",
+                explicit_clearance.value,
+                context="explicit_clearance",
+                capture_index=None,
+            )
+
+        explicit_on_call = analyze_explicit_on_call(combined_text)
+        if explicit_on_call.value:
+            add_value(
+                "on_call",
+                explicit_on_call.value,
+                context="general_evidence",
+                capture_index=None,
+            )
+        job_id = analyze_job_id(combined_text)
+        if job_id.value:
+            add_value(
+                "job_id",
+                job_id.value,
+                context="job_id_evidence",
+                capture_index=None,
+            )
+        pay = analyze_pay(combined_text)
+        if pay is not None:
+            currency = resolve_pay_currency(combined_text, pay.currency, pay.evidence)
+            for field, value in (
+                ("pay_min", pay.pay_min),
+                ("pay_max", pay.pay_max),
+                ("currency", currency),
+                ("pay_period", pay.period),
+            ):
+                add_value(
+                    field,
+                    value,
+                    context="pay_evidence",
+                    capture_index=None,
+                )
+        work_arrangement = analyze_enriched_work_arrangement(combined_text)
+        arrangement_suppressed = suppress_work_arrangement(work_arrangement)
+        work_location = (
+            ""
+            if arrangement_suppressed
+            else sanitize_location_candidate(work_arrangement.location)
+        )
+        if work_arrangement.status and not arrangement_suppressed:
+            add_value(
+                "remote_status",
+                work_arrangement.status,
+                context="work_arrangement",
+                capture_index=None,
+            )
+        if work_location:
+            add_value(
+                "location",
+                work_location,
+                context="work_arrangement",
+                capture_index=None,
+            )
+
+        explicit_work_arrangement = analyze_explicit_work_arrangement(combined_text)
+        explicit_work_location = sanitize_location_candidate(
+            explicit_work_arrangement.location
+        )
+        if not work_arrangement.status and explicit_work_arrangement.status:
+            add_value(
+                "remote_status",
+                explicit_work_arrangement.status,
+                context="explicit_work_arrangement",
+                capture_index=None,
+            )
+        if not work_location and explicit_work_location:
+            add_value(
+                "location",
+                explicit_work_location,
+                context="explicit_work_arrangement",
+                capture_index=None,
+            )
+
+        if not work_location and not explicit_work_location:
+            ats_locations = analyze_ats_locations(combined_text)
+            if ats_locations:
+                for item in ats_locations:
+                    clean_location = sanitize_location_candidate(item.value)
+                    if clean_location:
+                        add_value(
+                            "location",
+                            clean_location,
+                            context="ats_location",
+                            capture_index=None,
+                        )
+            else:
+                explicit_location = analyze_explicit_location(combined_text)
+                clean_explicit_location = sanitize_location_candidate(explicit_location.value)
+                if clean_explicit_location:
+                    add_value(
+                        "location",
+                        clean_explicit_location,
+                        context="explicit_location",
+                        capture_index=None,
+                    )
 
     fields: dict[str, ParserFieldResolution] = {}
     scalar_values: dict[str, list[str]] = {}
     for field, field_occurrences in occurrences.items():
-        resolution = _resolve_field(field_occurrences)
+        resolution = _resolve_field(field, field_occurrences)
         fields[field] = resolution
         scalar_values[field] = list(resolution.values)
 
@@ -206,7 +399,7 @@ def resolve_parser_values(
     return resolve_parser_evidence(extractions, combined_text).values
 
 
-def _resolve_field(occurrences: list[dict[str, Any]]) -> ParserFieldResolution:
+def _resolve_field(field: str, occurrences: list[dict[str, Any]]) -> ParserFieldResolution:
     grouped: dict[str, list[dict[str, Any]]] = {}
     for occurrence in occurrences:
         grouped.setdefault(str(occurrence["key"]), []).append(occurrence)
@@ -233,6 +426,7 @@ def _resolve_field(occurrences: list[dict[str, Any]]) -> ParserFieldResolution:
                 "support_count": support_count,
                 "occurrence_count": len(group),
                 "contexts": contexts,
+                "first_capture_index": min(independent) if independent else None,
             }
         )
 
@@ -240,6 +434,20 @@ def _resolve_field(occurrences: list[dict[str, Any]]) -> ParserFieldResolution:
     top = [item for item in summaries if int(item["priority"]) == top_priority]
     best_support = max(int(item["support_count"]) for item in top)
     winners = [item for item in top if int(item["support_count"]) == best_support]
+
+    # Capture order is only a prior. Use it for titles solely when stronger
+    # evidence is otherwise tied, because a posting header normally precedes
+    # title-like descriptive prose in the body.
+    if field == "title" and len(winners) > 1:
+        captured = [item for item in winners if item["first_capture_index"] is not None]
+        if captured:
+            earliest = min(int(item["first_capture_index"]) for item in captured)
+            winners = [
+                item
+                for item in captured
+                if int(item["first_capture_index"]) == earliest
+            ]
+
     winner_values = tuple(str(item["value"]) for item in winners)
     winner_contexts = tuple(
         dict.fromkeys(context for item in winners for context in item["contexts"])

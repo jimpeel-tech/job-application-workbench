@@ -325,7 +325,13 @@ def test_repository_http_catalog_and_clone_routes(tmp_path: Path, monkeypatch) -
             catalog = json.loads(response.read())
         assert catalog["local_path"] == str((template_root / "local").resolve())
         assert catalog["repository"]["release_resolution"] == "compatible"
-        assert catalog["templates"][0]["id"] == "repository-example"
+        local_templates = {
+            item["id"]: item
+            for item in catalog["templates"]
+            if item["source"] == "local"
+        }
+        assert {"quick-reference", "repository-example"} <= set(local_templates)
+        assert local_templates["repository-example"]["valid"] is True
 
         request = urllib.request.Request(
             f"{server.url}/api/workbench/repository/clone",

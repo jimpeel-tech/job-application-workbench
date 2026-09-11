@@ -20,7 +20,10 @@ def _runtime(tmp_path: Path):
                 {
                     "company": "Example Corp",
                     "title": "Platform Engineer",
-                    "highlights": "• Built a platform.\n    • Added supporting detail.",
+                    "highlights": [
+                        "Built a platform.",
+                        "Added supporting detail.",
+                    ],
                     "enabled": True,
                 }
             ],
@@ -42,7 +45,10 @@ def test_dump_pretty_prints_runtime_values(tmp_path: Path) -> None:
 
     dumped_history = runtime["dump"](runtime["work_exp"])
     history = json.loads(dumped_history)
-    assert history[0]["highlights"] == "• Built a platform.\n    • Added supporting detail."
+    assert history[0]["highlights"] == [
+        "Built a platform.",
+        "Added supporting detail.",
+    ]
 
     rendered = renderer._render_text("{{ dump(job_ref) }}", runtime, label="debug dump")
     assert json.loads(rendered) == runtime["job_ref"]
@@ -67,7 +73,7 @@ def test_describe_reports_supported_runtime_contract(tmp_path: Path) -> None:
 
     work_description = runtime["describe"](runtime["work_exp"])
     assert "work_exp\ntype: list[mapping]" in work_description
-    assert "highlights: str" in work_description
+    assert "highlights: list[str]" in work_description
 
 
 def test_debug_helpers_and_runtime_roots_are_not_resources() -> None:

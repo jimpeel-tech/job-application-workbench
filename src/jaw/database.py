@@ -79,6 +79,9 @@ class JobDatabase:
     ) -> None:
         self.job_repository.update_analysis(job_id, result, model)
 
+    def record_analysis_failure(self, job_id: int, message: str) -> None:
+        self.job_repository.record_analysis_failure(job_id, message)
+
     def set_status(
         self,
         job_id: int,

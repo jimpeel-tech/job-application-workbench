@@ -13,16 +13,26 @@ JAW.exe
 JAW.exe.sha256
 ```
 
-## Maintainer / development builds with GitHub Actions
+## Maintainer / pre-release builds with GitHub Actions
 
 The repository also includes **Build Windows executable** under GitHub Actions. Manual workflow runs are intended for maintainers and testers who want an ad-hoc build before creating a release:
 
 1. Open the repository's **Actions** tab.
 2. Select **Build Windows executable**.
-3. Choose **Run workflow** on `main`.
+3. Choose **Run workflow** and select the branch you want to validate. During pre-release work this is normally `dev`; after approval/merge, release builds come from the release state on `main` or from the version tag.
 4. Download the `JAW-windows-x64` artifact when the job completes.
 
-The Actions artifact contains the same executable and checksum, but it is not the normal public installation path.
+The Actions artifact contains the executable and checksum, but it is not the normal public installation path.
+
+A pushed `v*` tag runs the same workflow and publishes `JAW.exe` plus `JAW.exe.sha256` to the matching GitHub Release. Do not create a release tag until the release candidate has passed the release gate.
+
+## Version metadata
+
+`pyproject.toml` is the authoritative package/distribution version. `src/jaw/__init__.py` exposes the same value as `jaw.__version__` and is kept synchronized by release preparation/tests.
+
+Template-release compatibility prefers the source checkout's `pyproject.toml` version while developing. Packaged builds fall back to installed distribution metadata, and `tools/build_windows.py` passes `--copy-metadata jaw` to PyInstaller so the same version is available inside both onefile and onedir builds.
+
+For `0.1.1`, JAW also supports Template API 1 and Template API 2. The official template repository can therefore publish an API 2 release without breaking access to the immutable API 1 `0.1.0` release.
 
 ## Build locally
 
@@ -62,11 +72,14 @@ A packaged executable uses the normal installed-data location rather than the re
 ```text
 %LOCALAPPDATA%\JAW\
 ├── config.toml
-└── data\
-    └── jaw.db
+├── data\
+│   └── jaw.db
+└── fonts\
 ```
 
 `JAW_HOME` can still override this location.
+
+See [First Run](first-run.md) for the seeded demo data and recommended fresh-user setup.
 
 ## Branding assets
 

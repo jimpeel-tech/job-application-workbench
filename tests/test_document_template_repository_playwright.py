@@ -87,6 +87,9 @@ def test_template_repo_browses_local_package_and_clones_document(tmp_path, monke
                 playwright.expect(dialog).to_contain_text("Template Repository")
                 playwright.expect(dialog).to_contain_text("Repository Example")
                 playwright.expect(dialog).to_contain_text("Local")
+                dialog.locator(
+                    '[data-wb-repository-template="local:repository-example"]'
+                ).click()
                 playwright.expect(dialog).to_contain_text(
                     "Clone this local Template → Section → Function example."
                 )

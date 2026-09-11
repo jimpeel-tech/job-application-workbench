@@ -29,3 +29,8 @@ def config_path() -> Path:
 
 def database_path() -> Path:
     return app_home() / "data" / "jaw.db"
+
+
+def user_fonts_path() -> Path:
+    """Return the writable directory reserved for user-provided document fonts."""
+    return app_home() / "fonts"

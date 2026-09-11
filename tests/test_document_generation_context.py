@@ -23,6 +23,7 @@ class _UserData:
                     "enabled": True,
                     "company": "Real Employer",
                     "title": "Real Role",
+                    "highlights": "• Built the real platform.\n- Reduced real toil.",
                 }
             ],
             "capability_model": {
@@ -93,6 +94,10 @@ def test_automatic_context_uses_newest_tracked_job(tmp_path: Path):
     assert context["user"]["full_name"] == "Real User"
     assert context["cap"]["all"][0]["name"] == "Real Skill"
     assert context["work_exp"][0]["company"] == "Real Employer"
+    assert context["work_exp"][0]["highlights"] == [
+        "Built the real platform.",
+        "Reduced real toil.",
+    ]
     assert "job" not in context
     assert "capabilities" not in context
     assert "work_history" not in context
@@ -125,6 +130,10 @@ def test_selected_job_context_persists_per_user(tmp_path: Path):
     assert info["effective_job_id"] == first
     assert info["label"] == "Selected · Chosen Company · Chosen Title"
     assert context["job_ref"]["title"] == "Chosen Title"
+    assert context["work_exp"][0]["highlights"] == [
+        "Built the real platform.",
+        "Reduced real toil.",
+    ]
 
 
 def test_example_context_is_unmistakably_example_data(tmp_path: Path):
@@ -142,6 +151,9 @@ def test_example_context_is_unmistakably_example_data(tmp_path: Path):
     assert context["job_ref"]["title"] == "Example Title"
     assert context["cap"]["all"][0]["name"] == "Example Skill 1"
     assert context["cap"]["sets"]["platform_sre"][0]["name"] == "Example Skill 1"
+    assert context["work_exp"][0]["highlights"] == [
+        "Example work-history evidence 1."
+    ]
 
 
 def test_automatic_context_never_falls_back_to_example_data(tmp_path: Path):
@@ -158,6 +170,10 @@ def test_automatic_context_never_falls_back_to_example_data(tmp_path: Path):
     assert context["user"]["full_name"] == "Real User"
     assert context["job_ref"] == {}
     assert context["cap"]["all"][0]["name"] == "Real Skill"
+    assert context["work_exp"][0]["highlights"] == [
+        "Built the real platform.",
+        "Reduced real toil.",
+    ]
 
     with pytest.raises(ValueError, match="No tracked jobs available"):
         contexts.context_mapping(1, require_job=True)
@@ -190,6 +206,10 @@ def test_workbench_state_uses_real_automatic_context_and_exposes_selection(tmp_p
     state = application.state(1)
 
     assert state["generation_context"]["job_ref"]["title"] == "Workbench Title"
+    assert state["generation_context"]["work_exp"][0]["highlights"] == [
+        "Built the real platform.",
+        "Reduced real toil.",
+    ]
     assert state["generation_context_info"]["mode"] == "auto"
     assert state["generation_context_info"]["effective_job_id"] == latest
 

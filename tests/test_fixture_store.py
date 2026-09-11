@@ -12,7 +12,11 @@ def test_smart_capture_snapshot_preserves_observations_without_ground_truth(tmp_
                 "classification_status": "classified",
                 "content": "Senior Platform Engineer",
                 "metadata": {
-                    "metrics": {"sequence": 1},
+                    "metrics": {
+                        "sequence": 1,
+                        "shape": "identity_like",
+                        "size_class": "short",
+                    },
                     "extraction": {
                         "capture_context": "job_title",
                         "fields": {"title": "Senior Platform Engineer"},
@@ -63,8 +67,16 @@ def test_smart_capture_snapshot_preserves_observations_without_ground_truth(tmp_
     assert package["manifest"]["active_user_id"] == 7
     assert package["manifest"]["active_user_name"] == "Any User"
     assert package["manifest"]["expected_values"] == "not-set"
-    assert package["manifest"]["version"] == 3
+    assert package["manifest"]["version"] == 4
     assert package["captures"][0]["metadata"]["metrics"]["sequence"] == 1
+    assert package["captures"][0]["metadata"]["metrics"]["shape"] == "identity_like"
+    assert package["captures"][0]["session_position"] == {
+        "sequence": 1,
+        "capture_count": 2,
+        "is_first": True,
+        "is_last": False,
+    }
+    assert package["captures"][1]["session_position"]["is_last"] is True
     assert (folder / "combined.txt").is_file()
     assert (folder / "captures.json").is_file()
     assert (folder / "parser.json").is_file()
