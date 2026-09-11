@@ -42,6 +42,14 @@ def test_currency_after_amount_is_supported():
     assert evidence.period == "year"
 
 
+def test_range_candidate_beats_overlapping_single_endpoint():
+    evidence = analyze_pay("Salary Range: $100,000 USD - $165,000 USD")
+
+    assert evidence is not None
+    assert evidence.pay_min == "100000"
+    assert evidence.pay_max == "165000"
+
+
 def test_min_mid_max_salary_uses_outer_bounds():
     evidence = analyze_pay(
         "We estimate the base salary will be in this range from (min-mid-max, USD):\n"
