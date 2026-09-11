@@ -20,6 +20,15 @@ def test_remote_title_suffix_is_detected():
     assert analysis.rule == "title_remote_suffix"
 
 
+def test_remote_country_scope_badge_is_detected():
+    analysis = analyze_explicit_work_arrangement(
+        "Leading CNCF Start Up Hiring for Senior SRE | Up to $200k + Equity | Remote (US/Canada)"
+    )
+
+    assert analysis.status == "Remote"
+    assert analysis.rule == "remote_country_scope"
+
+
 def test_remote_workforce_and_remote_first_are_detected():
     workforce = analyze_explicit_work_arrangement(
         "Fictiv is continuing to expand our remote US workforce."
