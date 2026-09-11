@@ -216,7 +216,8 @@ def _normalize_location_phrase(value: str) -> str:
         return f"{code.group('city')}, {code.group('state').upper()}"
     named = _CITY_STATE_NAME.search(text)
     if named:
-        return _city_state(named.group("city"), named.group("state"))
+        state = " ".join(word.capitalize() for word in named.group("state").split())
+        return f"{named.group('city')}, {state}"
     if re.search(r"\bNew York City\b", text, re.IGNORECASE):
         return "New York City, NY"
     if _US.search(text):
