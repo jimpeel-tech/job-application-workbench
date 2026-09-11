@@ -3,16 +3,20 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any, Iterable
 
+from .ats_location_evidence import analyze_ats_locations
 from .capture import extract_job_fields
+from .explicit_clearance import analyze_explicit_clearance
 from .explicit_location import analyze_explicit_location
 from .explicit_on_call import analyze_explicit_on_call
+from .explicit_title import analyze_explicit_title
 from .explicit_work_arrangement import analyze_explicit_work_arrangement
 from .general_evidence import extract_general_evidence
 from .job_id_evidence import analyze_job_id
 from .location_candidate import sanitize_location_candidate
+from .pay_currency import resolve_pay_currency
 from .pay_evidence import analyze_pay
 from .value_canonicalization import canonical_capture_value
-from .work_arrangement import analyze_work_arrangement
+from .work_arrangement_enrichment import analyze_enriched_work_arrangement
 from .work_arrangement_guard import suppress_work_arrangement
 
 _RESULT_FIELD_KEYS = (
@@ -90,6 +94,7 @@ def _field_priority(field: str, context: str) -> int:
     context = str(context or "").strip().lower()
     if field == "title":
         return {
+            "explicit_title": 106,
             "job_title": 100,
             "job_description": 50,
             "combined": 30,
@@ -135,6 +140,8 @@ def _field_priority(field: str, context: str) -> int:
     }:
         return {
             "pay_evidence": 100,
+            "explicit_clearance": 100,
+            "ats_location": 97,
             "explicit_work_arrangement": 96,
             "work_arrangement": 95,
             "general_evidence": 95,
@@ -226,6 +233,25 @@ def resolve_parser_evidence(
                 context="general_evidence",
                 capture_index=None,
             )
+
+        explicit_title = analyze_explicit_title(combined_text)
+        if explicit_title.value:
+            add_value(
+                "title",
+                explicit_title.value,
+                context="explicit_title",
+                capture_index=None,
+            )
+
+        explicit_clearance = analyze_explicit_clearance(combined_text)
+        if explicit_clearance.value:
+            add_value(
+                "clearance",
+                explicit_clearance.value,
+                context="explicit_clearance",
+                capture_index=None,
+            )
+
         explicit_on_call = analyze_explicit_on_call(combined_text)
         if explicit_on_call.value:
             add_value(
@@ -244,10 +270,11 @@ def resolve_parser_evidence(
             )
         pay = analyze_pay(combined_text)
         if pay is not None:
+            currency = resolve_pay_currency(combined_text, pay.currency, pay.evidence)
             for field, value in (
                 ("pay_min", pay.pay_min),
                 ("pay_max", pay.pay_max),
-                ("currency", pay.currency),
+                ("currency", currency),
                 ("pay_period", pay.period),
             ):
                 add_value(
@@ -256,7 +283,7 @@ def resolve_parser_evidence(
                     context="pay_evidence",
                     capture_index=None,
                 )
-        work_arrangement = analyze_work_arrangement(combined_text)
+        work_arrangement = analyze_enriched_work_arrangement(combined_text)
         arrangement_suppressed = suppress_work_arrangement(work_arrangement)
         work_location = (
             ""
@@ -298,15 +325,27 @@ def resolve_parser_evidence(
             )
 
         if not work_location and not explicit_work_location:
-            explicit_location = analyze_explicit_location(combined_text)
-            clean_explicit_location = sanitize_location_candidate(explicit_location.value)
-            if clean_explicit_location:
-                add_value(
-                    "location",
-                    clean_explicit_location,
-                    context="explicit_location",
-                    capture_index=None,
-                )
+            ats_locations = analyze_ats_locations(combined_text)
+            if ats_locations:
+                for item in ats_locations:
+                    clean_location = sanitize_location_candidate(item.value)
+                    if clean_location:
+                        add_value(
+                            "location",
+                            clean_location,
+                            context="ats_location",
+                            capture_index=None,
+                        )
+            else:
+                explicit_location = analyze_explicit_location(combined_text)
+                clean_explicit_location = sanitize_location_candidate(explicit_location.value)
+                if clean_explicit_location:
+                    add_value(
+                        "location",
+                        clean_explicit_location,
+                        context="explicit_location",
+                        capture_index=None,
+                    )
 
     fields: dict[str, ParserFieldResolution] = {}
     scalar_values: dict[str, list[str]] = {}
