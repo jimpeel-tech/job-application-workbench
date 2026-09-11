@@ -473,6 +473,11 @@ def _canonical_location_equivalence(value: str) -> str:
     text = re.sub(r",\s*", ", ", text)
     text = re.sub(r"(?<=\w)\s*-\s*(?=\w)", " ", text)
     text = re.sub(r"\s+", " ", text).strip(" .,")
+    text = re.sub(
+        r"^united states\s*\(\s*excluding\s+hawaii\s*\)$",
+        "united states, excluding hawaii",
+        text,
+    )
 
     if text in {"nyc", "new york city", "new york city, ny"}:
         return "new york city, ny"
