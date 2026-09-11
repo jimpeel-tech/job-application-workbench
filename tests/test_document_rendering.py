@@ -197,6 +197,51 @@ def test_bundled_font_filename_wins_over_user_collision(monkeypatch, tmp_path: P
     assert (sandbox / "UserOnly.ttf").read_bytes() == b"user-only"
 
 
+def test_unavailable_user_font_directory_does_not_block_packaged_fonts(
+    monkeypatch,
+    tmp_path: Path,
+):
+    packaged = tmp_path / "packaged"
+    packaged.mkdir()
+    (packaged / "Bundled.ttf").write_bytes(b"bundled")
+    blocking_file = tmp_path / "not-a-directory"
+    blocking_file.write_text("blocked", encoding="utf-8")
+    unavailable = blocking_file / "fonts"
+
+    monkeypatch.setattr(tectonic_module, "_DEFAULT_SEARCH_PATH", packaged)
+    monkeypatch.setattr(tectonic_module, "user_fonts_path", lambda: unavailable)
+
+    sandbox = tmp_path / "sandbox"
+    sandbox.mkdir()
+    TectonicRenderer()._stage_local_fonts(sandbox)
+
+    assert (sandbox / "Bundled.ttf").read_bytes() == b"bundled"
+
+
+def test_font_copy_failure_is_wrapped_as_document_render_error(monkeypatch, tmp_path: Path):
+    packaged = tmp_path / "packaged"
+    packaged.mkdir()
+    font = packaged / "Broken.ttf"
+    font.write_bytes(b"font")
+    user_fonts = tmp_path / "jaw-home" / "fonts"
+
+    monkeypatch.setattr(tectonic_module, "_DEFAULT_SEARCH_PATH", packaged)
+    monkeypatch.setattr(tectonic_module, "user_fonts_path", lambda: user_fonts)
+    monkeypatch.setattr(
+        tectonic_module.shutil,
+        "copy2",
+        lambda *args, **kwargs: (_ for _ in ()).throw(OSError("permission denied")),
+    )
+
+    sandbox = tmp_path / "sandbox"
+    sandbox.mkdir()
+    with pytest.raises(DocumentRenderError, match="Could not stage font Broken.ttf") as failure:
+        TectonicRenderer()._stage_local_fonts(sandbox)
+
+    assert failure.value.diagnostics[0].source == "tectonic.fonts"
+    assert "permission denied" in failure.value.diagnostics[0].message
+
+
 def test_tectonic_renderer_exposes_source_and_diagnostics_on_failure(
     monkeypatch,
     tmp_path: Path,
