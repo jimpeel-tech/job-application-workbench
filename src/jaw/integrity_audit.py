@@ -10,7 +10,9 @@ from pathlib import Path
 from typing import Any
 
 from .paths import DATABASE_SCHEMA_VERSION, database_path
-from .persistence.schema import LEGACY_DOCUMENT_TABLES
+from .persistence.document_workbench import DOCUMENT_WORKBENCH_SCHEMA
+from .persistence.schema import LEGACY_DOCUMENT_TABLES, SCHEMA
+from .persistence.user_repository import USER_SCHEMA
 
 CORE_TABLES = (
     "jobs",
@@ -44,6 +46,21 @@ _JSON_ARRAY_COLUMNS = (
     ("jobs", "id", "concerns"),
     ("jobs", "id", "missing_qualifications"),
 )
+_WORKBENCH_AUDIT_COLUMNS = {
+    "document_workbench_resources": {
+        "id",
+        "user_id",
+        "kind",
+        "name",
+        "symbol",
+        "owner_id",
+        "content",
+        "content_hash",
+    },
+    "document_workbench_documents": {"resource_id", "template_id"},
+    "document_workbench_edges": {"parent_id", "child_id", "edge_kind", "symbol"},
+    "document_workbench_buffers": {"user_id", "resource_id", "cursor_start", "cursor_end"},
+}
 
 
 def _tables(connection: sqlite3.Connection) -> set[str]:
@@ -55,9 +72,48 @@ def _tables(connection: sqlite3.Connection) -> set[str]:
     }
 
 
-def _json_violations(
+def _columns(connection: sqlite3.Connection, table: str) -> set[str]:
+    return {
+        str(row[1])
+        for row in connection.execute(f'PRAGMA table_info("{table}")')
+    }
+
+
+def _expected_columns() -> dict[str, set[str]]:
+    with sqlite3.connect(":memory:") as connection:
+        connection.executescript(SCHEMA)
+        connection.executescript(USER_SCHEMA)
+        connection.executescript(DOCUMENT_WORKBENCH_SCHEMA)
+        return {
+            table: _columns(connection, table)
+            for table in REQUIRED_TABLES
+        }
+
+
+def _actual_columns(
     connection: sqlite3.Connection,
     tables: set[str],
+) -> dict[str, set[str]]:
+    return {
+        table: _columns(connection, table)
+        for table in REQUIRED_TABLES
+        if table in tables
+    }
+
+
+def _missing_columns(actual: dict[str, set[str]]) -> list[str]:
+    expected = _expected_columns()
+    return sorted(
+        f"{table}.{column}"
+        for table, expected_columns in expected.items()
+        if table in actual
+        for column in expected_columns - actual[table]
+    )
+
+
+def _json_violations(
+    connection: sqlite3.Connection,
+    actual_columns: dict[str, set[str]],
 ) -> list[str]:
     violations: list[str] = []
     specs = [
@@ -65,7 +121,8 @@ def _json_violations(
         *((table, key, column, list) for table, key, column in _JSON_ARRAY_COLUMNS),
     ]
     for table, key_column, value_column, expected_type in specs:
-        if table not in tables:
+        columns = actual_columns.get(table, set())
+        if not {key_column, value_column}.issubset(columns):
             continue
         rows = connection.execute(
             f'SELECT "{key_column}", "{value_column}" FROM "{table}"'
@@ -73,7 +130,7 @@ def _json_violations(
         for row_key, raw_value in rows:
             try:
                 decoded = json.loads(str(raw_value))
-            except (TypeError, ValueError, json.JSONDecodeError):
+            except (TypeError, ValueError):
                 violations.append(
                     f"{table}[{row_key}].{value_column}: invalid JSON"
                 )
@@ -88,9 +145,11 @@ def _json_violations(
 
 def _user_violations(
     connection: sqlite3.Connection,
-    tables: set[str],
+    actual_columns: dict[str, set[str]],
 ) -> list[str]:
-    if not set(USER_TABLES).issubset(tables):
+    if not {"id"}.issubset(actual_columns.get("user_accounts", set())):
+        return []
+    if not {"key", "value"}.issubset(actual_columns.get("user_preferences", set())):
         return []
 
     users = {
@@ -115,9 +174,12 @@ def _user_violations(
 
 def _workbench_violations(
     connection: sqlite3.Connection,
-    tables: set[str],
+    actual_columns: dict[str, set[str]],
 ) -> list[str]:
-    if not set(WORKBENCH_TABLES).issubset(tables):
+    if any(
+        not columns.issubset(actual_columns.get(table, set()))
+        for table, columns in _WORKBENCH_AUDIT_COLUMNS.items()
+    ):
         return []
 
     violations: list[str] = []
@@ -225,6 +287,7 @@ def audit(path: Path) -> dict[str, Any]:
     connection.row_factory = sqlite3.Row
     try:
         tables = _tables(connection)
+        actual_columns = _actual_columns(connection, tables)
         integrity_check = [
             str(row[0]) for row in connection.execute("PRAGMA integrity_check")
         ]
@@ -237,12 +300,13 @@ def audit(path: Path) -> dict[str, Any]:
             "schema_version": schema_version,
             "expected_schema_version": DATABASE_SCHEMA_VERSION,
             "missing_tables": sorted(set(REQUIRED_TABLES) - tables),
+            "missing_columns": _missing_columns(actual_columns),
             "legacy_tables": sorted(set(LEGACY_DOCUMENT_TABLES) & tables),
             "integrity_check": integrity_check,
             "foreign_key_violations": foreign_keys,
-            "json_violations": _json_violations(connection, tables),
-            "user_violations": _user_violations(connection, tables),
-            "workbench_violations": _workbench_violations(connection, tables),
+            "json_violations": _json_violations(connection, actual_columns),
+            "user_violations": _user_violations(connection, actual_columns),
+            "workbench_violations": _workbench_violations(connection, actual_columns),
         }
     finally:
         connection.close()
@@ -253,6 +317,7 @@ def integrity_is_clean(result: dict[str, Any]) -> bool:
         result.get("schema_version") == result.get("expected_schema_version")
         and result.get("integrity_check") == ["ok"]
         and not result.get("missing_tables")
+        and not result.get("missing_columns")
         and not result.get("legacy_tables")
         and not result.get("foreign_key_violations")
         and not result.get("json_violations")
@@ -280,6 +345,7 @@ def main() -> int:
     )
     print(f"SQLite integrity: {', '.join(result['integrity_check'])}")
     _print_issues("Missing required tables", result["missing_tables"])
+    _print_issues("Missing required columns", result["missing_columns"])
     _print_issues("Retired document tables", result["legacy_tables"])
     _print_issues("Foreign key violations", result["foreign_key_violations"])
     _print_issues("JSON violations", result["json_violations"])
