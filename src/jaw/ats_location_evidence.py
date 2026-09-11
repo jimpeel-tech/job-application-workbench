@@ -79,7 +79,7 @@ _CANADIAN_PROVINCES = {
     "nunavut",
     "yukon",
 }
-_CITY = r"(?:[A-Z][A-Za-z.'-]*(?:\s+[A-Z][A-Za-z.'-]*){0,4})"
+_CITY = r"(?:[A-Z][A-Za-z.'-]*(?:[ \t]+[A-Z][A-Za-z.'-]*){0,4})"
 _STATE_NAMES = "|".join(
     sorted((re.escape(name) for name in _STATE_NAME_TO_CODE), key=len, reverse=True)
 )
