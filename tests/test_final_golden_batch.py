@@ -140,3 +140,19 @@ def test_program_manager_multilocation_flows_through_parser_resolution():
         "Wichita, KS",
         "Morrisville, NC",
     )
+
+
+def test_joined_location_row_keeps_specific_work_location_over_broad_header():
+    resolution = resolve_parser_evidence(
+        [],
+        "Programmers.io\n\n"
+        "Site Reliability Engineer\n\n"
+        "Texas, United States · 6 hours ago\n\n"
+        "About the job\n"
+        "Job Role: SRE EngineerLocation: Austin TX/South Lake, TX "
+        "(Onsite- Hybrid)Employment Type: Full-Time\n"
+        "Job Summary",
+    )
+
+    assert resolution.values["remote_status"] == ("Hybrid",)
+    assert resolution.values["location"] == ("Austin TX/South Lake, TX",)
