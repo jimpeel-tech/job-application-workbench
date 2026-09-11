@@ -84,3 +84,15 @@ body > header{
 .tips-shell #tipsToggle{
   top:calc(var(--site-header-height) + 6px);
 }
+
+/* Checkboxes inside capability dialogs are inline controls, not full-width
+ * form fields. dashboard.css intentionally makes normal dialog inputs stretch,
+ * so restore intrinsic checkbox sizing here after the legacy stylesheet loads. */
+.cap-dialog .cap-check{
+  justify-content:flex-start;
+}
+
+.cap-dialog .cap-check input[type="checkbox"]{
+  width:auto;
+  flex:0 0 auto;
+}
