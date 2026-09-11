@@ -51,11 +51,12 @@ def analyze_explicit_work_arrangement(content: str) -> ExplicitWorkArrangement:
             continue
         body = row.group("body").strip()
         lowered = body.casefold()
-        if re.search(r"\b(?:customer|client)[- ]site\b", lowered):
+        normalized = re.sub(r"\s*-\s*", "-", lowered)
+        if re.search(r"\b(?:customer|client)[- ]site\b", normalized):
             return ExplicitWorkArrangement("On-site", "", "work_location_customer_site")
-        if re.search(r"\b(?:on[- ]?site|onsite|in[- ]person|in[- ]office)\b", lowered):
+        if re.search(r"\b(?:on[- ]?site|onsite|in[- ]person|in[- ]office)\b", normalized):
             return ExplicitWorkArrangement("On-site", "", "work_location_on_site")
-        if re.search(r"\b(?:home[- ]based|fully\s+remote|remote)\b", lowered):
+        if re.search(r"\b(?:home[- ]based|fully\s+remote|remote)\b", normalized):
             return ExplicitWorkArrangement("Remote", _remote_location(body), "work_location_remote")
         if re.fullmatch(r"(?:US,\s*)?Virtual(?:,\s*NOAM)?", body, re.IGNORECASE):
             return ExplicitWorkArrangement("Remote", "", "work_location_virtual")
