@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import re
 
-
 _CANADIAN_LOCATION = re.compile(
     r"\b[A-Z][A-Za-z.'-]*(?:\s+[A-Z][A-Za-z.'-]*){0,4},\s*"
     r"(?:Alberta|British Columbia|Manitoba|New Brunswick|Newfoundland and Labrador|"
