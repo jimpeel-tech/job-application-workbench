@@ -1,9 +1,11 @@
+import json
 from importlib.resources import files
 
 from jinja2 import meta
 
 from jaw.documents import render_latex_template
 from jaw.documents.context import ExampleContextProvider
+from jaw.documents.expression_context import build_cap_projection
 from jaw.documents.latex import latex_environment
 from jaw.documents.workbench_symbols import referenced_symbols
 
@@ -22,6 +24,15 @@ def _source() -> str:
         .joinpath("resources")
         .joinpath("documents")
         .joinpath("quick_reference.tex.j2")
+        .read_text(encoding="utf-8")
+    )
+
+
+def _default_user_state() -> dict:
+    return json.loads(
+        files("jaw")
+        .joinpath("resources")
+        .joinpath("default-user-v1.0.json")
         .read_text(encoding="utf-8")
     )
 
@@ -51,3 +62,18 @@ def test_quick_reference_renders_with_example_context() -> None:
     assert "Example Title" in quick_reference
     assert "Example Skill 1" in quick_reference
     assert "Example work-history evidence 1." in quick_reference
+
+
+def test_quick_reference_renders_with_default_profile_without_capability_sets() -> None:
+    context = ExampleContextProvider(1).load().template_context()
+    context["cap"] = build_cap_projection(_default_user_state())
+
+    assert context["cap"]["sets"] == {}
+
+    quick_reference = render_latex_template(
+        _source(),
+        context,
+        autoescape_text=True,
+    )
+
+    assert "No user-managed capability sets are currently enabled for Documents." in quick_reference
