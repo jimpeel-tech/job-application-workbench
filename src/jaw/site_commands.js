@@ -5,6 +5,8 @@
   let documentPaletteItems = [];
   let documentPaletteFiltered = [];
   let documentPaletteIndex = 0;
+  let trackerHelpPopover = null;
+  let trackerHelpObserver = null;
 
   function activePageId() {
     return document.querySelector('.page.active')?.id || '';
@@ -17,6 +19,207 @@
     element.style.display = 'block';
     clearTimeout(toast.timer);
     toast.timer = setTimeout(() => { element.style.display = 'none'; }, 1400);
+  }
+
+  function ensureTrackerHelpStyle() {
+    if (document.getElementById('trackerHelpStyle')) return;
+    const style = document.createElement('style');
+    style.id = 'trackerHelpStyle';
+    style.textContent = `
+      .tracker-help-button {
+        min-width: 36px;
+        padding-left: 10px;
+        padding-right: 10px;
+        font-weight: 750;
+      }
+      .tracker-help-popover[popover] {
+        position: fixed;
+        inset: auto;
+        width: 360px;
+        max-width: calc(100vw - 24px);
+        max-height: calc(100vh - 24px);
+        margin: 0;
+        padding: 0;
+        overflow: auto;
+        background: var(--panel);
+        color: var(--text);
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        box-shadow: 0 14px 40px #0009;
+        z-index: 500;
+      }
+      .tracker-help-head {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 14px 14px 10px;
+        border-bottom: 1px solid var(--line);
+      }
+      .tracker-help-head strong { font-size: 15px; }
+      .tracker-help-close {
+        margin-left: auto;
+        padding: 2px 6px;
+        border: 0;
+        background: transparent;
+        color: var(--muted);
+        font-size: 20px;
+        line-height: 1;
+        cursor: pointer;
+      }
+      .tracker-help-close:hover { color: var(--text); }
+      .tracker-help-body { padding: 4px 14px; }
+      .tracker-help-row {
+        display: grid;
+        grid-template-columns: minmax(110px, auto) 1fr;
+        gap: 14px;
+        align-items: start;
+        padding: 11px 0;
+      }
+      .tracker-help-row + .tracker-help-row { border-top: 1px solid var(--line); }
+      .tracker-help-key { color: var(--text); font-weight: 650; }
+      .tracker-help-copy { color: var(--muted); line-height: 1.45; }
+      .tracker-help-popover kbd {
+        display: inline-block;
+        min-width: 24px;
+        padding: 2px 5px;
+        border: 1px solid #4a515d;
+        border-bottom-color: #626b78;
+        border-radius: 4px;
+        background: #171a1f;
+        color: var(--text);
+        font: 600 12px/1.35 Consolas, monospace;
+        text-align: center;
+      }
+      .tracker-help-actions {
+        display: flex;
+        justify-content: flex-end;
+        padding: 10px 14px 13px;
+        border-top: 1px solid var(--line);
+      }
+      .tracker-help-route {
+        padding: 5px 0;
+        border: 0;
+        background: transparent;
+        color: #7eb8ed;
+        font-weight: 650;
+        cursor: pointer;
+      }
+      .tracker-help-route:hover { text-decoration: underline; }
+      @media (max-width: 680px) {
+        .tracker-help-row { grid-template-columns: 1fr; gap: 5px; }
+      }
+    `;
+    document.head.appendChild(style);
+  }
+
+  function positionTrackerHelp(button, popover) {
+    const rect = button.getBoundingClientRect();
+    const width = Math.min(360, Math.max(240, window.innerWidth - 24));
+    const left = Math.max(12, Math.min(rect.right - width, window.innerWidth - width - 12));
+    popover.style.width = `${width}px`;
+    popover.style.left = `${left}px`;
+    popover.style.top = `${Math.min(rect.bottom + 8, window.innerHeight - 12)}px`;
+  }
+
+  function ensureTrackerHelpPopover() {
+    if (trackerHelpPopover?.isConnected) return trackerHelpPopover;
+    ensureTrackerHelpStyle();
+    trackerHelpPopover = document.createElement('div');
+    trackerHelpPopover.id = 'trackerHelpPopover';
+    trackerHelpPopover.className = 'tracker-help-popover';
+    trackerHelpPopover.setAttribute('popover', 'auto');
+    trackerHelpPopover.setAttribute('role', 'dialog');
+    trackerHelpPopover.setAttribute('aria-label', 'Job Tracker help');
+    trackerHelpPopover.innerHTML = `
+      <div class="tracker-help-head">
+        <strong>Job Tracker Help</strong>
+        <button class="tracker-help-close" type="button" aria-label="Close help">×</button>
+      </div>
+      <div class="tracker-help-body">
+        <div class="tracker-help-row">
+          <div class="tracker-help-key"><kbd>Ctrl</kbd> + <kbd>P</kbd></div>
+          <div class="tracker-help-copy">Open Document Routing for the current Tracker job. Use <b>⌘ P</b> on macOS.</div>
+        </div>
+        <div class="tracker-help-row">
+          <div class="tracker-help-key">Generate Document</div>
+          <div class="tracker-help-copy">Generate the configured output Documents for this job using the first matching title rule, then the fallback route.</div>
+        </div>
+        <div class="tracker-help-row">
+          <div class="tracker-help-key">Document Routing</div>
+          <div class="tracker-help-copy">Control title rules and fallback outputs used when generating documents from Job Tracker.</div>
+        </div>
+      </div>
+      <div class="tracker-help-actions">
+        <button class="tracker-help-route" type="button">Manage Document Routing →</button>
+      </div>`;
+    document.body.appendChild(trackerHelpPopover);
+    trackerHelpPopover.querySelector('.tracker-help-close').addEventListener('click', () => {
+      trackerHelpPopover.hidePopover();
+    });
+    trackerHelpPopover.querySelector('.tracker-help-route').addEventListener('click', () => {
+      trackerHelpPopover.hidePopover();
+      if (window.JawDocumentGeneration?.open) {
+        window.JawDocumentGeneration.open();
+      } else {
+        open('settings');
+      }
+    });
+    trackerHelpPopover.addEventListener('toggle', () => {
+      const button = document.querySelector('[data-tracker-help]');
+      if (button) button.setAttribute('aria-expanded', trackerHelpPopover.matches(':popover-open') ? 'true' : 'false');
+    });
+    return trackerHelpPopover;
+  }
+
+  function openTrackerHelp(button) {
+    const popover = ensureTrackerHelpPopover();
+    if (popover.matches(':popover-open')) {
+      popover.hidePopover();
+      return;
+    }
+    positionTrackerHelp(button, popover);
+    popover.showPopover();
+  }
+
+  function installTrackerHelpButton() {
+    const actions = document.querySelector('#jobsPage .tracker-header-actions');
+    if (!actions || actions.querySelector('[data-tracker-help]')) return;
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'btn tracker-help-button';
+    button.dataset.trackerHelp = '';
+    button.textContent = '?';
+    button.title = 'Job Tracker help';
+    button.setAttribute('aria-label', 'Job Tracker help');
+    button.setAttribute('aria-haspopup', 'dialog');
+    button.setAttribute('aria-controls', 'trackerHelpPopover');
+    button.setAttribute('aria-expanded', 'false');
+    button.addEventListener('click', event => {
+      event.preventDefault();
+      event.stopPropagation();
+      openTrackerHelp(button);
+    });
+    const divider = actions.querySelector('.tracker-action-divider');
+    const deleteButton = actions.querySelector('.tracker-danger-link');
+    actions.insertBefore(button, divider || deleteButton || null);
+  }
+
+  function installTrackerHelp() {
+    const detail = document.getElementById('detail');
+    if (!detail) return;
+    ensureTrackerHelpPopover();
+    installTrackerHelpButton();
+    if (!trackerHelpObserver) {
+      trackerHelpObserver = new MutationObserver(installTrackerHelpButton);
+      trackerHelpObserver.observe(detail, { childList: true, subtree: true });
+    }
+    const syncPosition = () => {
+      if (!trackerHelpPopover?.matches(':popover-open')) return;
+      const button = document.querySelector('[data-tracker-help]');
+      if (button) positionTrackerHelp(button, trackerHelpPopover);
+    };
+    window.addEventListener('resize', syncPosition);
+    document.addEventListener('scroll', syncPosition, true);
   }
 
   function open(mode = 'settings') {
@@ -307,6 +510,7 @@
     renderGenerationContextIndicator(event.detail?.snapshot?.state || null);
   });
   setTimeout(() => renderGenerationContextIndicator(), 0);
+  installTrackerHelp();
 
   document.addEventListener('keydown', event => {
     const command = event.ctrlKey || event.metaKey;
