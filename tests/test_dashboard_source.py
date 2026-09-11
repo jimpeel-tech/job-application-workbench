@@ -9,6 +9,12 @@ def _dashboard_source() -> str:
     )
 
 
+def _dashboard_css_source() -> str:
+    return (Path(jaw.__file__).resolve().parent / "dashboard.css").read_text(
+        encoding="utf-8"
+    )
+
+
 def test_dashboard_source_uses_native_documents_mount():
     dashboard = _dashboard_source()
 
@@ -30,3 +36,14 @@ def test_dashboard_user_management_menu_is_explicit():
         '<button class="btn" id="downloadTemplate">Download import template</button>'
         "</div>"
     ) in dashboard
+
+
+def test_capability_add_control_stays_on_one_line():
+    css = _dashboard_css_source()
+
+    assert ".cap-add-wrap{position:relative;flex:0 0 auto}" in css
+    assert (
+        ".cap-add-wrap>#capAddEntity{display:inline-flex;align-items:center;"
+        "justify-content:center;gap:3px;white-space:nowrap;padding:6px 9px;"
+        "font-size:12px}"
+    ) in css
