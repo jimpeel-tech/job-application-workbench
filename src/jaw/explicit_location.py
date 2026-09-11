@@ -77,12 +77,26 @@ _CITY_STATE_NAME = re.compile(
     rf"\b(?P<city>{_CITY}),\s*(?P<state>{_STATE_NAMES})\b",
     re.IGNORECASE,
 )
-_US = re.compile(
-    r"\b(?:United States(?: of America)?|U\.?S\.?A?\.?)\b",
-    re.IGNORECASE,
-)
+_US_TEXT = r"(?:United States(?: of America)?|U\.?S\.?A?\.?)"
+_US = re.compile(rf"\b{_US_TEXT}\b", re.IGNORECASE)
 _LOCATION_HEADER = re.compile(
     r"^(?:job\s+)?location(?:\s*&\s*workplace)?$|^job\s+type\s*&\s*location$",
+    re.IGNORECASE,
+)
+_COUNTRY_ARRANGEMENT_LINE = re.compile(
+    rf"^\s*(?P<country>{_US_TEXT})\s*[|/•·-]\s*"
+    r"(?:remote|hybrid|virtual|on[- ]?site|onsite)\s*$",
+    re.IGNORECASE,
+)
+_US_RESIDENCE = re.compile(
+    rf"\b(?:must\s+(?:reside|live|be\s+located)|"
+    rf"candidates?\s+must\s+(?:reside|live|be\s+located))\s+in\s+(?:the\s+)?{_US_TEXT}\b",
+    re.IGNORECASE,
+)
+_US_LIVE_WORK = re.compile(
+    rf"\b(?:team\s+members|employees?|candidates?)\b[^.\n]{{0,80}}\b"
+    rf"(?:can|may|must)\s+live\s+and\s+work\s+(?:anywhere\s+)?in\s+(?:the\s+)?"
+    rf"{_US_TEXT}\b(?P<tail>[^.\n]{{0,120}})",
     re.IGNORECASE,
 )
 
@@ -134,6 +148,18 @@ def analyze_explicit_location(content: str) -> ExplicitLocation:
             if value:
                 return ExplicitLocation(value, "role_location_prose")
 
+    site_location = re.search(
+        rf"\b(?:research\s+institution|facility)\b[^.\n]{{0,100}}\b"
+        rf"located\s+(?:near\s+{_CITY}\s+)?in\s+"
+        rf"(?P<location>{_CITY},\s*{_STATE_CODES})\b",
+        text,
+        re.IGNORECASE,
+    )
+    if site_location:
+        value = _normalize_location_phrase(site_location.group("location"))
+        if value:
+            return ExplicitLocation(value, "explicit_site_location")
+
     # Office attendance can name a city without its state. Infer the state only
     # when the same city appears elsewhere with an explicit state name/code.
     office_city = re.search(
@@ -147,11 +173,21 @@ def analyze_explicit_location(content: str) -> ExplicitLocation:
         if value:
             return ExplicitLocation(value, "office_city_with_inferred_state")
 
+    live_work = _US_LIVE_WORK.search(text)
+    if live_work:
+        tail = " ".join((live_work.group("tail") or "").split()).casefold()
+        if re.search(r"\b(?:except(?:ion)?\s+(?:of\s+)?|excluding\s+)hawaii\b", tail):
+            return ExplicitLocation("United States, excluding Hawaii", "us_live_work_exclusion")
+        return ExplicitLocation("United States", "us_live_work_scope")
+
+    if _US_RESIDENCE.search(text):
+        return ExplicitLocation("United States", "us_residence_requirement")
+
     # Remote geography is still geography: preserve the country while leaving the
     # Remote/Hybrid/On-site classification to the work-arrangement analyzers.
     country_patterns = (
-        r"\bremote\s+(?:role|position|job)\b[^.\n]{0,80}\bbased\s+in\s+(?:the\s+)?(?P<country>U\.?S\.?A?\.?|United States(?: of America)?)\b",
-        r"\b(?:role|position|job|candidate|employee)s?\b[^.\n]{0,90}\b(?:within|in|throughout|based\s+in)\s+(?:the\s+)?(?P<country>U\.?S\.?A?\.?|United States(?: of America)?)\b",
+        rf"\bremote\s+(?:role|position|job)\b[^.\n]{{0,80}}\bbased\s+in\s+(?:the\s+)?(?P<country>{_US_TEXT})\b",
+        rf"\b(?:role|position|job|candidate|employee)s?\b[^.\n]{{0,90}}\b(?:within|in|throughout|based\s+in)\s+(?:the\s+)?(?P<country>{_US_TEXT})\b",
     )
     for pattern in country_patterns:
         if re.search(pattern, text, re.IGNORECASE):
@@ -162,7 +198,16 @@ def analyze_explicit_location(content: str) -> ExplicitLocation:
 
 def _metadata_location(line: str) -> str:
     text = " ".join(str(line).split()).strip(" ,")
-    if not text or len(text) > 120 or any(mark in text for mark in (":", "$", "•", "|")):
+    if not text or len(text) > 120:
+        return ""
+
+    country_arrangement = _COUNTRY_ARRANGEMENT_LINE.fullmatch(text)
+    if country_arrangement:
+        return "United States"
+    if _US.fullmatch(text):
+        return "United States"
+
+    if any(mark in text for mark in (":", "$", "•", "|")):
         return ""
     if text.endswith((".", "!", "?")):
         return ""
