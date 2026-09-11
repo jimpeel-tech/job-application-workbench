@@ -8,7 +8,7 @@ from datetime import date
 from importlib.resources import files
 from typing import Any, Mapping
 
-from .expression_context import build_expression_catalog
+from .expression_context import build_expression_catalog, project_work_exp_entry
 
 
 @dataclass(frozen=True)
@@ -27,7 +27,7 @@ class GenerationContext:
     def from_mapping(cls, value: Mapping[str, Any], *, source: str) -> "GenerationContext":
         version = int(value.get("context_schema_version", value.get("schema_version", 2)))
         work_exp = tuple(
-            dict(item)
+            project_work_exp_entry(item)
             for item in value.get("work_exp", [])
             if isinstance(item, Mapping)
         )
