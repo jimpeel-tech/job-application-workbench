@@ -72,6 +72,47 @@ def project_job_ref(job: Mapping[str, Any] | Any) -> dict[str, Any]:
     return {field: projected[field] for field in _JOB_REF_FIELDS}
 
 
+def normalize_highlights(value: Any) -> list[str]:
+    """Project pasted highlight text into clean runtime list items."""
+    if value is None:
+        return []
+
+    if isinstance(value, str):
+        raw_lines = value.splitlines()
+    elif isinstance(value, (list, tuple)):
+        raw_lines = [
+            line
+            for item in value
+            for line in str(item).splitlines()
+        ]
+    else:
+        raw_lines = str(value).splitlines()
+
+    highlights: list[str] = []
+    for raw_line in raw_lines:
+        text = str(raw_line).strip()
+        if not text:
+            continue
+
+        parts = text.split(maxsplit=1)
+        marker = parts[0]
+        if marker and all(
+            unicodedata.category(char)[0] in {"P", "S"} for char in marker
+        ):
+            text = parts[1].lstrip() if len(parts) > 1 else ""
+
+        if text:
+            highlights.append(text)
+    return highlights
+
+
+def project_work_exp_entry(value: Mapping[str, Any] | Any) -> dict[str, Any]:
+    """Project one persisted work-history entry into the runtime object shape."""
+    projected = _plain_mapping(value)
+    projected["highlights"] = normalize_highlights(projected.get("highlights"))
+    return projected
+
+
 def build_cap_projection(user_state: Mapping[str, Any]) -> dict[str, Any]:
     """Return the lean capability snapshot Documents is allowed to consume.
 
@@ -150,7 +191,7 @@ def build_expression_catalog(
         "user": _plain_mapping(user_state.get("user", {})),
         "job_ref": project_job_ref(job),
         "work_exp": [
-            _plain_mapping(item)
+            project_work_exp_entry(item)
             for item in user_state.get("work_history", [])
             if isinstance(item, Mapping) and item.get("enabled", True)
         ],
@@ -271,7 +312,9 @@ __all__ = [
     "build_cap_projection",
     "build_expression_catalog",
     "build_expression_reference",
+    "normalize_highlights",
     "project_job_ref",
+    "project_work_exp_entry",
     "referenced_context",
     "slugify_reference",
 ]
