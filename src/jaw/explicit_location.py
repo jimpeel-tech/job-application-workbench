@@ -192,10 +192,23 @@ def _metadata_location(line: str) -> str:
 
 
 def _location_from_role_line(line: str) -> str:
-    value = _normalize_location_phrase(line)
+    text = " ".join(str(line).split()).strip()
+    role_location = re.search(
+        r"\b(?:role|position|job)\b[^.;]{0,45}\b"
+        r"(?:based\s+out\s+of|based\s+in|located\s+in|located\s+at|at)\s+"
+        r"(?P<location>[^.;]{2,100})",
+        text,
+        re.IGNORECASE,
+    )
+    if role_location:
+        value = _normalize_location_phrase(role_location.group("location"))
+        if value:
+            return value
+
+    value = _normalize_location_phrase(text)
     if value:
         return value
-    return "United States" if _US.search(line) else ""
+    return "United States" if _US.search(text) else ""
 
 
 def _normalize_location_phrase(value: str) -> str:
