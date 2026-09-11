@@ -32,7 +32,7 @@ _DEFAULT_SETTINGS: dict[str, Any] = {
     "visible_fields": list(SMART_CAPTURE_FIELD_KEYS),
     "show_empty_fields": False,
     "focus_mode": False,
-    "analysis_mode": "verify",
+    "analysis_mode": "parser",
     "ollama_model": DEFAULT_OLLAMA_CAPTURE_MODEL,
     "fill_missing": True,
     "report_disagreements": True,
@@ -124,7 +124,7 @@ def normalize_smart_capture_settings(raw: dict[str, Any] | None) -> dict[str, An
 
     mode = str(incoming.get("analysis_mode", settings["analysis_mode"])).strip().lower()
     settings["analysis_mode"] = (
-        mode if mode in {"parser", "verify", "ollama", "enhanced"} else "verify"
+        mode if mode in {"parser", "verify", "ollama", "enhanced"} else "parser"
     )
 
     model = str(incoming.get("ollama_model", settings["ollama_model"])).strip()
