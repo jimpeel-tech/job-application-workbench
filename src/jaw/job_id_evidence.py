@@ -23,10 +23,6 @@ _INLINE_ID = re.compile(
     re.IGNORECASE,
 )
 _STANDALONE_NUMERIC_ID = re.compile(r"(?m)^\s*(?P<value>\d{4,10})\s*$")
-_STANDALONE_BEFORE_DATE = re.compile(
-    r"(?m)^\s*(?P<value>\d{4,10})\s*\n\s*"
-    r"(?:\d{1,2}/\d{1,2}/\d{4})\s*$"
-)
 
 
 def analyze_job_id(content: str) -> JobIdEvidence:
@@ -51,15 +47,6 @@ def analyze_job_id(content: str) -> JobIdEvidence:
             evidence=_line_for_match(text, inline.start(), inline.end()),
             confidence=0.99,
             rule="inline_job_id",
-        )
-
-    before_date = _STANDALONE_BEFORE_DATE.search(text)
-    if before_date and not _looks_like_year(before_date.group("value")):
-        return JobIdEvidence(
-            value=before_date.group("value"),
-            evidence=_line_for_match(text, before_date.start(), before_date.end()),
-            confidence=0.98,
-            rule="standalone_job_id_before_posting_date",
         )
 
     standalone = [
