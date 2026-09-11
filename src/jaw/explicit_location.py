@@ -217,8 +217,14 @@ def analyze_explicit_location(content: str) -> ExplicitLocation:
 
     based_scope = _US_BASED_SCOPE.search(text)
     if based_scope:
-        tail = " ".join((based_scope.group("tail") or "").split()).casefold()
-        if re.search(r"\b(?:not\s+hiring\s+in|except(?:ion)?\s+(?:of\s+)?|excluding\s+)hawaii\b", tail):
+        line_end = text.find("\n", based_scope.end())
+        if line_end < 0:
+            line_end = len(text)
+        clause = " ".join(text[based_scope.start():line_end].split()).casefold()
+        if re.search(
+            r"\b(?:not\s+hiring\s+in|except(?:ion)?\s+(?:of\s+)?|excluding\s+)hawaii\b",
+            clause,
+        ):
             return ExplicitLocation("United States, excluding Hawaii", "us_based_exclusion")
         return ExplicitLocation("United States", "us_based_scope")
 
