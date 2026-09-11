@@ -22,6 +22,7 @@ from jinja2.sandbox import SandboxedEnvironment
 
 from ..config import DEFAULT_OPENAI_MODEL
 from ..documents.contracts import DocumentRenderError, DocumentRenderRequest
+from ..documents.expression_context import project_work_exp_entry
 from ..documents.function_runtime import FunctionRuntime, FunctionRuntimeError
 from ..documents.latex import escape_latex, latex_raw
 from ..documents.runtime_debug import build_runtime_debug_helpers
@@ -182,19 +183,25 @@ class DocumentWorkbenchRenderer:
         warning = ""
         if write_output:
             output_dir = self._output_directory(output_directory)
-            output_dir.mkdir(parents=True, exist_ok=True)
             target_path = output_dir / filename
             output_path = str(target_path.resolve())
             output_directory_value = str(output_dir.resolve())
-            output_written = True
             try:
-                target_path.write_bytes(result.pdf_bytes)
-            except OSError:
-                output_written = False
+                output_dir.mkdir(parents=True, exist_ok=True)
+            except OSError as error:
                 warning = (
-                    f"Preview updated, but {filename} could not be replaced. "
-                    "Close the file if another application has it open."
+                    "Preview updated, but the output directory could not be prepared: "
+                    f"{error}"
                 )
+            else:
+                try:
+                    target_path.write_bytes(result.pdf_bytes)
+                    output_written = True
+                except OSError:
+                    warning = (
+                        f"Preview updated, but {filename} could not be replaced. "
+                        "Close the file if another application has it open."
+                    )
         return {
             "filename": filename,
             "pdf_base64": base64.b64encode(result.pdf_bytes).decode("ascii"),
@@ -331,7 +338,9 @@ class DocumentWorkbenchRenderer:
         job_ref = dict(value.get("job_ref") or {})
         cap = dict(value.get("cap") or {})
         work_exp = [
-            dict(item) for item in value.get("work_exp", []) if isinstance(item, Mapping)
+            project_work_exp_entry(item)
+            for item in value.get("work_exp", [])
+            if isinstance(item, Mapping)
         ]
         today = date.today()
         system = dict(value.get("system") or {})
