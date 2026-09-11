@@ -47,7 +47,14 @@ system.current\_year & {{ system.current_year | latex }} \\
 \Section{Work experience}
 \begin{itemize}[leftmargin=18pt,itemsep=2pt,topsep=2pt]
 {% for item in work_exp %}
-  \item \textbf{ {{ item.title | latex }} } at {{ item.company | latex }}: {{ item.highlights | latex }}
+  \item \textbf{ {{ item.title | latex }} } at {{ item.company | latex }}
+  {% if item.highlights %}
+  \begin{itemize}[leftmargin=18pt,itemsep=1pt,topsep=1pt]
+  {% for highlight in item.highlights %}
+    \item {{ highlight | latex }}
+  {% endfor %}
+  \end{itemize}
+  {% endif %}
 {% endfor %}
 \end{itemize}
 
