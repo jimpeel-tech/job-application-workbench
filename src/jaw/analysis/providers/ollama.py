@@ -89,7 +89,7 @@ class OllamaAnalysisProvider:
 
         if not isinstance(payload, dict):
             raise RuntimeError("Ollama returned an invalid response object")
-        models = payload.get("models", [])
+        models = payload.get("models") or []
         return [
             str(item.get("name") or item.get("model") or "").strip()
             for item in models
