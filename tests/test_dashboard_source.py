@@ -15,6 +15,12 @@ def _dashboard_css_source() -> str:
     )
 
 
+def _site_shell_css_source() -> str:
+    return (Path(jaw.__file__).resolve().parent / "site_shell.css").read_text(
+        encoding="utf-8"
+    )
+
+
 def test_dashboard_source_uses_native_documents_mount():
     dashboard = _dashboard_source()
 
@@ -47,3 +53,14 @@ def test_capability_add_control_stays_on_one_line():
         "justify-content:center;gap:3px;white-space:nowrap;padding:6px 9px;"
         "font-size:12px}"
     ) in css
+
+
+def test_capability_dialog_checkboxes_keep_intrinsic_width():
+    css = _site_shell_css_source()
+
+    assert '.cap-dialog .cap-check input[type="checkbox"]{' in css
+    checkbox_rule = css.split(
+        '.cap-dialog .cap-check input[type="checkbox"]{', 1
+    )[1].split("}", 1)[0]
+    assert "width:auto;" in checkbox_rule
+    assert "flex:0 0 auto;" in checkbox_rule
